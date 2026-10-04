@@ -1,16 +1,16 @@
 from __future__ import annotations
 
 import math
-import sqlite3
 
-from app.config import DB_PATH
+from app.db import reference_candidates
+from app.observability import traced
 
 # Prototype similarity weights — not insurer-calibrated
 _SIMILARITY_WEIGHTS = {"square_footage": 0.30, "tiv": 0.30, "year_built": 0.20, "roof_age_years": 0.10, "prior_claims_count_5yr": 0.10}
 _SCALES = {"square_footage": 1_000_000, "tiv": 1_000_000_000, "year_built": 50, "roof_age_years": 30, "prior_claims_count_5yr": 5}
 _K_MIN, _K_MAX = 1, 20
 
-_SELECT_COLS = "property_id, address, city, state, construction_type, occupancy_type, cat_zone, year_built, roof_age_years, square_footage, tiv, prior_claims_count_5yr"
+_COLUMNS = ("property_id", "address", "city", "state", "construction_type", "occupancy_type", "cat_zone", "year_built", "roof_age_years", "square_footage", "tiv", "prior_claims_count_5yr")
 
 
 def _safe(value: object) -> float | None:
@@ -33,50 +33,26 @@ def _similarity_distance(target: dict, row: dict) -> float:
     return dist
 
 
+@traced("reference_properties", as_type="retriever")
 def comparable_lookup(features: dict, k: int = 5) -> list[dict]:
-    """Return reference properties from SQLite ranked by multi-attribute similarity.
+    """Return reference properties ranked by multi-attribute similarity.
 
     These are synthetic reference records, not verified market comparables.
     """
     k = max(_K_MIN, min(_K_MAX, k))
     target_id = features.get("property_id")
-    target_sqft = _safe(features.get("square_footage"))
 
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    try:
-        # Fetch candidates matching primary underwriting attributes (relaxed to avoid empty result)
-        candidates: list[sqlite3.Row] = []
-        for query, params in [
-            # Level 1: exact occupancy + construction + CAT match
-            (
-                f"SELECT {_SELECT_COLS} FROM properties WHERE construction_type = ? AND occupancy_type = ? AND cat_zone = ?{' AND property_id != ?' if target_id else ''} LIMIT 50",
-                (features.get("construction_type"), features.get("occupancy_type"), features.get("cat_zone")) + ((target_id,) if target_id else ()),
-            ),
-            # Level 2: occupancy + construction match (relax CAT)
-            (
-                f"SELECT {_SELECT_COLS} FROM properties WHERE construction_type = ? AND occupancy_type = ?{' AND property_id != ?' if target_id else ''} LIMIT 50",
-                (features.get("construction_type"), features.get("occupancy_type")) + ((target_id,) if target_id else ()),
-            ),
-            # Level 3: occupancy match only
-            (
-                f"SELECT {_SELECT_COLS} FROM properties WHERE occupancy_type = ?{' AND property_id != ?' if target_id else ''} LIMIT 50",
-                (features.get("occupancy_type"),) + ((target_id,) if target_id else ()),
-            ),
-        ]:
-            rows = conn.execute(query, params).fetchall()
-            if rows:
-                candidates = rows
-                break
+    candidates: list[dict] = []
+    for filters in (
+        {"construction_type": features.get("construction_type"), "occupancy_type": features.get("occupancy_type"), "cat_zone": features.get("cat_zone")},
+        {"construction_type": features.get("construction_type"), "occupancy_type": features.get("occupancy_type")},
+        {"occupancy_type": features.get("occupancy_type")},
+    ):
+        candidates = reference_candidates(filters, target_id)
+        if candidates:
+            break
+    if not candidates:
+        return []
 
-        if not candidates:
-            return []
-
-        # Rank in Python using weighted multi-attribute similarity
-        ranked = sorted(
-            (dict(row) for row in candidates),
-            key=lambda row: (_similarity_distance(features, row), row.get("property_id", "")),
-        )
-        return ranked[:k]
-    finally:
-        conn.close()
+    ranked = sorted(candidates, key=lambda row: (_similarity_distance(features, row), row.get("property_id", "")))
+    return [{column: row.get(column) for column in _COLUMNS} for row in ranked[:k]]

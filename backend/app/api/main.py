@@ -5,11 +5,13 @@ import math
 from typing import Any
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 
 from app.config import DB_PATH
-from app.db import fetch_history, fetch_submission_detail, init_db, save_submission, seed_demo_database
+from app.db import fetch_history, fetch_submission_detail, init_db, record_review, save_submission, seed_demo_database
+from app.observability import flush
 from app.schemas import decision_from_score, indicative_product_segment
 from app.reports import build_submission_pdf
 
@@ -215,9 +217,9 @@ async def submit_underwriting(
     result["ai_memo_status"] = result.get("ai_memo_status") or ("Available" if result.get("memo_json") else "Unavailable")
     result["ai_memo_reason"] = result.get("memo_error") if result["ai_memo_status"] != "Available" else ""
     result["memo_json"] = result.get("memo_json", {})
-    print(f"FINAL_EXTRACTED_FEATURE_KEYS={sorted(result.get('extracted_features', {}).keys())}")
     saved = save_submission(result)
     result["id"] = saved.get("id")
+    flush()
     return result
 
 
@@ -289,6 +291,36 @@ async def preview_underwriting(request: Request) -> dict[str, Any]:
         "positive_factors": model["positive_factors"],
         "risk_profile": model["risk_profile"],
     }
+
+
+class Review(BaseModel):
+    final_decision: str
+    reviewer: str
+    note: str = ""
+
+
+@app.post("/underwrite/history/{submission_id}/review")
+def review_submission(submission_id: int, review: Review) -> dict[str, Any]:
+    """Resume a paused referral with the underwriter's decision (LangGraph human-in-the-loop)."""
+    from app.agents.graph import REVIEW_DECISIONS, resume_review
+
+    detail = fetch_submission_detail(submission_id)
+    if detail is None:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    if detail.get("review_status") != "pending_review":
+        raise HTTPException(status_code=409, detail="This submission is not awaiting review")
+    if review.final_decision not in REVIEW_DECISIONS:
+        raise HTTPException(status_code=422, detail=f"final_decision must be one of {', '.join(REVIEW_DECISIONS)}")
+    if review.final_decision != detail["decision"] and not review.note.strip():
+        raise HTTPException(status_code=422, detail="An override needs a note explaining why")
+    status = "overridden" if review.final_decision != detail["decision"] else "approved"
+    try:
+        resume_review(detail["thread_id"], review.final_decision, review.reviewer, review.note)
+    except Exception as exc:
+        print(f"[review] {submission_id} graph resume unavailable: {type(exc).__name__}: {exc}")
+    record_review(submission_id, review.final_decision, review.reviewer, review.note, status)
+    flush()
+    return fetch_submission_detail(submission_id) or {}
 
 
 @app.get("/underwrite/history")

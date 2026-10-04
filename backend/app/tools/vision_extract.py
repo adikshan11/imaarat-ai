@@ -5,11 +5,13 @@ import mimetypes
 from pathlib import Path
 from typing import Any
 
-from google import genai
 from google.genai import types
 from PIL import Image, UnidentifiedImageError
 
-from app.config import GEMINI_API_KEY, GEMINI_MODEL_NAME, GEMINI_TIMEOUT_MS
+from app import llm
+from app.config import GEMINI_API_KEY
+from app.observability import traced
+from app.schemas import VisionObservations
 
 # Keys Vision is permitted to contribute; manual submission fields cannot be overwritten
 _VISION_KEYS = frozenset({
@@ -34,6 +36,7 @@ def _evidence_usable(extracted: dict) -> bool:
     return False
 
 
+@traced("vision", as_type="tool")
 def extract_property_features(image_path: str | None, manual_fields: dict) -> dict:
     """Extract risk-relevant property features from an image and merge with manual fields."""
     prop_id = manual_fields.get("property_id", "unknown")
@@ -70,12 +73,6 @@ def extract_property_features(image_path: str | None, manual_fields: dict) -> di
     if not GEMINI_API_KEY:
         return {**manual_fields, "image_status": "Unavailable", "image_reason": "GEMINI_API_KEY is not set", "image_risk_evidence_used": False}
 
-    try:
-        client = genai.Client(api_key=GEMINI_API_KEY, http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS))
-    except Exception as e:
-        print(f"[vision_extract] {prop_id} client_init_failed error={type(e).__name__}")
-        return {**manual_fields, "image_status": "Unavailable", "image_reason": f"Vision client initialization failed: {type(e).__name__}", "image_risk_evidence_used": False}
-
     prompt = (
         "You are a commercial-property inspection evidence extractor.\n\n"
         "TASK:\n"
@@ -105,11 +102,7 @@ def extract_property_features(image_path: str | None, manual_fields: dict) -> di
         with open(path, "rb") as f:
             image_bytes = f.read()
         image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
-        response = client.models.generate_content(
-            model=GEMINI_MODEL_NAME,
-            contents=[prompt, image_part],
-        )
-        text = getattr(response, "text", None) or str(response)
+        text = llm.generate("vision", [prompt, image_part], schema=VisionObservations)["text"]
         cleaned = text.strip().removeprefix("```json").removesuffix("```").strip()
         if cleaned.startswith("```"):
             cleaned = cleaned.strip("`\n ")

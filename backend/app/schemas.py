@@ -78,6 +78,26 @@ class PropertySubmission(BaseModel):
     submission_date: str
 
 
+class UnderwritingMemo(BaseModel):
+    property_summary: list[str] = Field(description="Grounded facts about the property, from the supplied evidence only")
+    key_risk_factors: list[str] = Field(description="One line per deterministic risk flag, naming the flag")
+    coverage_review: list[str] = Field(description="Review points for the requested coverage extensions only")
+    decision: str = Field(description="Exactly the deterministic decision")
+    rationale: str = Field(description="Why the evidence supports the deterministic decision")
+    suggested_next_steps: list[str] = Field(description="Actionable underwriting follow-ups")
+    guideline_citations: list[str] = Field(description="IDs of the underwriting guidance sections relied on, such as G2; empty when no guidance was supplied")
+
+
+class VisionObservations(BaseModel):
+    image_status: Literal["usable", "unusable"]
+    image_reason: str
+    visible_roof_condition: str = Field(description="'not visible' when the image does not show it")
+    visible_structural_damage: str
+    vegetation_defensible_space: str
+    general_maintenance_level: str
+    visible_hazards: str
+
+
 def decision_from_score(score: int) -> str:
     if 0 <= score <= 30:
         return "Accept"

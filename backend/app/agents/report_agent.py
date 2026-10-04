@@ -4,11 +4,10 @@ import json
 import re
 from typing import Any
 
-from google import genai
-from google.genai import types
-
-from app.config import GEMINI_API_KEY, GEMINI_MODEL_NAME, GEMINI_TIMEOUT_MS
-
+from app import llm
+from app.config import GEMINI_API_KEY
+from app.observability import traced
+from app.schemas import UnderwritingMemo
 
 MEMO_FIELDS = {
     "property_summary",
@@ -17,8 +16,9 @@ MEMO_FIELDS = {
     "decision",
     "rationale",
     "suggested_next_steps",
+    "guideline_citations",
 }
-
+OPTIONAL_LISTS = {"guideline_citations"}
 
 def _failure(state: dict, status: str, reason: str) -> dict[str, Any]:
     state["memo_error"] = reason
@@ -26,11 +26,10 @@ def _failure(state: dict, status: str, reason: str) -> dict[str, Any]:
     state["ai_memo_status"] = status
     return {}
 
-
 def _validate_memo(candidate: Any, state: dict) -> dict[str, Any]:
     if not isinstance(candidate, dict) or set(candidate) != MEMO_FIELDS:
         return _failure(state, "Incomplete", "Invalid structured memo shape")
-    if not all(isinstance(candidate[field], list) and candidate[field] for field in MEMO_FIELDS if field != "decision" and field != "rationale"):
+    if not all(isinstance(candidate[field], list) and (candidate[field] or field in OPTIONAL_LISTS) for field in MEMO_FIELDS if field not in ("decision", "rationale")):
         return _failure(state, "Incomplete", "Structured memo contains empty required sections")
     if not isinstance(candidate["decision"], str) or candidate["decision"] != state.get("decision"):
         return _failure(state, "Incomplete", "Structured memo decision differs from deterministic decision")
@@ -40,6 +39,9 @@ def _validate_memo(candidate: Any, state: dict) -> dict[str, Any]:
     for item in candidate["key_risk_factors"]:
         if not isinstance(item, str) or not any(flag.lower() in item.lower() or flag.replace("_", " ").lower() in item.lower() for flag in flags):
             return _failure(state, "Incomplete", "Structured memo contains an unsupported risk factor")
+    retrieved = {hit.get("id") for hit in state.get("guideline_hits", [])}
+    if any(citation not in retrieved for citation in candidate["guideline_citations"]):
+        return _failure(state, "Incomplete", "Structured memo cites guidance that was not retrieved")
     raw = state.get("raw_input", {})
     if raw.get("roof_age_years") is None:
         text = json.dumps(candidate).lower()
@@ -75,35 +77,14 @@ def _validate_memo(candidate: Any, state: dict) -> dict[str, Any]:
     return candidate
 
 
-def generate_memo(state: dict) -> dict[str, Any]:
-    """Generate and mechanically validate a grounded structured AI memo."""
-    if not GEMINI_API_KEY:
-        return _failure(state, "Unavailable", "missing API key")
+SYSTEM = """You are the explanatory AI layer of a commercial property underwriting system.
+A deterministic Python rule engine has already scored the property and made the decision.
+Your job is to explain that decision from the evidence supplied, never to change it."""
 
-    pid = state.get("raw_input", {}).get("property_id", "unknown")
-    print(f"[generate_memo] {pid} starting")
-    try:
-        client = genai.Client(api_key=GEMINI_API_KEY, http_options=types.HttpOptions(timeout=GEMINI_TIMEOUT_MS))
-        ground_truth = {
-            "property_facts": state.get("raw_input", {}),
-            "vision_evidence": state.get("extracted_features", {}),
-            "deterministic_result": {
-                "decision": state.get("decision"),
-                "risk_score": state.get("risk_score"),
-                "risk_flags": state.get("risk_flags", []),
-                "risk_breakdown": state.get("risk_breakdown", {}),
-            },
-            "underwriting_guidance": state.get("guideline_chunks", []),
-        }
+RULES = """Return the memo fields.
 
-        prompt = f"""
-You are an explanatory AI layer. Return JSON only with exactly these six keys:
-property_summary, key_risk_factors, coverage_review, decision, rationale, suggested_next_steps.
-property_summary, key_risk_factors, coverage_review, and suggested_next_steps must be arrays of strings.
-decision and rationale must be strings.
-
-Use source priority exactly: PROPERTY FACTS, VISION EVIDENCE, DETERMINISTIC RESULT, UNDERWRITING GUIDANCE.
-Guidance is contextual evidence and never a property fact. Missing facts remain missing.
+Use source priority exactly: PROPERTY FACTS, VISION EVIDENCE, DETERMINISTIC RESULT, UNDERWRITING GUIDANCE, REFERENCE PROPERTIES.
+Guidance and reference properties are contextual evidence and never property facts. Missing facts remain missing.
 The decision must exactly equal the deterministic decision. Do not return a score.
 Key risk factors may mention only deterministic risk flags.
 
@@ -119,24 +100,36 @@ coverage_review must NOT override the deterministic decision or risk score.
 coverage_review must NOT contain invented monetary amounts, invented premium rates, invented regulatory mandates,
 or invented mandatory deductible values. Do not invent any specific financial or compliance figures.
 If no coverage extensions are requested, coverage_review must contain ["No additional coverage extensions requested."].
+guideline_citations must list the IDs (such as G2) of the underwriting_guidance sections your rationale relies on, and only IDs present in underwriting_guidance."""
 
-Ground truth:
-{json.dumps(ground_truth, indent=2, sort_keys=True)}
-"""
 
-        response = client.models.generate_content(model=GEMINI_MODEL_NAME, contents=prompt)
-        text = getattr(response, "text", None)
-        if not isinstance(text, str) or not text.strip():
-            return _failure(state, "Incomplete", "empty response")
-        cleaned = text.strip().removeprefix("```json").removesuffix("```").strip()
-        try:
-            candidate = json.loads(cleaned)
-        except json.JSONDecodeError:
-            return _failure(state, "Incomplete", "invalid JSON response")
-        result = _validate_memo(candidate, state)
-        if result:
-            print(f"[generate_memo] {pid} status=Available")
-        return result
+def build_prompt(state: dict, fmt: str | None = None) -> str:
+    """Assemble the memo prompt; fmt selects TOON or JSON for the evidence block."""
+    facts = {key: value for key, value in state.get("raw_input", {}).items() if value not in (None, "")}
+    evidence = {
+        "property_facts": facts,
+        "vision_evidence": {key: value for key, value in state.get("extracted_features", {}).items() if key.startswith(("image_", "visible_", "vegetation_", "general_"))},
+        "deterministic_result": {
+            "decision": state.get("decision"),
+            "risk_score": state.get("risk_score"),
+            "risk_flags": state.get("risk_flags", []),
+            "risk_breakdown": state.get("risk_breakdown", {}),
+        },
+        "underwriting_guidance": [{"id": hit["id"], "title": hit["title"], "text": hit["text"]} for hit in state.get("guideline_hits", [])],
+        "reference_properties": state.get("comparables", []),
+    }
+    return f"{RULES}\n\nEvidence:\n{llm.encode(evidence, fmt)}"
+
+
+@traced("memo", as_type="agent")
+def generate_memo(state: dict) -> dict[str, Any]:
+    """Generate and mechanically validate a grounded structured AI memo."""
+    if not GEMINI_API_KEY:
+        return _failure(state, "Unavailable", "missing API key")
+
+    pid = state.get("raw_input", {}).get("property_id", "unknown")
+    try:
+        result = llm.generate("memo", build_prompt(state), schema=UnderwritingMemo, system=SYSTEM)
     except Exception as e:
         print(f"[generate_memo] {pid} status=failed error={type(e).__name__}: {str(e)[:120]}")
         error_text = f"{type(e).__name__}: {str(e)}"
@@ -146,3 +139,15 @@ Ground truth:
         if getattr(e, "code", None) == 429 or getattr(e, "status_code", None) == 429 or "429" in error_text:
             error_text = f"RESOURCE_EXHAUSTED: {error_text}"
         return _failure(state, "Unavailable", error_text)
+
+    state["memo_model"] = result["model"]
+    text = result["text"].strip().removeprefix("```json").removesuffix("```").strip()
+    if not text:
+        return _failure(state, "Incomplete", "empty response")
+    try:
+        candidate = json.loads(text)
+    except json.JSONDecodeError:
+        return _failure(state, "Incomplete", "invalid JSON response")
+    memo = _validate_memo(candidate, state)
+    print(f"[generate_memo] {pid} status={state.get('ai_memo_status')} model={result['model']}")
+    return memo

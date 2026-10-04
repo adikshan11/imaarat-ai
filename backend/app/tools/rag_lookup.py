@@ -1,69 +1,57 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import math
+import re
 
-from google import genai
-
-from app.config import (
-    GEMINI_API_KEY,
-    GEMINI_EMBEDDING_MODEL_NAME,
-    GUIDELINES_PDF,
-    QDRANT_API_KEY,
-    QDRANT_COLLECTION,
-    QDRANT_URL,
-    VECTORSTORE_DIR,
-)
+from app import llm
+from app.config import GEMINI_API_KEY, GUIDELINES_MD, QDRANT_API_KEY, QDRANT_COLLECTION, QDRANT_URL, VECTORSTORE_DIR
+from app.observability import traced
 
 _K_MIN, _K_MAX = 1, 10
 INDEX_PATH = VECTORSTORE_DIR / "underwriting_guidelines.json"
 
 
-def chunk_text(text: str, size: int = 420) -> list[str]:
-    chunks, current = [], []
-    for word in text.split():
-        current.append(word)
-        if len(" ".join(current)) >= size:
-            chunks.append(" ".join(current))
-            current = []
-    if current:
-        chunks.append(" ".join(current))
-    return chunks
+def guideline_sections() -> list[dict]:
+    """Split the guidelines into one retrievable chunk per section: {id, title, text}."""
+    text = GUIDELINES_MD.read_text(encoding="utf-8")
+    sections = []
+    for match in re.finditer(r"^## (G\d+)\. (.+?)\n+(.+?)(?=\n## |\Z)", text, flags=re.MULTILINE | re.DOTALL):
+        section_id, title, body = match.groups()
+        sections.append({"id": section_id, "title": title.strip(), "text": " ".join(body.split())})
+    return sections
 
 
-def embed(genai_client, text: str, task_type: str) -> list[float]:
-    response = genai_client.models.embed_content(
-        model=GEMINI_EMBEDDING_MODEL_NAME,
-        contents=[text],
-        config={"task_type": task_type},
-    )
-    return list(response.embeddings[0].values)
+def corpus_hash(sections: list[dict]) -> str:
+    return hashlib.sha256(json.dumps(sections, sort_keys=True).encode()).hexdigest()[:16]
 
 
-def guideline_chunks() -> list[str]:
-    from pypdf import PdfReader
-
-    return chunk_text("\n".join(page.extract_text() or "" for page in PdfReader(str(GUIDELINES_PDF)).pages))
+def section_document(section: dict) -> str:
+    return f"{section['title']}. {section['text']}"
 
 
-def qdrant_search(genai_client, query_vector: list[float], k: int) -> list[str]:
-    """Search the Qdrant Cloud collection, embedding the guidelines PDF into it on first use."""
+def qdrant_search(query_vector: list[float], k: int) -> list[dict]:
+    """Search Qdrant Cloud, (re)indexing the guidelines when the collection is missing or stale."""
     from qdrant_client import QdrantClient
     from qdrant_client.models import Distance, PointStruct, VectorParams
 
     client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY, timeout=30)
-    if not client.collection_exists(QDRANT_COLLECTION) or client.count(QDRANT_COLLECTION).count == 0:
-        chunks = guideline_chunks()
-        vectors = [embed(genai_client, chunk, "RETRIEVAL_DOCUMENT") for chunk in chunks]
-        if not client.collection_exists(QDRANT_COLLECTION):
-            client.create_collection(QDRANT_COLLECTION, vectors_config=VectorParams(size=len(vectors[0]), distance=Distance.COSINE))
+    sections = guideline_sections()
+    version = corpus_hash(sections)
+    current = client.collection_exists(QDRANT_COLLECTION) and client.scroll(QDRANT_COLLECTION, limit=1, with_payload=True)[0]
+    if not current or current[0].payload.get("version") != version:
+        vectors = llm.embed([section_document(section) for section in sections], "RETRIEVAL_DOCUMENT")
+        if client.collection_exists(QDRANT_COLLECTION):
+            client.delete_collection(QDRANT_COLLECTION)
+        client.create_collection(QDRANT_COLLECTION, vectors_config=VectorParams(size=len(vectors[0]), distance=Distance.COSINE))
         client.upsert(
             QDRANT_COLLECTION,
-            points=[PointStruct(id=i, vector=vector, payload={"chunk": chunk}) for i, (chunk, vector) in enumerate(zip(chunks, vectors))],
+            points=[PointStruct(id=i, vector=vector, payload={**section, "version": version}) for i, (section, vector) in enumerate(zip(sections, vectors))],
         )
-        print(f"[rag_lookup] indexed {len(chunks)} guideline chunks into Qdrant")
+        print(f"[rag_lookup] indexed {len(sections)} guideline sections into Qdrant (version {version})")
     hits = client.query_points(QDRANT_COLLECTION, query=query_vector, limit=k, with_payload=True).points
-    return [str(hit.payload["chunk"]) for hit in hits]
+    return [{"id": hit.payload["id"], "title": hit.payload["title"], "text": hit.payload["text"], "score": round(hit.score, 4)} for hit in hits]
 
 
 def cosine(left: list[float], right: list[float]) -> float:
@@ -72,37 +60,39 @@ def cosine(left: list[float], right: list[float]) -> float:
     return dot / norms if norms else 0.0
 
 
-def local_search(genai_client, query_vector: list[float], k: int) -> list[str]:
+def local_search(query_vector: list[float], k: int) -> list[dict]:
     """Fallback when Qdrant is not configured: a JSON vector index on local disk."""
-    if INDEX_PATH.exists():
-        index = json.loads(INDEX_PATH.read_text(encoding="utf-8"))
-    else:
-        index = [{"chunk": chunk, "vector": embed(genai_client, chunk, "RETRIEVAL_DOCUMENT")} for chunk in guideline_chunks()]
+    sections = guideline_sections()
+    version = corpus_hash(sections)
+    index = json.loads(INDEX_PATH.read_text(encoding="utf-8")) if INDEX_PATH.exists() else {}
+    if index.get("version") != version:
+        vectors = llm.embed([section_document(section) for section in sections], "RETRIEVAL_DOCUMENT")
+        index = {"version": version, "items": [{**section, "vector": vector} for section, vector in zip(sections, vectors)]}
         INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
         INDEX_PATH.write_text(json.dumps(index), encoding="utf-8")
-    ranked = sorted(index, key=lambda item: cosine(query_vector, item["vector"]), reverse=True)
-    return [item["chunk"] for item in ranked[:k]]
+    ranked = sorted(index["items"], key=lambda item: cosine(query_vector, item["vector"]), reverse=True)
+    return [{"id": item["id"], "title": item["title"], "text": item["text"], "score": round(cosine(query_vector, item["vector"]), 4)} for item in ranked[:k]]
 
 
-def rag_lookup(query: str, k: int = 4) -> list[str]:
-    """Return the underwriting guideline chunks closest to the query.
+@traced("rag_retrieval", as_type="retriever")
+def retrieve(query: str, k: int = 4) -> list[dict]:
+    """Return the guideline sections closest to the query, best first.
 
-    Returns retrieved chunks on success, [] when no relevant evidence is found,
-    or [] with a logged failure reason when retrieval is unavailable.
+    Returns [] with a logged reason when retrieval is unavailable.
     """
     k = max(_K_MIN, min(_K_MAX, k))
-
     if not GEMINI_API_KEY:
         print("[rag_lookup] status=unavailable reason=missing_api_key")
         return []
-
     try:
-        genai_client = genai.Client(api_key=GEMINI_API_KEY)
-        query_vector = embed(genai_client, query, "RETRIEVAL_QUERY")
-        store = "qdrant" if QDRANT_URL else "local"
-        chunks = qdrant_search(genai_client, query_vector, k) if QDRANT_URL else local_search(genai_client, query_vector, k)
-        print(f"[rag_lookup] status=available store={store} chunks={len(chunks)}")
-        return chunks
+        query_vector = llm.embed([query], "RETRIEVAL_QUERY")[0]
+        hits = qdrant_search(query_vector, k) if QDRANT_URL else local_search(query_vector, k)
+        print(f"[rag_lookup] status=available store={'qdrant' if QDRANT_URL else 'local'} hits={[hit['id'] for hit in hits]}")
+        return hits
     except Exception as e:
-        print(f"[rag_lookup] status=unavailable reason=retrieval_failed error={type(e).__name__}: {str(e)[:80]}")
+        print(f"[rag_lookup] status=unavailable reason=retrieval_failed error={type(e).__name__}: {str(e)[:120]}")
         return []
+
+
+def format_hit(hit: dict) -> str:
+    return f"[{hit['id']}] {hit['title']}: {hit['text']}"

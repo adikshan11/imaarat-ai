@@ -19,8 +19,11 @@ VECTORSTORE_DIR = WRITABLE_DIR / "vectorstore"
 DB_PATH = DB_DIR / "uw_risk.db"
 PROPERTIES_CSV = RAW_DIR / "properties.csv"
 GUIDELINES_PDF = RAW_DIR / "underwriting_guidelines.pdf"
+GUIDELINES_MD = RAW_DIR / "underwriting_guidelines.md"
 
-GEMINI_MODEL_NAME = "models/gemini-3-flash-preview"
+GEMINI_MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+GEMINI_FALLBACK_MODEL = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.5-flash-lite")
+PROMPT_FORMAT = os.getenv("PROMPT_FORMAT", "toon")
 GEMINI_EMBEDDING_MODEL_NAME = "models/gemini-embedding-001"
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 QDRANT_URL = os.getenv("QDRANT_URL", "")

@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+import app.llm as llm
 import app.tools.vision_extract as vision_module
 from app.tools.vision_extract import extract_property_features
 
@@ -91,7 +92,7 @@ def _patched_client(response_text: str, monkeypatch, tmp_path):
     mock_client = MagicMock()
     mock_client.models.generate_content.return_value = mock_response
     monkeypatch.setattr(vision_module, "GEMINI_API_KEY", "test-key")
-    monkeypatch.setattr(vision_module.genai, "Client", lambda api_key, **kwargs: mock_client)
+    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: mock_client)
     return _make_real_image(tmp_path)
 
 
