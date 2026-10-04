@@ -2,6 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.4.0] - 2026-10-04
+
+### Added
+- A logo mark built on इ, the first letter of इमारत, and a wordmark that cycles through Imaarat, इमारत and ইমারত (still when reduced motion is on).
+- Icon buttons for language, appearance and developer mode, with the current language shown in its own script and a language picker dialog.
+- A phone layout with a top bar and a bottom tab bar, and numeric keypads for PIN codes and amounts.
+
+### Changed
+- Calmer dark theme with near-solid surfaces and lighter blur; the desktop sidebar now always spans the full height.
+
 ## [2.3.0] - 2026-10-04
 
 ### Added

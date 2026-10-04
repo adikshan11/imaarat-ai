@@ -290,7 +290,7 @@ export default function NewAssessment({ onCompleted, onCancel }: { onCompleted: 
   const Field = ({ name, type = 'text', optional = false, hint, required: fieldRequired }: { name: keyof FormState; type?: string; optional?: boolean; hint?: string; required?: boolean }) => (
     <label>
       <span className="field-label-text">{t(`f.${name}`)}{optional ? ` ${t('f.optional')}` : ''}</span>
-      <input type={type} value={String(form[name])} onChange={(event) => update(name, event.target.value)} required={fieldRequired ?? !optional} />
+      <input type={type} inputMode={name === 'zip' ? 'numeric' : type === 'number' ? 'decimal' : undefined} value={String(form[name])} onChange={(event) => update(name, event.target.value)} required={fieldRequired ?? !optional} />
       {hint && <span className="field-hint">{hint}</span>}
     </label>
   )
