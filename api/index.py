@@ -8,5 +8,5 @@ from fastapi import FastAPI
 from app.api.main import app as backend
 from app.api.main import lifespan
 
-app = FastAPI(title="Imaarat", lifespan=lifespan)
+app = FastAPI(title="imaarat.ai", lifespan=lifespan)
 app.mount("/api", backend)

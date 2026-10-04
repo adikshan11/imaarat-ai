@@ -1,4 +1,4 @@
-# Imaarat
+# imaarat.ai
 
 **Imaarat** (Hindi/Urdu for "building") is AI-assisted underwriting for Indian commercial property. An underwriter enters a property and sees a live risk preview while typing. The system returns a decision backed by evidence: Gemini Vision observations from the property photo, guideline sections retrieved by RAG and cited in the memo, similar reference properties, and a validated AI memo. Referrals pause for an underwriter to approve or override. Every assessment feeds a nightly, tested analytics pipeline.
 
@@ -10,7 +10,7 @@ What it adds for India specifically:
 
 Built by **Pranjal Jain, Adithya Shankaran and Sanjeev Sharma** as the capstone of Xebia's Quantum Shift AI Practitioner+ program (August 2026). Adithya extended it into this production-style version: evals, observability, MCP and A2A, human review, Postgres and the dbt pipeline.
 
-**Live app:** [uw-risk-assessment.vercel.app](https://uw-risk-assessment.vercel.app) · **AI quality:** [evals page](https://uw-risk-assessment.vercel.app/#quality) · **dbt docs and lineage:** [GitHub Pages](https://adikshan11.github.io/uw-risk-assessment/) · **MCP:** `https://uw-risk-assessment.vercel.app/api/mcp/` · **A2A card:** [agent-card.json](https://uw-risk-assessment.vercel.app/api/.well-known/agent-card.json)
+**Live app:** [imaarat-ai.vercel.app](https://imaarat-ai.vercel.app) · **AI quality:** [evals page](https://imaarat-ai.vercel.app/#quality) · **dbt docs and lineage:** [GitHub Pages](https://adikshan11.github.io/uw-risk-assessment/) · **MCP:** `https://imaarat-ai.vercel.app/api/mcp/` · **A2A card:** [agent-card.json](https://imaarat-ai.vercel.app/api/.well-known/agent-card.json)
 
 ## The rule that shapes everything
 
