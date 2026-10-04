@@ -124,7 +124,7 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
               <td><strong>{item.risk_score}</strong></td>
               <td>{item.prototype_mitigation_model?.risk_adjusted_view ?? '—'}</td>
               <td><span className={`decision-pill decision-${item.final_decision ?? item.decision}`}>{label('decision', item.final_decision ?? item.decision)}</span>{item.review_status === 'pending_review' && <div className="muted-text">{t('table.awaiting')}</div>}{item.review_status === 'overridden' && <div className="muted-text">{t('table.overridden', { decision: label('decision', item.decision) })}</div>}</td>
-              <td><div className="flag-chip-list">{item.risk_flags.length ? item.risk_flags.map((flag) => <span className="flag-chip" key={flag}>{label('flag', flag)}</span>) : <span className="muted-text">{t('table.none')}</span>}</div></td>
+              <td><div className="flag-chip-list">{item.risk_flags.length ? <>{item.risk_flags.slice(0, 2).map((flag) => <span className="flag-chip" key={flag} title={label('flag', flag)}>{label('flag', flag)}</span>)}{item.risk_flags.length > 2 && <span className="flag-chip flag-chip-more" title={item.risk_flags.slice(2).map((flag) => label('flag', flag)).join(', ')}>+{item.risk_flags.length - 2}</span>}</> : <span className="muted-text">{t('table.none')}</span>}</div></td>
               <td><button className="btn btn-secondary" onClick={() => onView(item)}>{t('table.view')}</button></td>
             </tr>)}</tbody>
           </table>

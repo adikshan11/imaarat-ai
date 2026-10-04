@@ -2,6 +2,15 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.6.0] - 2026-10-04
+
+### Changed
+- Renamed the product to imaarat.ai, now served at imaarat-ai.vercel.app (the old address still works).
+- Layout fixes for every screen size: the sidebar stays full height while scrolling, headline figures sit in an even 4 or 2 column grid, content is centred on wide screens, buttons no longer wrap, and the assessments table shows two flags plus a count instead of overflowing.
+
+### Added
+- A "Made with love by Adithya Shankaran" signature.
+
 ## [2.5.0] - 2026-10-04
 
 ### Added

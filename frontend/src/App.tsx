@@ -58,6 +58,7 @@ function Application() {
         {view === 'result' && selectedSubmission && <BackendAssessmentResult submission={selectedSubmission} onBack={() => setView('dashboard')} onReviewed={applyReview} />}
         {view === 'quality' && <AIQuality />}
         {view === 'integrations' && <Integrations />}
+        <footer className="site-footer">Made with <span className="heart" aria-label="love">♥</span> by <a href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> · © 2026 imaarat.ai</footer>
       </main>
     </div>
   )

@@ -129,7 +129,7 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html, body { width: 100%; overflow-x: hidden; }
+html, body { width: 100%; overflow-x: clip; }
 
 body {
   margin: 0;

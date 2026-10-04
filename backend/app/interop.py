@@ -63,7 +63,7 @@ def assessment_summary(detail: dict[str, Any]) -> dict[str, Any]:
 
 mcp = MCPServer(
     name="imaarat",
-    title="Imaarat: Indian property underwriting",
+    title="imaarat.ai: Indian property underwriting",
     instructions="Commercial property underwriting tools. The deterministic Python engine owns every decision; use assess_property for a score and decision, and search_guidelines for the underwriting guidance behind it.",
 )
 
@@ -165,7 +165,7 @@ class UnderwritingAgentExecutor(AgentExecutor):
 
 def agent_card() -> AgentCard:
     return AgentCard(
-        name="Imaarat",
+        name="imaarat.ai",
         description="Commercial property underwriting agent for Indian properties: deterministic risk scoring, Gemini Vision and RAG evidence, and a validated AI memo.",
         version="1.0.0",
         supported_interfaces=[AgentInterface(url=f"{public_base_url()}/a2a", protocol_binding="JSONRPC", protocol_version="1.0")],

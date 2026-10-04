@@ -1,7 +1,7 @@
 import { useEffect, useId, useState } from 'react'
 
 const NAMES = [
-  { text: 'Imaarat', lang: 'en' },
+  { text: 'imaarat.ai', lang: 'en' },
   { text: 'इमारत', lang: 'hi' },
   { text: 'ইমারত', lang: 'bn' },
 ]
@@ -36,7 +36,7 @@ export default function Brand({ sub }: { sub: string }) {
     <div className="brand">
       <BrandMark />
       <div className="brand-text">
-        <div className="brand-title" aria-label="Imaarat">
+        <div className="brand-title" aria-label="imaarat.ai">
           {NAMES.map((name, position) => (
             <span key={name.lang} lang={name.lang} aria-hidden="true" className={position === index ? 'brand-word is-active' : 'brand-word'}>{name.text}</span>
           ))}
