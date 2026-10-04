@@ -13,6 +13,7 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
   const items = [
     { view: 'dashboard', icon: 'grid', text: t('nav.dashboard') },
     { view: 'new', icon: 'plus', text: t('nav.new') },
+    { view: 'paper', icon: 'file', text: t('nav.paper') },
     ...(dev ? [
       { view: 'quality', icon: 'gauge', text: t('nav.quality') },
       { view: 'integrations', icon: 'plug', text: t('nav.integrations') },

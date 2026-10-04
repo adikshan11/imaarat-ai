@@ -2,6 +2,12 @@
 
 **Imaarat** (Hindi/Urdu for "building") is AI-assisted underwriting for Indian commercial property. An underwriter enters a property and sees a live risk preview while typing. The system returns a decision backed by evidence: Gemini Vision observations from the property photo, guideline sections retrieved by RAG and cited in the memo, similar reference properties, and a validated AI memo. Referrals pause for an underwriter to approve or override. Every assessment feeds a nightly, tested analytics pipeline.
 
+What it adds for India specifically:
+
+- **Location hazard check.** Every PIN code (19,312 of them) is mapped to its district, its IS 1893 seismic zone, the share of its area flooded in 1998–2022 satellite records and the IMD cyclone grade of its district, all from open government data. A proposal that understates its seismic zone is scored at the official zone and flagged.
+- **Paper proposals.** A printable two-page form in the chosen language, filled by hand. Only the property page is photographed; the AI reads it, and a person confirms the PIN code, year and amounts before anything is assessed.
+- **26 languages.** English, the 22 Eighth Schedule languages, Bhojpuri, Chhattisgarhi and Tulu, with each script's font and right-to-left layout for Urdu, Sindhi and Kashmiri. Translations are machine-made and labelled as such.
+
 Built by **Pranjal Jain, Adithya Shankaran and Sanjeev Sharma** as the capstone of Xebia's Quantum Shift AI Practitioner+ program (August 2026). Adithya extended it into this production-style version: evals, observability, MCP and A2A, human review, Postgres and the dbt pipeline.
 
 **Live app:** [uw-risk-assessment.vercel.app](https://uw-risk-assessment.vercel.app) · **AI quality:** [evals page](https://uw-risk-assessment.vercel.app/#quality) · **dbt docs and lineage:** [GitHub Pages](https://adikshan11.github.io/uw-risk-assessment/) · **MCP:** `https://uw-risk-assessment.vercel.app/api/mcp/` · **A2A card:** [agent-card.json](https://uw-risk-assessment.vercel.app/api/.well-known/agent-card.json)
@@ -47,7 +53,8 @@ flowchart LR
 | **TOON vs JSON** | Evidence is sent to Gemini as TOON (official `toon-format`) or JSON. The eval measures both on the same prompts, for tokens, contract pass rate and faithfulness, instead of assuming. |
 | **Observability** | Langfuse traces every graph node and Gemini call with tokens and latency; each assessment links to its public trace. |
 | **Human in the loop** | LangGraph `interrupt()` pauses referrals; Postgres checkpoints let a reviewer resume them later, even after a serverless restart. Overrides require a written reason, enforced in the API and in dbt tests. |
-| **MCP server** | `/api/mcp/`: tools `assess_property`, `search_guidelines`, `get_assessment`, `list_assessments` and resource `uw://guidelines`, on the stateless 2026-07-28 spec. |
+| **MCP server** | `/api/mcp/`: tools `assess_property` (pass a `pincode` to verify hazards), `lookup_hazard`, `search_guidelines`, `get_assessment`, `list_assessments` and resource `uw://guidelines`, on the stateless 2026-07-28 spec. |
+| **Reading paper forms** | Gemini returns every field of the photographed page with a confidence and the image area it came from (`/api/underwrite/read-form`). Blank boxes stay blank, and the values are checked outside the model: the PIN code must exist, years and amounts must be in range. The review screen shows each value beside its crop and blocks until a person confirms the critical ones. |
 | **A2A agent** | Agent Card at `/api/.well-known/agent-card.json`, JSON-RPC at `/api/a2a`. Send property data to get an assessment, or a text question to get guideline sections. |
 
 ### Framework choices
@@ -63,8 +70,9 @@ flowchart LR
 Postgres (Neon) ──extract──▶ Parquet lake ──dbt build──▶ DuckDB marts ──publish──▶ Postgres snapshot ──▶ dashboard
 ```
 
-- **Models:** `stg_submissions`, `stg_reference_properties` → `fct_assessments` and marts for CAT exposure, city accumulation, risk drivers, the review funnel and reference benchmarks.
-- **Data tests (16):** keys, accepted decision values, scores within 0–100. Each stored decision must match its score band, which is a contract with the application. Every override must carry a reason.
+- **Models:** `stg_submissions`, `stg_reference_properties` → `fct_assessments` and marts for CAT exposure, city accumulation, risk drivers, the review funnel, reference benchmarks and `mart_hazard_verification` (each proposal's declared hazards against the official ones for its PIN code).
+- **Hazard pipeline:** `pipeline/hazard/build_hazard.py` downloads the open sources, overlays pincode boundaries with district, seismic-zone and flood-inundation polygons (Shapely), parses IMD's cyclone tables from the PDF, and maps old district names to current ones through a hand-checked crosswalk. It fails if IMD's published counts (100 districts: 12 P1, 25 P2, 48 P3, 15 P4) don't match. Output: a dbt seed and the JSON the API serves.
+- **Data tests (25):** keys, accepted decision values, scores within 0–100, unique PIN codes, valid zones and grades, flood shares between 0 and 100. Each stored decision must match its score band, which is a contract with the application. Every override must carry a reason.
 - **Orchestration:** GitHub Actions runs nightly; CI runs the backend tests, the frontend build and `dbt build` on every push. dbt docs and lineage are published to GitHub Pages.
 
 ## Run locally
@@ -73,7 +81,7 @@ Postgres (Neon) ──extract──▶ Parquet lake ──dbt build──▶ Duc
 pip install -r requirements.txt pytest httpx uvicorn
 cd backend && cp .env.example .env     # GEMINI_API_KEY; optional QDRANT_*, LANGFUSE_*, DATABASE_URL
 uvicorn app.api.main:app --port 8000 --reload
-pytest -q                              # 62 tests
+pytest -q                              # 91 tests
 python -m evals.run_evals              # eval report (needs GEMINI_API_KEY)
 
 cd ../frontend && npm ci && npm run dev            # http://localhost:3000
@@ -93,8 +101,25 @@ One Vercel project: `frontend/` builds to static files, and `api/index.py` serve
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | Tracing |
 | `DATABASE_URL` | Postgres for submissions, checkpoints and analytics |
 
+## Hazard data sources
+
+| Layer | Source | Licence |
+|---|---|---|
+| PIN code boundaries | India Post via data.gov.in (May 2025) | Government Open Data License - India |
+| Districts | District boundaries with LGD codes | Government Open Data License - India |
+| Seismic zones | IS 1893 (Part 1):2016 zone map, data.gov.in | Government Open Data License - India |
+| Flood history | NRSC / NDEM flood inundation 1998–2022 | CC0 as published by the aggregator; NRSC terms not verified |
+| Cyclone grades | IMD RSMC New Delhi, *Cyclone hazard prone districts of India*, June 2023 | No licence stated; cited with attribution |
+
+The 2025 seismic code revision (which added Zone VI) was withdrawn in March 2026, so the 2016 zones apply.
+
 ## Limitations
 
 - Scoring weights are prototype calibrations, not filed insurance rating rules; the guidelines are prototype guidance.
 - The 300 reference properties are synthetic. The five demo properties use public names and images with assumed underwriting facts.
 - Free tiers limit throughput (Gemini Flash is roughly 10 requests per minute), and evals throttle themselves accordingly.
+- Hazard results are indicative. The zone polygons are coarse (Shimla, Zone IV in the IS 1893 town list, falls in V on the map), satellite flood maps miss urban waterlogging, and IMD grades whole districts.
+- Handwriting accuracy has not been measured, so every value read from a paper form needs a person to check it. The free Gemini API may use uploads to improve Google's products, which is why only the property page, without personal details, is uploaded.
+- The translations are machine-made and have not been reviewed by native speakers; Santali, Kashmiri, Manipuri, Bodo and Tulu are marked as drafts.
+
+Changes are listed in [CHANGELOG.md](CHANGELOG.md).

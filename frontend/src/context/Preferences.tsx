@@ -17,6 +17,7 @@ interface Preferences {
   setLanguage: (code: string) => void
   t: (key: string, vars?: Vars) => string
   label: (prefix: string, id: string) => string
+  english: (key: string) => string
 }
 
 const english: Messages = en
@@ -99,7 +100,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const label = (prefix: string, id: string) => messages[`${prefix}.${id}`] ?? english[`${prefix}.${id}`] ?? humanize(id)
 
   return (
-    <PreferencesContext.Provider value={{ dev, setDev, theme, setTheme, language, setLanguage: setCode, t, label }}>
+    <PreferencesContext.Provider value={{ dev, setDev, theme, setTheme, language, setLanguage: setCode, t, label, english: (key: string) => english[key] ?? key }}>
       {children}
     </PreferencesContext.Provider>
   )

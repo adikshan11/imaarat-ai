@@ -18,6 +18,7 @@ from app.interop import add_a2a, mcp, mcp_app
 from app.observability import ENABLED as TRACING_ENABLED, flush
 from app.schemas import decision_from_score, indicative_product_segment
 from app.reports import build_submission_pdf
+from app.tools.form_reader import read_form
 from app.tools.hazard_lookup import lookup as hazard_lookup, sources as hazard_sources, verify_location
 
 
@@ -346,6 +347,21 @@ def review_submission(submission_id: int, review: Review) -> dict[str, Any]:
     record_review(submission_id, review.final_decision, review.reviewer, review.note, status)
     flush()
     return fetch_submission_detail(submission_id) or {}
+
+
+@app.post("/underwrite/read-form")
+async def read_paper_form(image: UploadFile = File(...)) -> dict[str, Any]:
+    if not GEMINI_API_KEY:
+        raise HTTPException(status_code=503, detail="AI form reading is switched off on this deployment")
+    if image.content_type not in ("image/jpeg", "image/png", "image/webp"):
+        raise HTTPException(status_code=415, detail="Upload a JPEG, PNG or WebP photo of page 2")
+    data = await image.read()
+    if len(data) > 4_000_000:
+        raise HTTPException(status_code=413, detail="The photo is larger than 4 MB")
+    try:
+        return read_form(data, image.content_type)
+    except Exception as error:
+        raise HTTPException(status_code=502, detail=f"The form could not be read: {type(error).__name__}") from error
 
 
 @app.get("/hazard/sources")
