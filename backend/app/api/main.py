@@ -9,13 +9,27 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 
+from contextlib import asynccontextmanager
+
 from app.config import DB_PATH
 from app.db import fetch_history, fetch_submission_detail, init_db, record_review, save_submission, seed_demo_database
+from app.interop import add_a2a, mcp, mcp_app
 from app.observability import flush
 from app.schemas import decision_from_score, indicative_product_segment
 from app.reports import build_submission_pdf
 
-app = FastAPI(title="UW Risk Copilot")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    seed_demo_database()
+    init_db()
+    async with mcp.session_manager.run():
+        yield
+
+
+app = FastAPI(title="UW Risk Copilot", lifespan=lifespan)
+app.mount("/mcp", mcp_app())
+add_a2a(app)
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,12 +38,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-@app.on_event("startup")
-def startup_event() -> None:
-    seed_demo_database()
-    init_db()
-
 
 @app.get("/health")
 def health() -> dict[str, str]:
