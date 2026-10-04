@@ -1,16 +1,12 @@
 import { useRef } from 'react'
 import Icon from '@/components/shared/Icon'
 import { usePreferences } from '@/context/Preferences'
-import type { Theme } from '@/context/Preferences'
 import { LANGUAGES } from '@/i18n/languages'
 
-const NEXT_THEME: Record<Theme, Theme> = { system: 'light', light: 'dark', dark: 'system' }
-const THEME_ICON: Record<Theme, string> = { system: 'monitor', light: 'sun', dark: 'moon' }
-
 export default function Controls({ compact = false }: { compact?: boolean }) {
-  const { t, language, setLanguage, theme, setTheme, dev, setDev } = usePreferences()
+  const { t, language, setLanguage, dark, toggleTheme, dev, setDev } = usePreferences()
   const dialog = useRef<HTMLDialogElement>(null)
-  const themeLabel = `${t('theme.label')}: ${t(`theme.${theme}`)}`
+  const themeLabel = `${t('theme.label')}: ${t(dark ? 'theme.light' : 'theme.dark')}`
 
   return (
     <div className={compact ? 'controls controls-compact' : 'controls'}>
@@ -18,12 +14,15 @@ export default function Controls({ compact = false }: { compact?: boolean }) {
         <Icon name="globe" />
         <span lang={language.code}>{language.name}</span>
       </button>
-      <button type="button" className="control-button" onClick={() => setTheme(NEXT_THEME[theme])} title={themeLabel} aria-label={themeLabel}>
-        <Icon name={THEME_ICON[theme]} />
+      <button type="button" className="control-button" onClick={toggleTheme} title={themeLabel} aria-label={themeLabel}>
+        <Icon name={dark ? 'sun' : 'moon'} />
       </button>
-      <button type="button" className={dev ? 'control-button is-on' : 'control-button'} onClick={() => setDev(!dev)} title={t('mode.dev_hint')} aria-label={t('mode.dev')} aria-pressed={dev}>
-        <Icon name="code" />
-      </button>
+      {dev && (
+        <button type="button" className="control-button is-on" onClick={() => setDev(false)} title={t('mode.dev')} aria-label={t('mode.dev')}>
+          <Icon name="code" />
+          {!compact && <Icon name="close" size={14} />}
+        </button>
+      )}
 
       <dialog ref={dialog} className="language-dialog" aria-label={t('lang.label')} onClick={(event) => { if (event.target === dialog.current) dialog.current?.close() }}>
         <div className="language-dialog-head">

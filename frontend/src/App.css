@@ -19,10 +19,15 @@
 .sidebar-inner { padding: 26px 16px; display: flex; flex-direction: column; height: 100%; overflow-y: auto; }
 .brand { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; padding: 6px 4px; }
 .brand-mark { flex: none; filter: drop-shadow(0 4px 10px rgb(0 0 0 / 0.18)); }
-.brand-title { position: relative; height: 26px; min-width: 110px; font-weight: 800; font-size: 21px; line-height: 26px; letter-spacing: 0.01em; }
+.brand-title { position: relative; height: 28px; min-width: 150px; font-weight: 800; font-size: 21px; line-height: 26px; letter-spacing: 0.01em; }
 .brand-word { position: absolute; inset-inline-start: 0; top: 0; white-space: nowrap; opacity: 0; transform: translateY(6px); transition: opacity 0.5s ease, transform 0.5s ease; }
-.brand-word:lang(hi) { font-family: 'Noto Sans Devanagari', var(--sans); }
-.brand-word:lang(bn) { font-family: 'Noto Sans Bengali', var(--sans); }
+.brand-word bdi:lang(hi) { font-family: 'Noto Sans Devanagari', var(--sans); }
+.brand-word bdi:lang(bn) { font-family: 'Noto Sans Bengali', var(--sans); }
+.brand-word bdi:lang(ta) { font-family: 'Noto Sans Tamil', var(--sans); font-size: 18px; }
+.brand-word bdi:lang(kn) { font-family: 'Noto Sans Kannada', var(--sans); font-size: 19px; }
+.brand-word bdi:lang(pa) { font-family: 'Noto Sans Gurmukhi', var(--sans); }
+.brand-word bdi:lang(ur) { font-family: 'Noto Naskh Arabic', var(--sans); }
+.brand-tld { color: #6ee7b7; font-weight: 700; }
 .brand-word.is-active { opacity: 1; transform: none; }
 .brand-sub { font-size: 12px; opacity: 0.8; margin-top: 2px; }
 .sidebar-section-label { margin: 18px 6px 6px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.65; }
@@ -226,7 +231,10 @@ input::placeholder { color: var(--text-soft); }
 .paper-table { min-width: 720px; }
 .paper-table td { vertical-align: middle; }
 .paper-row-issue td { background: var(--decline-bg); }
-.paper-crop { display: block; max-width: 220px; max-height: 64px; border-radius: 6px; border: 1px solid var(--border); background: #fff; }
+.paper-table th:nth-child(1) { width: 20%; }
+.paper-table th:nth-child(2) { width: 32%; }
+.paper-table th:nth-child(4) { width: 14%; }
+.paper-crop { display: block; width: 100%; max-width: 320px; height: auto; max-height: 80px; object-fit: contain; border-radius: 6px; border: 1px solid var(--border); background: #fff; }
 .paper-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; font-size: 12px; }
 .confidence { padding: 2px 8px; border-radius: 999px; font-weight: 700; }
 .confidence-high { background: var(--accept-bg); color: var(--accept-fg); }

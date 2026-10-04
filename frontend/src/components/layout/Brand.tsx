@@ -1,9 +1,13 @@
 import { useEffect, useId, useState } from 'react'
 
 const NAMES = [
-  { text: 'imaarat.ai', lang: 'en' },
-  { text: 'इमारत', lang: 'hi' },
-  { text: 'ইমারত', lang: 'bn' },
+  { word: 'imaarat', lang: 'en' },
+  { word: 'इमारत', lang: 'hi' },
+  { word: 'ইমারত', lang: 'bn' },
+  { word: 'இமாரத்', lang: 'ta' },
+  { word: 'ಇಮಾರತ್', lang: 'kn' },
+  { word: 'ਇਮਾਰਤ', lang: 'pa' },
+  { word: 'عمارت', lang: 'ur' },
 ]
 
 export function BrandMark({ size = 40 }: { size?: number }) {
@@ -28,7 +32,7 @@ export default function Brand({ sub }: { sub: string }) {
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    const timer = window.setInterval(() => setIndex((current) => (current + 1) % NAMES.length), 2600)
+    const timer = window.setInterval(() => setIndex((current) => (current + 1) % NAMES.length), 2200)
     return () => window.clearInterval(timer)
   }, [])
 
@@ -38,7 +42,9 @@ export default function Brand({ sub }: { sub: string }) {
       <div className="brand-text">
         <div className="brand-title" aria-label="imaarat.ai">
           {NAMES.map((name, position) => (
-            <span key={name.lang} lang={name.lang} aria-hidden="true" className={position === index ? 'brand-word is-active' : 'brand-word'}>{name.text}</span>
+            <span key={name.lang} dir="ltr" aria-hidden="true" className={position === index ? 'brand-word is-active' : 'brand-word'}>
+              <bdi lang={name.lang}>{name.word}</bdi><span className="brand-tld">.ai</span>
+            </span>
           ))}
         </div>
         <div className="brand-sub">{sub}</div>

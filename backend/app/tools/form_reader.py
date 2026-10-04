@@ -64,11 +64,10 @@ def check(name: str, raw: str | None) -> tuple[Any, str | None]:
             return pin or None, "not_six_digits"
         return pin, None if lookup(pin) else "unknown_pincode"
     if name in NUMBER_FIELDS:
-        cleaned = re.sub(r"[^\d.]", "", text)
-        try:
-            number = float(cleaned)
-        except ValueError:
+        cleaned = re.sub(r"(?i)rs\.?|inr|₹|/-|[,\s]", "", text)
+        if not re.fullmatch(r"\d+(\.\d+)?", cleaned):
             return None, "not_a_number"
+        number = float(cleaned)
         low, high = NUMBER_FIELDS[name]
         value = int(number) if number.is_integer() else number
         return value, None if low <= number <= high else "out_of_range"
