@@ -104,6 +104,16 @@ export type BackendHistoryRow = Pick<
 
 export interface DeploymentStatus { version: string; ai: boolean; vector_store: string; tracing: boolean; persistent_storage: boolean }
 
+export interface FieldReading {
+  value: string | number | boolean | null
+  read_as: string | null
+  confidence: 'high' | 'medium' | 'low'
+  box_2d: number[] | null
+  issue: string | null
+  needs_confirmation: boolean
+}
+export interface FormReading { form_version: string; model?: string; fields: Record<string, FieldReading> }
+
 export interface ReviewInput { final_decision: string; reviewer: string; note: string }
 
 export type MartRow = Record<string, string | number | boolean | null>

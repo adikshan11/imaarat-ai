@@ -158,7 +158,7 @@ const initialForm: FormState = {
   submission_date: new Date().toISOString().slice(0, 10),
 }
 
-export default function NewAssessment({ onCompleted, onCancel }: { onCompleted: (result: BackendSubmission) => void; onCancel: () => void }) {
+export default function NewAssessment({ onCompleted, onCancel, initial }: { onCompleted: (result: BackendSubmission) => void; onCancel: () => void; initial?: Record<string, unknown> | null }) {
   const { submit } = useRiskContext()
   const { t, label } = usePreferences()
   const [busy, setBusy] = useState(false)
@@ -167,7 +167,7 @@ export default function NewAssessment({ onCompleted, onCancel }: { onCompleted: 
   const imageInputRef = useRef<HTMLInputElement>(null)
   const previewRequestId = useRef(0)
   const previewDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [form, setForm] = useState<FormState>(initialForm)
+  const [form, setForm] = useState<FormState>(() => ({ ...initialForm, ...Object.fromEntries(Object.entries(initial ?? {}).filter(([key]) => key in initialForm).map(([key, value]) => [key, typeof initialForm[key as keyof FormState] === 'boolean' ? value === true || value === 'true' : String(value)])) }))
   const [preview, setPreview] = useState<MitigationPreview | null>(null)
   const [previewBusy, setPreviewBusy] = useState(false)
   const [hoveredSegId, setHoveredSegId] = useState<string | null>(null)
@@ -395,6 +395,7 @@ export default function NewAssessment({ onCompleted, onCancel }: { onCompleted: 
     <div className="page-subtitle">{t('new.eyebrow')}</div>
     <h1 className="page-title">{t('new.title')}</h1>
     <p className="page-lead">{t('new.lead')}</p>
+    {initial && <div className="notice" role="status">{t('paper.prefilled')}</div>}
     <form onSubmit={submitForm} className="two-col">
       <div className="left-col">
         <Card title={t('sec.insured')}>

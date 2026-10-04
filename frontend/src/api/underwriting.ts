@@ -1,4 +1,4 @@
-import type { AnalyticsSnapshot, BackendHistoryRow, BackendSubmission, DeploymentStatus, EvalReport, MitigationPreview, ReviewInput, SubmissionInput } from '@/types/backend'
+import type { AnalyticsSnapshot, BackendHistoryRow, BackendSubmission, DeploymentStatus, EvalReport, FormReading, MitigationPreview, ReviewInput, SubmissionInput } from '@/types/backend'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 
@@ -42,6 +42,12 @@ export async function previewUnderwriting(input: SubmissionInput): Promise<Mitig
 
 export async function checkHealth(): Promise<{ status: string }> {
   return parseResponse<{ status: string }>(await fetch(`${API_BASE_URL}/health`))
+}
+
+export async function readPaperForm(image: Blob): Promise<FormReading> {
+  const form = new FormData()
+  form.append('image', image, 'page2.jpg')
+  return parseResponse<FormReading>(await fetch(`${API_BASE_URL}/underwrite/read-form`, { method: 'POST', body: form }))
 }
 
 export async function fetchStatus(): Promise<DeploymentStatus> {

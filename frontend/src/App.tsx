@@ -7,16 +7,17 @@ import NewAssessment from '@/components/assessment/NewAssessment'
 import BackendAssessmentResult from '@/components/assessment/BackendAssessmentResult'
 import AIQuality from '@/components/quality/AIQuality'
 import Integrations from '@/components/integrations/Integrations'
+import PaperForm from '@/components/paper/PaperForm'
 import { RiskProvider, useRiskContext } from '@/context/RiskContext'
 import { PreferencesProvider, usePreferences } from '@/context/Preferences'
 import type { BackendSubmission } from '@/types/backend'
 
-type View = 'dashboard' | 'new' | 'result' | 'quality' | 'integrations'
+type View = 'dashboard' | 'new' | 'paper' | 'result' | 'quality' | 'integrations'
 
 function Application() {
   const [view, setViewState] = useState<View>(() => {
     const hash = window.location.hash.slice(1)
-    return hash === 'quality' || hash === 'integrations' || hash === 'new' ? hash : 'dashboard'
+    return hash === 'quality' || hash === 'integrations' || hash === 'new' || hash === 'paper' ? hash : 'dashboard'
   })
   const setView = (next: View) => {
     setViewState(next)
@@ -24,6 +25,7 @@ function Application() {
   }
   useEffect(() => { window.scrollTo(0, 0) }, [view])
   const [detailError, setDetailError] = useState<string | null>(null)
+  const [prefill, setPrefill] = useState<Record<string, unknown> | null>(null)
   const { selectedSubmission, loadDetail, applyReview } = useRiskContext()
   const { dev } = usePreferences()
   useEffect(() => {
@@ -51,7 +53,8 @@ function Application() {
         <StatusBanner />
         {detailError && <div className="error-banner">{detailError}</div>}
         {view === 'dashboard' && <Dashboard onNew={() => setView('new')} onView={(item) => { void showResult(item as BackendSubmission) }} />}
-        {view === 'new' && <NewAssessment onCompleted={showResult} onCancel={() => setView('dashboard')} />}
+        {view === 'new' && <NewAssessment key={prefill ? 'paper' : 'blank'} initial={prefill} onCompleted={(result) => { setPrefill(null); void showResult(result) }} onCancel={() => { setPrefill(null); setView('dashboard') }} />}
+        {view === 'paper' && <PaperForm onUse={(values) => { setPrefill(values); setView('new') }} />}
         {view === 'result' && selectedSubmission && <BackendAssessmentResult submission={selectedSubmission} onBack={() => setView('dashboard')} onReviewed={applyReview} />}
         {view === 'quality' && <AIQuality />}
         {view === 'integrations' && <Integrations />}

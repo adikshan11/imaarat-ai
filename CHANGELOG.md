@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.5.0] - 2026-10-04
+
+### Added
+- Paper proposal intake for people who find web forms hard: a two-page printable form in the chosen language with English underneath, where page 1 (personal details) stays on paper and only page 2 (property and risk) is photographed and uploaded.
+- AI reading of page 2 that returns each value with a confidence and the image area it came from; blanks stay blank, values are checked outside the model (PIN code exists, years and amounts in range), and the PIN code, year built and amounts must be confirmed by a person before the values fill a new assessment.
+
 ## [2.4.0] - 2026-10-04
 
 ### Added
