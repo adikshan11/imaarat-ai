@@ -1,11 +1,18 @@
-import React from 'react'
+import { usePreferences } from '@/context/Preferences'
 
 interface Props {
   activeView: string
   onNavigate: (view: string) => void
 }
 
-const Sidebar: React.FC<Props> = ({ activeView, onNavigate }) => {
+export default function Sidebar({ activeView, onNavigate }: Props) {
+  const { t, dev, setDev } = usePreferences()
+  const item = (view: string, text: string) => (
+    <button className={`nav-item ${activeView === view ? 'active' : ''}`} onClick={() => onNavigate(view)}>
+      <span>{text}</span>
+    </button>
+  )
+
   return (
     <aside className="sidebar">
       <div className="sidebar-inner">
@@ -13,30 +20,33 @@ const Sidebar: React.FC<Props> = ({ activeView, onNavigate }) => {
           <div className="brand-logo">I</div>
           <div className="brand-text">
             <div className="brand-title">Imaarat</div>
-            <div className="brand-sub">Property underwriting · India</div>
+            <div className="brand-sub">{t('brand.sub')}</div>
           </div>
         </div>
 
-        <div className="sidebar-section-label">Navigation</div>
+        <div className="sidebar-section-label">{t('nav.section')}</div>
         <nav className="nav">
-          <button className={`nav-item ${activeView === 'dashboard' ? 'active' : ''}`} onClick={() => onNavigate('dashboard')}>
-            <span>Dashboard</span>
-          </button>
-          <button className={`nav-item ${activeView === 'new' ? 'active' : ''}`} onClick={() => onNavigate('new')}>
-            <span>New Assessment</span>
-          </button>
-          <button className={`nav-item ${activeView === 'quality' ? 'active' : ''}`} onClick={() => onNavigate('quality')}>
-            <span>AI Quality</span>
-          </button>
-          <button className={`nav-item ${activeView === 'integrations' ? 'active' : ''}`} onClick={() => onNavigate('integrations')}>
-            <span>MCP &amp; A2A</span>
-          </button>
+          {item('dashboard', t('nav.dashboard'))}
+          {item('new', t('nav.new'))}
         </nav>
 
-        <div className="sidebar-footer">Python decides · Gemini explains · LangGraph orchestrates</div>
+        {dev && <>
+          <div className="sidebar-section-label">{t('nav.dev_section')}</div>
+          <nav className="nav">
+            {item('quality', t('nav.quality'))}
+            {item('integrations', t('nav.integrations'))}
+          </nav>
+        </>}
+
+        <div className="sidebar-footer">
+          <label className="mode-switch" title={t('mode.dev_hint')}>
+            <input type="checkbox" checked={dev} onChange={(event) => setDev(event.target.checked)} />
+            <span className="mode-switch-track" aria-hidden="true" />
+            <span>{t('mode.dev')}</span>
+          </label>
+          <div>{t(dev ? 'footer.dev' : 'footer.underwriter')}</div>
+        </div>
       </div>
     </aside>
   )
 }
-
-export default Sidebar

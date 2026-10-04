@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import Card from '@/components/shared/Card'
 import { reviewSubmission } from '@/api/underwriting'
+import { usePreferences } from '@/context/Preferences'
 import type { BackendSubmission } from '@/types/backend'
 
 const DECISIONS = ['Accept', 'Refer', 'Decline (mitigation possible)', 'Auto-Decline']
 
 export default function ReviewPanel({ submission, onReviewed }: { submission: BackendSubmission; onReviewed: (updated: BackendSubmission) => void }) {
+  const { t, label, dev } = usePreferences()
   const [finalDecision, setFinalDecision] = useState(submission.decision)
   const [reviewer, setReviewer] = useState('')
   const [note, setNote] = useState('')
@@ -17,12 +19,16 @@ export default function ReviewPanel({ submission, onReviewed }: { submission: Ba
 
   if (status !== 'pending_review') {
     return (
-      <Card title="Underwriter review">
+      <Card title={t('rev.done_title')}>
         <p>
-          <strong>{status === 'overridden' ? 'Overridden' : 'Approved'}</strong> by {submission.reviewer || 'underwriter'}
-          {submission.reviewed_at ? ` on ${submission.reviewed_at.slice(0, 10)}` : ''}: system decision <strong>{submission.decision}</strong>, final decision <strong>{submission.final_decision}</strong>.
+          <strong>{t(status === 'overridden' ? 'rev.overridden' : 'rev.approved')}</strong> {t('rev.by', { who: submission.reviewer || t('rev.underwriter') })}
+          {submission.reviewed_at ? ` ${t('rev.on', { date: submission.reviewed_at.slice(0, 10) })}` : ''}
         </p>
-        {submission.review_note && <p className="card-footnote">Note: {submission.review_note}</p>}
+        <div className="risk-stack">
+          <div className="risk-line"><span>{t('rev.system')}</span><strong>{label('decision', submission.decision)}</strong></div>
+          <div className="risk-line"><span>{t('rev.final')}</span><strong>{label('decision', submission.final_decision ?? submission.decision)}</strong></div>
+        </div>
+        {submission.review_note && <p className="card-footnote">{t('rev.note', { note: submission.review_note })}</p>}
       </Card>
     )
   }
@@ -35,40 +41,37 @@ export default function ReviewPanel({ submission, onReviewed }: { submission: Ba
     try {
       onReviewed(await reviewSubmission(submission.id, { final_decision: finalDecision, reviewer: reviewer.trim(), note: note.trim() }))
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Review could not be saved')
+      setError(cause instanceof Error ? cause.message : t('rev.error'))
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <Card title="Underwriter review required">
-      <p>
-        The engine referred this property (score {submission.risk_score}). The LangGraph workflow is paused at the review step until an underwriter
-        approves the referral or overrides it.
-      </p>
-      <div className="form-grid" style={{ marginTop: 12 }}>
+    <Card title={t('rev.title')} className="card-attention">
+      <p>{t(dev ? 'rev.lead_dev' : 'rev.lead', { score: submission.risk_score })}</p>
+      <div className="form-grid form-gap">
         <div className="form-row form-row-2">
           <label>
-            <span className="field-label-text">Final decision</span>
+            <span className="field-label-text">{t('rev.final_label')}</span>
             <select value={finalDecision} onChange={(event) => setFinalDecision(event.target.value)}>
-              {DECISIONS.map((decision) => <option key={decision}>{decision}</option>)}
+              {DECISIONS.map((decision) => <option key={decision} value={decision}>{label('decision', decision)}</option>)}
             </select>
           </label>
           <label>
-            <span className="field-label-text">Reviewer</span>
-            <input value={reviewer} onChange={(event) => setReviewer(event.target.value)} placeholder="Your name" />
+            <span className="field-label-text">{t('rev.reviewer')}</span>
+            <input value={reviewer} onChange={(event) => setReviewer(event.target.value)} />
           </label>
         </div>
         <label>
-          <span className="field-label-text">Note{override ? ' (required for an override)' : ' (optional)'}</span>
-          <input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Why you approve or override" />
+          <span className="field-label-text">{t('rev.note_label')} {t(override ? 'rev.note_required' : 'rev.note_optional')}</span>
+          <input value={note} onChange={(event) => setNote(event.target.value)} placeholder={t('rev.note_ph')} />
         </label>
       </div>
       {error && <div className="error-banner">{error}</div>}
-      <div className="form-actions" style={{ marginTop: 12 }}>
+      <div className="form-actions form-gap">
         <button className="btn btn-primary" disabled={busy || !reviewer.trim() || (override && !note.trim())} onClick={() => void submit()}>
-          {busy ? 'Saving...' : override ? 'Override decision' : 'Approve referral'}
+          {busy ? t('rev.saving') : t(override ? 'rev.override' : 'rev.approve')}
         </button>
       </div>
     </Card>

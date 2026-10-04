@@ -2,29 +2,30 @@ import React from 'react'
 import Card from '@/components/shared/Card'
 import type { BackendSubmission, StructuredMemo } from '@/types/backend'
 import { downloadSubmissionReport } from '@/api/underwriting'
+import { usePreferences } from '@/context/Preferences'
 import ReviewPanel from '@/components/assessment/ReviewPanel'
 
-const label = (value: string) => value
-  .replaceAll('_', ' ')
-  .replace(/\b\w/g, (letter) => letter.toUpperCase())
-
-function renderMemo(memo: StructuredMemo) {
+function Memo({ memo }: { memo: StructuredMemo }) {
+  const { t } = usePreferences()
   const sections: Array<[string, string[]]> = [
-    ['Property Summary', memo.property_summary],
-    ['Key Risk Factors', memo.key_risk_factors],
-    ['Coverage Review', memo.coverage_review ?? []],
-    ['Decision', [memo.decision]],
-    ['Rationale', [memo.rationale]],
-    ['Suggested Next Steps', memo.suggested_next_steps],
+    ['memo.summary', memo.property_summary],
+    ['memo.factors', memo.key_risk_factors],
+    ['memo.coverage', memo.coverage_review ?? []],
+    ['memo.decision', [memo.decision]],
+    ['memo.rationale', [memo.rationale]],
+    ['memo.next', memo.suggested_next_steps],
   ]
-  return sections.filter(([, lines]) => lines.length > 0).map(([heading, lines]) => <section key={heading} className="memo-section"><h3>{heading}</h3><ul>{lines.map((line, index) => <li key={index}>{line}</li>)}</ul></section>)
+  return <div className="memo-content">{sections.filter(([, lines]) => lines.length > 0).map(([key, lines]) => <section key={key} className="memo-section"><h3>{t(key)}</h3><ul>{lines.map((line, index) => <li key={index}>{line}</li>)}</ul></section>)}</div>
 }
 
 export default function BackendAssessmentResult({ submission, onBack, onReviewed }: { submission: BackendSubmission; onBack: () => void; onReviewed: (updated: BackendSubmission) => void }) {
+  const { t, label, dev } = usePreferences()
   const cited = new Set(submission.memo_json?.guideline_citations ?? [])
   const features = submission.extracted_features ?? {}
   const mitigation = submission.prototype_mitigation_model
-  const displayPolicyType = (submission.policy_type ?? 'Not supplied').replace('/', ' / ')
+  const decision = submission.final_decision ?? submission.decision
+  const segment = submission.policy_type ? submission.policy_type.replace('/', ' / ') : t('res.not_supplied')
+  const seen = (key: string) => String(features[key] ?? t('img.not_visible'))
   const [reportError, setReportError] = React.useState<string | null>(null)
   const [reportBusy, setReportBusy] = React.useState(false)
   const downloadReport = async () => {
@@ -36,69 +37,78 @@ export default function BackendAssessmentResult({ submission, onBack, onReviewed
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = `underwriting-${submission.id}.pdf`
+      link.download = `imaarat-${submission.id}.pdf`
       link.click()
       URL.revokeObjectURL(url)
     } catch (cause) {
-      setReportError(cause instanceof Error ? cause.message : 'Report generation unavailable')
+      setReportError(cause instanceof Error ? cause.message : t('res.not_available'))
     } finally {
       setReportBusy(false)
     }
   }
+  const hits = submission.guideline_hits ?? []
 
   return <div>
-    <button className="btn btn-secondary" onClick={onBack}>Back to Portfolio</button>
-    <button className="btn btn-primary" onClick={() => void downloadReport()} disabled={reportBusy} style={{ marginLeft: 8 }}>{reportBusy ? 'Generating report...' : 'Download executive PDF'}</button>
-    {reportError && <div className="error-banner">Report generation unavailable: {reportError} <button className="btn btn-secondary" onClick={() => void downloadReport()}>Retry</button></div>}
-    <div className="page-subtitle">Property Risk Assessment</div>
+    <div className="action-row">
+      <button className="btn btn-secondary" onClick={onBack}>{t('res.back')}</button>
+      <button className="btn btn-primary" onClick={() => void downloadReport()} disabled={reportBusy}>{reportBusy ? t('res.pdf_busy') : t('res.pdf')}</button>
+    </div>
+    {reportError && <div className="error-banner">{t('res.pdf_error', { error: reportError })} <button className="btn btn-secondary" onClick={() => void downloadReport()}>{t('res.retry')}</button></div>}
+    <div className="page-subtitle">{t('res.eyebrow')}</div>
     <h1 className="page-title">{submission.property_id}</h1>
     <div className="kpi-row">
-      <div className="kpi"><div className="kpi-label">Risk score</div><div className="kpi-value">{submission.risk_score}</div></div>
-      <div className="kpi"><div className="kpi-label">Indicative view</div><div className="kpi-value">{mitigation?.risk_adjusted_view ?? 'Not available'}</div></div>
-      <div className="kpi"><div className="kpi-label">{submission.review_status === 'pending_review' ? 'Decision (awaiting review)' : 'Decision'}</div><div className="kpi-value">{submission.final_decision ?? submission.decision}</div></div>
-      <div className="kpi"><div className="kpi-label">Policy segment</div><div className="kpi-value">{displayPolicyType}</div></div>
+      <div className="kpi"><div className="kpi-label">{t('res.score')}</div><div className="kpi-value">{t('score.of', { score: submission.risk_score })}</div><div className="kpi-hint">{t('score.hint')}</div></div>
+      <div className="kpi"><div className="kpi-label">{t(submission.review_status === 'pending_review' ? 'res.decision_pending' : 'res.decision')}</div><div className="kpi-value">{label('decision', decision)}</div><div className="kpi-hint">{t(`decision_help.${decision}`)}</div></div>
+      <div className="kpi"><div className="kpi-label">{t('res.indicative')}</div><div className="kpi-value">{mitigation?.risk_adjusted_view ?? t('res.not_available')}</div></div>
+      <div className="kpi"><div className="kpi-label">{t('res.segment')}</div><div className="kpi-value kpi-value-text">{segment}</div></div>
     </div>
     <ReviewPanel submission={submission} onReviewed={onReviewed} />
     <div className="dashboard-grid">
-      <Card title="Decision and risk flags">
+      <Card title={t('res.flags_title')}>
         <p>{submission.rationale}</p>
-        <div className="flag-list">{submission.risk_flags.length ? submission.risk_flags.map((flag) => <span className="risk-badge risk-high" key={flag}>{label(flag)}</span>) : <span>No risk flags recorded.</span>}</div>
+        <div className="flag-list">{submission.risk_flags.length ? submission.risk_flags.map((flag) => <span className="risk-badge risk-high" key={flag}>{label('flag', flag)}</span>) : <span>{t('res.no_flags')}</span>}</div>
       </Card>
-      <Card title="Image review">
-        <p>Status: {String(features.image_status ?? 'Not submitted')}</p>
-        <p>Reason: {String(features.image_reason ?? 'No image metadata')}</p>
-        <p>Image-derived evidence: {features.image_risk_evidence_used ? 'Used' : 'Not used'}</p>
-        <p>Roof: {String(features.visible_roof_condition ?? 'not visible')}</p>
-        <p>Structure: {String(features.visible_structural_damage ?? 'not visible')}</p>
-        <p>Maintenance: {String(features.general_maintenance_level ?? 'not visible')}</p>
-        <p>Hazards: {String(features.visible_hazards ?? 'not visible')}</p>
+      <Card title={t('res.image_title')}>
+        <div className="risk-stack">
+          <div className="risk-line"><span>{t('img.status')}</span><strong>{String(features.image_status ?? t('img.not_submitted'))}</strong></div>
+          {dev && <div className="risk-line"><span>{t('img.reason')}</span><strong>{String(features.image_reason ?? t('img.no_meta'))}</strong></div>}
+          <div className="risk-line"><span>{t('img.evidence')}</span><strong>{t(features.image_risk_evidence_used ? 'img.used' : 'img.not_used')}</strong></div>
+          <div className="risk-line"><span>{t('img.roof')}</span><strong>{seen('visible_roof_condition')}</strong></div>
+          <div className="risk-line"><span>{t('img.structure')}</span><strong>{seen('visible_structural_damage')}</strong></div>
+          <div className="risk-line"><span>{t('img.maintenance')}</span><strong>{seen('general_maintenance_level')}</strong></div>
+          <div className="risk-line"><span>{t('img.hazards')}</span><strong>{seen('visible_hazards')}</strong></div>
+        </div>
       </Card>
     </div>
     <div className="dashboard-grid">
-      <Card title="Risk breakdown">
-        <div className="metric-grid">{Object.entries(submission.risk_breakdown).map(([key, value]) => <div className="mini-metric" key={key}><span>{label(key)}</span><strong>{value}</strong></div>)}</div>
+      <Card title={t('res.breakdown')}>
+        <div className="metric-grid">{Object.entries(submission.risk_breakdown).filter(([, value]) => dev || value > 0).map(([key, value]) => <div className="mini-metric" key={key}><span>{label('bd', key)}</span><strong>{value}</strong></div>)}</div>
       </Card>
-      <Card title="Configured mitigation factors">
-        <p className="card-footnote">Configured mitigation benefit — a proxy for protection effectiveness, not the actual indicative score reduction. Not insurer-approved rates or tariff rules.</p>
-        {mitigation?.mitigation_benefits.filter((item) => item.benefit > 0).map((item) => <div className="risk-line" key={item.factor}><span>{label(item.factor)}</span><strong>+{item.benefit}</strong></div>)}
-        {!mitigation?.mitigation_benefits.some((item) => item.benefit > 0) && <p>No positive mitigation evidence returned.</p>}
+      <Card title={t('res.mitigation_title')}>
+        <p className="card-footnote">{t('res.mitigation_note')}</p>
+        {mitigation?.mitigation_benefits.filter((item) => item.benefit > 0).map((item) => <div className="risk-line" key={item.factor}><span>{label('factor', item.factor)}</span><strong>+{item.benefit}</strong></div>)}
+        {!mitigation?.mitigation_benefits.some((item) => item.benefit > 0) && <p>{t('res.no_mitigation')}</p>}
       </Card>
     </div>
-    <Card title="AI-Assisted Underwriting memo">
-      <p>
-        Status: {submission.ai_memo_status ?? (submission.memo_json ? 'Available' : 'Unavailable')}
-        {submission.memo_model ? ` · ${submission.memo_model}` : ''}
-        {submission.trace_url && <> · <a href={submission.trace_url} target="_blank" rel="noreferrer">View AI trace</a></>}
+    <Card title={t('res.memo_title')}>
+      <p className="card-footnote">
+        {t('res.memo_ai_label')}
+        {dev && submission.memo_model && <> · {t('res.memo_model', { model: submission.memo_model })}</>}
+        {dev && submission.trace_url && <> · <a href={submission.trace_url} target="_blank" rel="noreferrer">{t('res.trace')}</a></>}
       </p>
-      {cited.size > 0 && <p className="card-footnote">Grounded in guideline sections {[...cited].join(', ')}, validated against what was retrieved.</p>}
-      {submission.ai_memo_status !== 'Available' || !submission.memo_json ? <p>Reason: {submission.ai_memo_reason ?? 'AI review did not complete'}</p> : <div className="memo-content">{renderMemo(submission.memo_json)}</div>}
+      {cited.size > 0 && <p className="card-footnote">{t('res.cited', { ids: [...cited].join(', ') })}</p>}
+      {submission.ai_memo_status !== 'Available' || !submission.memo_json ? <p>{t('res.memo_reason', { reason: submission.ai_memo_reason ?? t('res.not_available') })}</p> : <Memo memo={submission.memo_json} />}
     </Card>
     <div className="dashboard-grid">
-      <Card title="Guideline evidence (RAG)"><ul>{submission.guideline_chunks.map((chunk, index) => {
-        const id = chunk.match(/^\[(G\d+)\]/)?.[1]
-        return <li key={index} style={id && cited.has(id) ? { fontWeight: 600 } : undefined}>{chunk}{id && cited.has(id) ? ' (cited)' : ''}</li>
-      })}</ul></Card>
-      <Card title="Reference properties"><div className="table-wrap"><table><thead><tr><th>Property</th><th>Occupancy</th><th>CAT zone</th></tr></thead><tbody>{submission.comparables.map((item, index) => <tr key={index}><td>{String(item.property_id ?? '')}</td><td>{String(item.occupancy_type ?? '')}</td><td>{String(item.cat_zone ?? '')}</td></tr>)}</tbody></table></div><p className="card-footnote">Reference data — synthetic model properties, not verified market comparables.</p></Card>
+      <Card title={t(dev ? 'res.guidelines_dev' : 'res.guidelines')}>
+        {dev || !hits.length
+          ? <ul>{submission.guideline_chunks.map((chunk, index) => {
+              const id = chunk.match(/^\[(G\d+)\]/)?.[1]
+              return <li key={index} className={id && cited.has(id) ? 'cited' : undefined}>{chunk}{id && cited.has(id) ? ` (${t('res.cited_tag')})` : ''}</li>
+            })}</ul>
+          : <ul>{hits.map((hit) => <li key={hit.id} className={cited.has(hit.id) ? 'cited' : undefined}>{hit.id} · {hit.title}{cited.has(hit.id) ? ` (${t('res.cited_tag')})` : ''}</li>)}</ul>}
+      </Card>
+      <Card title={t('res.refs')}><div className="table-wrap"><table><thead><tr><th>{t('ref.property')}</th><th>{t('ref.occupancy')}</th><th>{t('ref.cat')}</th></tr></thead><tbody>{submission.comparables.map((item, index) => <tr key={index}><td>{String(item.property_id ?? '')}</td><td>{String(item.occupancy_type ?? '')}</td><td>{label('opt.cat', String(item.cat_zone ?? 'None'))}</td></tr>)}</tbody></table></div><p className="card-footnote">{t('res.refs_note')}</p></Card>
     </div>
   </div>
 }

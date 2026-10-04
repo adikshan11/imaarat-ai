@@ -3,6 +3,8 @@ import type { BackendSubmission, MitigationPreview, SubmissionInput } from '@/ty
 import { previewUnderwriting } from '@/api/underwriting'
 import { useRiskContext } from '@/context/RiskContext'
 import Card from '@/components/shared/Card'
+import { usePreferences } from '@/context/Preferences'
+import { inr } from '@/lib/format'
 
 const optionalNumber = (value: string) => {
   if (value.trim() === '') return undefined
@@ -157,6 +159,7 @@ const initialForm: FormState = {
 
 export default function NewAssessment({ onCompleted, onCancel }: { onCompleted: (result: BackendSubmission) => void; onCancel: () => void }) {
   const { submit } = useRiskContext()
+  const { t, label } = usePreferences()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [images, setImages] = useState<File[]>([])
@@ -277,15 +280,15 @@ export default function NewAssessment({ onCompleted, onCancel }: { onCompleted: 
       const selectedImages = Array.from(imageInputRef.current?.files ?? images)
       onCompleted(await submit(toInput(form), selectedImages))
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Submission failed')
+      setError(cause instanceof Error ? cause.message : t('new.error'))
     } finally {
       setBusy(false)
     }
   }
 
-  const Field = ({ label, name, type = 'text', optional = false, hint, required: fieldRequired }: { label: string; name: keyof FormState; type?: string; optional?: boolean; hint?: string; required?: boolean }) => (
+  const Field = ({ name, type = 'text', optional = false, hint, required: fieldRequired }: { name: keyof FormState; type?: string; optional?: boolean; hint?: string; required?: boolean }) => (
     <label>
-      <span className="field-label-text">{label}{optional ? ' (optional)' : ''}</span>
+      <span className="field-label-text">{t(`f.${name}`)}{optional ? ` ${t('f.optional')}` : ''}</span>
       <input type={type} value={String(form[name])} onChange={(event) => update(name, event.target.value)} required={fieldRequired ?? !optional} />
       {hint && <span className="field-hint">{hint}</span>}
     </label>
@@ -331,9 +334,9 @@ export default function NewAssessment({ onCompleted, onCancel }: { onCompleted: 
   const previewCard = previewModel && <div className="preview-card" data-testid="mitigation-preview">
     <div className="preview-header-row">
       <div>
-        <div className="preview-eyebrow">Live risk preview</div>
+        <div className="preview-eyebrow">{t('pv.eyebrow')}</div>
         <div className="donut-svg-wrap" data-testid="risk-donut">
-          <svg width="120" height="120" viewBox="0 0 120 120" aria-label="Risk composition chart">
+          <svg width="120" height="120" viewBox="0 0 120 120" aria-label={t('pv.chart')}>
             <circle cx="60" cy="60" r={SVG_R} fill="none" stroke="#e5e7eb" strokeWidth={SVG_SW} />
             {svgSegs.map(seg => (
               <g key={seg.id} transform={`rotate(${seg.acc * 360 - 90} 60 60)`}
@@ -348,170 +351,170 @@ export default function NewAssessment({ onCompleted, onCancel }: { onCompleted: 
               </g>
             ))}
             {/* Indicative view center — this number changes when protection controls are toggled */}
-            <text x="60" y="54" textAnchor="middle" fontSize="23" fontWeight="800" fill="#0b2b1f" data-testid="risk-score">{previewModel.risk_adjusted_view}</text>
-            <text x="60" y="67" textAnchor="middle" fontSize="8" fontWeight="600" fill="#9ca3af" letterSpacing="0.5">indicative</text>
+            <text x="60" y="54" textAnchor="middle" fontSize="23" fontWeight="800" fill="currentColor" data-testid="risk-score">{previewModel.risk_adjusted_view}</text>
+            <text x="60" y="67" textAnchor="middle" fontSize="8" fontWeight="600" fill="#9ca3af" letterSpacing="0.5">{t('pv.indicative')}</text>
           </svg>
           {hoveredSeg && (
             <div className="donut-tooltip">
               <span className="tooltip-swatch" style={{ background: SEGMENT_COLORS[hoveredSeg.id] ?? '#94a3b8' }} />
-              {hoveredSeg.name}: <strong>{hoveredSeg.score}</strong>&thinsp;pts
+              {label('seg', hoveredSeg.id)}: <strong>{t('pv.points', { value: hoveredSeg.score })}</strong>
             </div>
           )}
         </div>
-        <div className="auth-score-ref">Authoritative underwriting score: <strong data-testid="auth-score">{preview.authoritative_risk_score}</strong></div>
+        <div className="auth-score-ref">{t('pv.authoritative')}: <strong data-testid="auth-score">{preview.authoritative_risk_score}</strong></div>
       </div>
       <div className="preview-verdict">
-        <div className="preview-badge" data-testid="risk-badge">{previewBadge}</div>
-        <div className="preview-level">{riskLevel}</div>
+        <div className="preview-badge" data-testid="risk-badge">{label('reco', previewBadge)}</div>
+        <div className="preview-level">{label('level', riskLevel)}</div>
       </div>
     </div>
     <div className="preview-call-box">
-      <div className="preview-call-label">Authoritative decision</div>
-      <div className="preview-call-value">{preview.authoritative_decision ?? previewBadge} · score {preview.authoritative_risk_score}</div>
-      <div className="prototype-view-note">Indicative mitigation view: {previewModel.risk_adjusted_view}</div>
+      <div className="preview-call-label">{t('pv.decision')}</div>
+      <div className="preview-call-value">{t('pv.call', { decision: preview.authoritative_decision ? label('decision', preview.authoritative_decision) : label('reco', previewBadge), score: preview.authoritative_risk_score })}</div>
+      <div className="prototype-view-note">{t('pv.view', { value: previewModel.risk_adjusted_view })}</div>
     </div>
-    {previewModel.positive_factors.length > 0 && <div className="preview-section-head">Positive mitigation factors</div>}
+    {previewModel.positive_factors.length > 0 && <div className="preview-section-head">{t('pv.positive')}</div>}
     {previewModel.positive_factors.map((item) => (
-      <div className="risk-line" key={item.id}><span>{item.name}</span><strong>+{item.benefit}</strong></div>
+      <div className="risk-line" key={item.id}><span>{label('factor', item.id)}</span><strong>+{item.benefit}</strong></div>
     ))}
     {(() => {
       const captured = previewModel.mitigation_benefits.filter(item => item.benefit === 0)
       if (!captured.length) return null
       return <div className="captured-controls">
-        <span className="captured-label">Captured</span>
-        <span className="captured-names">{captured.map(c => c.factor.replace(/_/g, ' ').replace(/^\w/, s => s.toUpperCase())).join(' · ')}</span>
+        <span className="captured-label">{t('pv.captured')}</span>
+        <span className="captured-names">{captured.map(c => label('factor', c.factor)).join(' · ')}</span>
       </div>
     })()}
-    <div className="preview-mitigation-total" data-testid="mitigation-total">Configured mitigation benefit: {previewModel.mitigation_benefit}</div>
-    <div className="preview-product-segment"><span>Indicative product segment</span><strong>{(preview?.policy_type ?? 'Not available').replace('/', ' / ')}</strong></div>
-    {previewBusy && <div className="notice">Recalculating...</div>}
+    <div className="preview-mitigation-total" data-testid="mitigation-total">{t('pv.total', { value: previewModel.mitigation_benefit })}</div>
+    <div className="preview-product-segment"><span>{t('pv.segment')}</span><strong>{preview?.policy_type ? preview.policy_type.replace('/', ' / ') : t('res.not_available')}</strong></div>
+    {previewBusy && <div className="notice">{t('pv.recalc')}</div>}
   </div>
 
   return <div>
-    <div className="page-subtitle">Submission intake</div>
-    <h1 className="page-title">New property assessment</h1>
-    <p className="page-lead">Submit a focused commercial-property intake for AI-Assisted Underwriting review.</p>
+    <div className="page-subtitle">{t('new.eyebrow')}</div>
+    <h1 className="page-title">{t('new.title')}</h1>
+    <p className="page-lead">{t('new.lead')}</p>
     <form onSubmit={submitForm} className="two-col">
       <div className="left-col">
-        <Card title="Insured / Proposer">
+        <Card title={t('sec.insured')}>
           <div className="form-grid">
-            <div className="form-row form-row-2"><Field label="Proposer / Insured name" name="proposer_name" required={false} /><Field label="Insured legal name" name="insured_legal_name" required={false} /></div>
-            <div className="form-row form-row-2"><Field label="Business name" name="business_name" required={false} /><Field label="Contact person" name="contact_person" required={false} /></div>
-            <div className="form-row form-row-2"><Field label="Mobile" name="mobile" required={false} /><Field label="Email" name="email" type="email" required={false} /></div>
-            <div className="form-row form-row-2"><Field label="Policy period start" name="policy_period_start" type="date" required={false} /><Field label="Policy period end" name="policy_period_end" type="date" required={false} /></div>
+            <div className="form-row form-row-2"><Field name="proposer_name" required={false} /><Field name="insured_legal_name" required={false} /></div>
+            <div className="form-row form-row-2"><Field name="business_name" required={false} /><Field name="contact_person" required={false} /></div>
+            <div className="form-row form-row-2"><Field name="mobile" required={false} /><Field name="email" type="email" required={false} /></div>
+            <div className="form-row form-row-2"><Field name="policy_period_start" type="date" required={false} /><Field name="policy_period_end" type="date" required={false} /></div>
           </div>
           <details className="coverage-details" style={{ marginTop: 14 }}>
-            <summary>Additional policy details</summary>
+            <summary>{t('new.more_policy')}</summary>
             <div className="form-grid" style={{ marginTop: 12 }}>
-              <Field label="Designation" name="designation" required={false} />
-              <div className="form-row form-row-2"><Field label="Interested parties" name="interested_parties" required={false} /><Field label="Financial institution" name="financial_institution" required={false} /></div>
+              <Field name="designation" required={false} />
+              <div className="form-row form-row-2"><Field name="interested_parties" required={false} /><Field name="financial_institution" required={false} /></div>
             </div>
           </details>
         </Card>
 
-        <Card title="Property & Location">
+        <Card title={t('sec.property')}>
           <div className="form-grid">
-            <Field label="Property ID" name="property_id" />
-            <Field label="Address" name="address" />
-            <div className="form-row form-row-3"><Field label="City" name="city" /><Field label="State" name="state" /><Field label="PIN / ZIP" name="zip" /></div>
-            <div className="form-row form-row-2"><Field label="Latitude" name="latitude" type="number" /><Field label="Longitude" name="longitude" type="number" /></div>
+            <Field name="property_id" />
+            <Field name="address" />
+            <div className="form-row form-row-3"><Field name="city" /><Field name="state" /><Field name="zip" /></div>
+            <div className="form-row form-row-2"><Field name="latitude" type="number" /><Field name="longitude" type="number" /></div>
           </div>
         </Card>
 
-        <Card title="Business & Occupancy">
+        <Card title={t('sec.business')}>
           <div className="form-grid">
-            <div className="form-row form-row-2"><label><span className="field-label-text">Occupancy</span><input value={form.occupancy_type} onChange={(event) => update('occupancy_type', event.target.value)} required /></label><Field label="Business activity" name="business_activity" optional /></div>
-            <div className="form-row form-row-2"><label className="checkbox-field"><input type="checkbox" checked={form.is_manufacturing} onChange={(event) => update('is_manufacturing', event.target.checked)} /> Manufacturing</label><label className="checkbox-field"><input type="checkbox" checked={form.is_warehouse_storage} onChange={(event) => update('is_warehouse_storage', event.target.checked)} /> Warehouse / storage</label></div>
-            {form.is_manufacturing && <Field label="Manufacturing process" name="manufacturing_process" optional />}
-            {form.is_warehouse_storage && <Field label="Goods stored" name="goods_stored" optional />}
+            <div className="form-row form-row-2"><label><span className="field-label-text">{t('f.occupancy_type')}</span><input value={form.occupancy_type} onChange={(event) => update('occupancy_type', event.target.value)} required /></label><Field name="business_activity" optional /></div>
+            <div className="form-row form-row-2"><label className="checkbox-field"><input type="checkbox" checked={form.is_manufacturing} onChange={(event) => update('is_manufacturing', event.target.checked)} /> {t('f.is_manufacturing')}</label><label className="checkbox-field"><input type="checkbox" checked={form.is_warehouse_storage} onChange={(event) => update('is_warehouse_storage', event.target.checked)} /> {t('f.is_warehouse_storage')}</label></div>
+            {form.is_manufacturing && <Field name="manufacturing_process" optional />}
+            {form.is_warehouse_storage && <Field name="goods_stored" optional />}
           </div>
         </Card>
 
-        <Card title="Building & Construction">
+        <Card title={t('sec.building')}>
           <div className="form-grid">
-            <div className="form-row form-row-2"><label><span className="field-label-text">Construction type</span><select value={form.construction_type} onChange={(event) => update('construction_type', event.target.value)}><option>Frame</option><option>Joisted Masonry</option><option>Non-Combustible</option><option>Masonry Non-Combustible</option><option>Fire Resistive</option></select></label><Field label="Year built" name="year_built" type="number" /></div>
-            <div className="form-row form-row-3"><Field label="Square footage" name="square_footage" type="number" /><Field label="Stories" name="num_stories" type="number" /><Field label="Building height (m)" name="building_height_m" type="number" optional /></div>
-            <div className="form-row form-row-3"><Field label="Wall material" name="wall_material" optional /><Field label="Floor material" name="floor_material" optional /><Field label="Roof construction" name="roof_material" optional /></div>
-            <div className="form-row form-row-2"><Field label="Roof construction type" name="roof_type" optional /><Field label="Roof age years" name="roof_age_years" type="number" optional /></div>
+            <div className="form-row form-row-2"><label><span className="field-label-text">{t('f.construction_type')}</span><select value={form.construction_type} onChange={(event) => update('construction_type', event.target.value)}>{['Frame', 'Joisted Masonry', 'Non-Combustible', 'Masonry Non-Combustible', 'Fire Resistive'].map((item) => <option key={item} value={item}>{label('opt.con', item)}</option>)}</select></label><Field name="year_built" type="number" /></div>
+            <div className="form-row form-row-3"><Field name="square_footage" type="number" /><Field name="num_stories" type="number" /><Field name="building_height_m" type="number" optional /></div>
+            <div className="form-row form-row-3"><Field name="wall_material" optional /><Field name="floor_material" optional /><Field name="roof_material" optional /></div>
+            <div className="form-row form-row-2"><Field name="roof_type" optional /><Field name="roof_age_years" type="number" optional /></div>
           </div>
         </Card>
 
-        <Card title="Natural Hazards">
+        <Card title={t('sec.hazards')}>
           <div className="form-grid">
-            <div className="form-row form-row-2"><label><span className="field-label-text">CAT exposure</span><select value={form.cat_zone} onChange={(event) => update('cat_zone', event.target.value)}>{['None', 'Wind', 'Hail', 'Wildfire', 'Flood', 'Earthquake'].map((item) => <option key={item}>{item}</option>)}</select></label><label><span className="field-label-text">Seismic zone</span><select value={form.seismic_zone} onChange={(event) => update('seismic_zone', event.target.value)}>{['II', 'III', 'IV', 'V'].map((item) => <option key={item}>{item}</option>)}</select></label></div>
+            <div className="form-row form-row-2"><label><span className="field-label-text">{t('f.cat_zone')}</span><select value={form.cat_zone} onChange={(event) => update('cat_zone', event.target.value)}>{['None', 'Wind', 'Hail', 'Wildfire', 'Flood', 'Earthquake'].map((item) => <option key={item} value={item}>{label('opt.cat', item)}</option>)}</select></label><label><span className="field-label-text">{t('f.seismic_zone')}</span><select value={form.seismic_zone} onChange={(event) => update('seismic_zone', event.target.value)}>{['II', 'III', 'IV', 'V'].map((item) => <option key={item}>{item}</option>)}</select></label></div>
             <div className="form-row form-row-2">
-              <Field label="Distance to coast (mi)" name="distance_to_coast_miles" type="number" optional hint=" < 1 mi → coastal wind / surge exposure flag (+15 pts)" />
-              <Field label="Distance to fire zone (mi)" name="distance_to_fire_zone_miles" type="number" optional hint=" < 1 mi → wildland-urban interface flag (+15 pts)" />
+              <Field name="distance_to_coast_miles" type="number" optional hint={t('hint.coast')} />
+              <Field name="distance_to_fire_zone_miles" type="number" optional hint={t('hint.fire')} />
             </div>
           </div>
         </Card>
 
-        <Card title="Protection & Mitigation">
+        <Card title={t('sec.protection')}>
           <div className="protection-split">
             <div className="checkbox-list">
-              <label className="checkbox-field"><input type="checkbox" checked={form.sprinkler_system === 'Y'} onChange={(event) => update('sprinkler_system', event.target.checked ? 'Y' : 'N')} /> Sprinkler system</label>
-              <label className="checkbox-field"><input type="checkbox" checked={form.fire_alarm} onChange={(event) => update('fire_alarm', event.target.checked)} /> Fire alarm</label>
-              <label className="checkbox-field"><input type="checkbox" checked={form.flood_protection} onChange={(event) => update('flood_protection', event.target.checked)} /> Flood protection</label>
-              <label className="checkbox-field"><input type="checkbox" checked={form.generator} onChange={(event) => update('generator', event.target.checked)} /> Backup generator</label>
-              <label className="checkbox-field"><input type="checkbox" checked={form.drainage} onChange={(event) => update('drainage', event.target.checked)} /> Drainage system</label>
-              <label className="checkbox-field"><input type="checkbox" checked={form.security_protective_safeguards} onChange={(event) => update('security_protective_safeguards', event.target.checked)} /> Security / protective safeguards</label>
+              <label className="checkbox-field"><input type="checkbox" checked={form.sprinkler_system === 'Y'} onChange={(event) => update('sprinkler_system', event.target.checked ? 'Y' : 'N')} /> {t('f.sprinkler_system')}</label>
+              <label className="checkbox-field"><input type="checkbox" checked={form.fire_alarm} onChange={(event) => update('fire_alarm', event.target.checked)} /> {t('f.fire_alarm')}</label>
+              <label className="checkbox-field"><input type="checkbox" checked={form.flood_protection} onChange={(event) => update('flood_protection', event.target.checked)} /> {t('f.flood_protection')}</label>
+              <label className="checkbox-field"><input type="checkbox" checked={form.generator} onChange={(event) => update('generator', event.target.checked)} /> {t('f.generator')}</label>
+              <label className="checkbox-field"><input type="checkbox" checked={form.drainage} onChange={(event) => update('drainage', event.target.checked)} /> {t('f.drainage')}</label>
+              <label className="checkbox-field"><input type="checkbox" checked={form.security_protective_safeguards} onChange={(event) => update('security_protective_safeguards', event.target.checked)} /> {t('f.security_protective_safeguards')}</label>
             </div>
             {previewCard}
           </div>
           <details className="coverage-details">
-            <summary>Requested Coverage &amp; Extensions</summary>
-            <div className="coverage-note">Select the coverage and extensions requested for this submission. Availability and mandatory/optional status depend on the applicable insurance product. These selections inform coverage and underwriting review and do not directly modify the risk score.</div>
+            <summary>{t('cover.title')}</summary>
+            <div className="coverage-note">{t('cover.note')}</div>
             <div className="form-grid">
-              <div className="coverage-group-label">Property / Peril extensions</div>
+              <div className="coverage-group-label">{t('cover.perils')}</div>
               <div className="form-row form-row-2">
-                <label className="checkbox-field"><input type="checkbox" checked={form.rsmd_cover} onChange={(event) => update('rsmd_cover', event.target.checked)} /> RSMD</label>
-                <label className="checkbox-field"><input type="checkbox" checked={form.flood_cover} onChange={(event) => update('flood_cover', event.target.checked)} /> Flood / Storm / Tempest</label>
+                <label className="checkbox-field"><input type="checkbox" checked={form.rsmd_cover} onChange={(event) => update('rsmd_cover', event.target.checked)} /> {t('f.rsmd_cover')}</label>
+                <label className="checkbox-field"><input type="checkbox" checked={form.flood_cover} onChange={(event) => update('flood_cover', event.target.checked)} /> {t('f.flood_cover')}</label>
               </div>
               <div className="form-row form-row-2">
-                <label className="checkbox-field"><input type="checkbox" checked={form.cyclone_wind_cover} onChange={(event) => update('cyclone_wind_cover', event.target.checked)} /> Cyclone / Wind</label>
-                <label className="checkbox-field"><input type="checkbox" checked={form.earthquake_cover} onChange={(event) => update('earthquake_cover', event.target.checked)} /> Earthquake (Fire &amp; Shock)</label>
+                <label className="checkbox-field"><input type="checkbox" checked={form.cyclone_wind_cover} onChange={(event) => update('cyclone_wind_cover', event.target.checked)} /> {t('f.cyclone_wind_cover')}</label>
+                <label className="checkbox-field"><input type="checkbox" checked={form.earthquake_cover} onChange={(event) => update('earthquake_cover', event.target.checked)} /> {t('f.earthquake_cover')}</label>
               </div>
               <div className="form-row form-row-2">
-                <label className="checkbox-field"><input type="checkbox" checked={form.terrorism_cover} onChange={(event) => update('terrorism_cover', event.target.checked)} /> Terrorism <span className="coverage-dep-note">subject to applicable product terms</span></label>
+                <label className="checkbox-field"><input type="checkbox" checked={form.terrorism_cover} onChange={(event) => update('terrorism_cover', event.target.checked)} /> {t('f.terrorism_cover')} <span className="coverage-dep-note">{t('cover.terrorism_note')}</span></label>
               </div>
-              <div className="coverage-group-label coverage-group-consequential">Consequential loss</div>
-              <label className="checkbox-field"><input type="checkbox" checked={form.business_interruption_cover} onChange={(event) => update('business_interruption_cover', event.target.checked)} /> Business Interruption</label>
-              {form.business_interruption_cover && <><Field label="BI sum insured INR" name="business_interruption_value_inr" type="number" optional /><Field label="Annual gross profit INR" name="annual_gross_profit_inr" type="number" optional /><Field label="Indemnity period (months)" name="indemnity_period_months" type="number" optional /></>}
+              <div className="coverage-group-label coverage-group-consequential">{t('cover.consequential')}</div>
+              <label className="checkbox-field"><input type="checkbox" checked={form.business_interruption_cover} onChange={(event) => update('business_interruption_cover', event.target.checked)} /> {t('f.business_interruption_cover')}</label>
+              {form.business_interruption_cover && <><Field name="business_interruption_value_inr" type="number" optional /><Field name="annual_gross_profit_inr" type="number" optional /><Field name="indemnity_period_months" type="number" optional /></>}
             </div>
           </details>
         </Card>
 
-        <Card title="Asset Values">
+        <Card title={t('sec.values')}>
           <div className="form-grid">
-            <div className="notice">Physical property TIV is derived from the asset components below. Business interruption remains separate.</div>
-            <div className="form-row form-row-2"><Field label="Building value INR" name="building_value_inr" type="number" /><Field label="Plant and machinery INR" name="plant_machinery_value_inr" type="number" /></div>
-            <div className="form-row form-row-2"><Field label="FF&amp;E value INR" name="furniture_fixtures_equipment_value_inr" type="number" /><Field label="Stock / inventory INR" name="stock_inventory_value_inr" type="number" /></div>
-            <Field label="Other contents INR" name="other_contents_value_inr" type="number" />
-            <div className="derived-value"><span>Total Value at Risk</span><strong>{displayedTiv ? `₹ ${displayedTiv.toLocaleString('en-IN')}` : '—'}</strong></div>
+            <div className="notice">{t('values.note')}</div>
+            <div className="form-row form-row-2"><Field name="building_value_inr" type="number" /><Field name="plant_machinery_value_inr" type="number" /></div>
+            <div className="form-row form-row-2"><Field name="furniture_fixtures_equipment_value_inr" type="number" /><Field name="stock_inventory_value_inr" type="number" /></div>
+            <Field name="other_contents_value_inr" type="number" />
+            <div className="derived-value"><span>{t('values.total')}</span><strong>{displayedTiv ? inr(displayedTiv) : '—'}</strong></div>
           </div>
         </Card>
 
-        <Card title="Loss History">
-          <div className="form-grid"><Field label="Prior claims (5Y)" name="prior_claims_count_5yr" type="number" optional /><Field label="Prior claims total INR" name="prior_claims_total_amount" type="number" optional /><Field label="Last loss date" name="last_loss_date" type="date" optional /><div className="derived-value"><span>Submission date</span><strong>{new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</strong></div></div>
+        <Card title={t('sec.loss')}>
+          <div className="form-grid"><Field name="prior_claims_count_5yr" type="number" optional /><Field name="prior_claims_total_amount" type="number" optional /><Field name="last_loss_date" type="date" optional /><div className="derived-value"><span>{t('f.submission_date')}</span><strong>{new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</strong></div></div>
         </Card>
 
-        <Card title="Property Images / Evidence">
+        <Card title={t('sec.images')}>
           <div className="upload-zone" onClick={() => imageInputRef.current?.click()} onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); setImages(Array.from(e.dataTransfer.files)) }}>
             <div className="upload-zone-icon">⬆</div>
-            <div className="upload-zone-text">Click to upload or drag & drop</div>
-            <div className="upload-zone-hint">PNG or JPEG · one image processed per submission</div>
+            <div className="upload-zone-text">{t('upload.text')}</div>
+            <div className="upload-zone-hint">{t('upload.hint')}</div>
           </div>
           <input ref={imageInputRef} type="file" accept="image/png,image/jpeg" multiple style={{ display: 'none' }} onChange={(event) => setImages(Array.from(event.currentTarget.files ?? []))} />
           {images.length > 0 && <div className="image-grid">{images.map((image) => <img key={image.name + image.size} src={URL.createObjectURL(image)} alt={image.name} />)}</div>}
-          {images.length > 1 && <p className="notice">Multiple images selected; one will be reviewed.</p>}
+          {images.length > 1 && <p className="notice">{t('upload.multi')}</p>}
         </Card>
       </div>
 
       <aside className="right-panel">
         <div className="form-actions-panel">
           {error && <div className="error-banner">{error}</div>}
-          <button type="button" className="btn btn-secondary" style={{ width: '100%', marginBottom: 8 }} onClick={onCancel}>Cancel</button>
-          <button className="btn btn-primary" style={{ width: '100%' }} disabled={busy}>{busy ? 'Running underwriting...' : 'Submit for underwriting review'}</button>
+          <button type="button" className="btn btn-secondary" style={{ width: '100%', marginBottom: 8 }} onClick={onCancel}>{t('new.cancel')}</button>
+          <button className="btn btn-primary" style={{ width: '100%' }} disabled={busy}>{busy ? t('new.submitting') : t('new.submit')}</button>
         </div>
       </aside>
     </form>
