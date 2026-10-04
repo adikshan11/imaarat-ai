@@ -1,6 +1,34 @@
 version: 2
 
+seeds:
+  - name: pincode_hazard
+    description: Official natural-hazard evidence per Indian pincode, built by pipeline/hazard/build_hazard.py from open government data.
+    columns:
+      - name: pincode
+        data_tests: [unique, not_null]
+      - name: seismic_zone
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["II", "III", "IV", "V"]
+      - name: cyclone_grade
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["P1", "P2", "P3", "P4"]
+      - name: flood_area_pct
+        data_tests:
+          - not_null
+
 models:
+  - name: mart_hazard_verification
+    description: Each assessment's declared location hazards compared with official data for its pincode.
+    columns:
+      - name: assessment_id
+        data_tests: [unique, not_null]
+      - name: pincode_matched
+        data_tests: [not_null]
+
   - name: fct_assessments
     description: One row per underwriting assessment, with the system decision and the underwriter's final decision.
     columns:

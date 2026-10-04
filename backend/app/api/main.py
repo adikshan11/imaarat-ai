@@ -18,6 +18,7 @@ from app.interop import add_a2a, mcp, mcp_app
 from app.observability import ENABLED as TRACING_ENABLED, flush
 from app.schemas import decision_from_score, indicative_product_segment
 from app.reports import build_submission_pdf
+from app.tools.hazard_lookup import lookup as hazard_lookup, sources as hazard_sources, verify_location
 
 
 @asynccontextmanager
@@ -293,8 +294,10 @@ async def preview_underwriting(request: Request) -> dict[str, Any]:
         "generator": boolean("generator"),
         "drainage": boolean("drainage"),
         "security_protective_safeguards": boolean("security_protective_safeguards"),
+        "zip": text("zip"),
     }
     from app.tools.risk_calculator import risk_score_calculator
+    features = verify_location(features)
     score_data = risk_score_calculator(features)
     model = score_data["prototype_mitigation_model"]
     auth_score = score_data["score"]
@@ -302,6 +305,8 @@ async def preview_underwriting(request: Request) -> dict[str, Any]:
         "risk_score": auth_score,
         "authoritative_risk_score": auth_score,
         "authoritative_decision": decision_from_score(auth_score),
+        "official_hazard": features["official_hazard"],
+        "seismic_zone_used": features["seismic_zone"],
         "policy_type": indicative_product_segment(preview_tiv) if preview_tiv is not None else None,
         "risk_flags": score_data["flags"],
         "risk_breakdown": score_data["breakdown"],
@@ -341,6 +346,19 @@ def review_submission(submission_id: int, review: Review) -> dict[str, Any]:
     record_review(submission_id, review.final_decision, review.reviewer, review.note, status)
     flush()
     return fetch_submission_detail(submission_id) or {}
+
+
+@app.get("/hazard/sources")
+def hazard_source_list() -> dict[str, Any]:
+    return hazard_sources()
+
+
+@app.get("/hazard/{pincode}")
+def hazard(pincode: str) -> dict[str, Any]:
+    found = hazard_lookup(pincode)
+    if found is None:
+        raise HTTPException(status_code=404, detail="No hazard data for this pincode")
+    return found
 
 
 @app.get("/underwrite/analytics")

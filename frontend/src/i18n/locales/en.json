@@ -40,6 +40,9 @@
   "flag.wildland_urban_interface": "Near a wildfire zone",
   "flag.adverse_loss_history": "Adverse claims history",
   "flag.high_tiv_concentration": "High sum insured at one location",
+  "flag.declared_seismic_zone_below_official": "Declared seismic zone below the official zone",
+  "flag.flood_history_at_pincode": "Flood history at this PIN code",
+  "flag.imd_cyclone_prone_district": "IMD cyclone-prone district",
 
   "bd.roof_age": "Roof age",
   "bd.construction": "Construction",
@@ -379,5 +382,27 @@
   "int.rpc": "JSON-RPC endpoint:",
   "int.skill.assess_property": "send property facts as a data part; get score, decision, review status and cited rationale.",
   "int.skill.underwriting_guidance": "ask in text; get the most relevant guideline sections.",
-  "int.try": "Try A2A from a terminal"
+  "int.try": "Try A2A from a terminal",
+  "int.tool.lookup_hazard": "Official seismic zone, flood history and IMD cyclone grade for an Indian PIN code.",
+
+  "hz.title": "Location hazard check",
+  "hz.lead": "Official data for PIN {pincode}: {district}, {state}.",
+  "hz.none": "No official hazard data for this PIN code. Check that it is a valid 6-digit Indian PIN code.",
+  "hz.seismic": "Seismic zone (IS 1893:2016)",
+  "hz.zone": "Zone {zone}",
+  "hz.understated": "The proposal states Zone {declared}, but this PIN code is in Zone {official}, so the score uses Zone {official}.",
+  "hz.flood": "Area flooded in 1998–2022 satellite records",
+  "hz.cyclone": "IMD cyclone hazard grade (district)",
+  "hz.cyclone_none": "Not one of IMD's 100 cyclone-prone districts",
+  "grade.P1": "P1 · very highly prone",
+  "grade.P2": "P2 · highly prone",
+  "grade.P3": "P3 · moderately prone",
+  "grade.P4": "P4 · less prone",
+  "hz.note": "Indicative, from public maps: IS 1893 zone polygons (data.gov.in), NRSC/NDEM flood inundation 1998–2022 and IMD's 2023 cyclone district list. Urban waterlogging is not captured. Not a pricing input on its own.",
+  "hzv.title": "Declared vs official hazards",
+  "hzv.matched": "Assessments with a recognised PIN code",
+  "hzv.understated": "Seismic zone understated in the proposal",
+  "hzv.flood": "Flood history at the PIN code",
+  "hzv.cyclone": "In an IMD cyclone-prone district (P1–P2)",
+  "hzv.note": "Every proposal's PIN code is checked against official hazard data in the nightly pipeline."
 }

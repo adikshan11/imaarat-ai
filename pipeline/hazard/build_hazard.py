@@ -1,0 +1,183 @@
+"""Build the India pincode hazard table (seismic zone, flood share, IMD cyclone grade) from open government data."""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import re
+import urllib.request
+from collections import Counter
+from datetime import datetime, timezone
+from pathlib import Path
+
+import numpy as np
+import pyarrow.parquet as pq
+import shapely
+from pypdf import PdfReader
+
+HERE = Path(__file__).resolve().parent
+BHARATLAS = "https://pub-0429b8e3b5a946e69ea007df844a6f1c.r2.dev"
+SOURCES = {
+    "pincodes": {
+        "file": "Datagov_Pincode_Boundaries.parquet",
+        "url": f"{BHARATLAS}/postal/boundaries/Datagov_Pincode_Boundaries.parquet",
+        "origin": "India Post pincode boundaries, data.gov.in (May 2025)",
+        "licence": "Government Open Data License - India",
+    },
+    "districts": {
+        "file": "LGD_Districts.parquet",
+        "url": f"{BHARATLAS}/admin/districts/LGD_Districts.parquet",
+        "origin": "District boundaries with Local Government Directory codes",
+        "licence": "Government Open Data License - India",
+    },
+    "seismic": {
+        "file": "Seismic_Zones.parquet",
+        "url": f"{BHARATLAS}/environment/seismic/Seismic_Zones.parquet",
+        "origin": "Seismic zones of India, IS 1893 (Part 1):2016, data.gov.in",
+        "licence": "Government Open Data License - India",
+    },
+    "flood": {
+        "file": "NDEM_All_India_Flood_Innundation_1998_to_2022.parquet",
+        "url": f"{BHARATLAS}/environment/ndem-floods-1998-2022/NDEM_All_India_Flood_Innundation_1998_to_2022.parquet",
+        "origin": "NRSC / NDEM satellite-observed flood inundation 1998-2022",
+        "licence": "Published by the aggregator as CC0; NRSC terms not verified",
+    },
+    "cyclone": {
+        "file": "imd_cyclone_hazard.pdf",
+        "url": "https://rsmcnewdelhi.imd.gov.in/uploads/climatology/hazard.pdf",
+        "origin": "IMD RSMC New Delhi, Cyclone hazard prone districts of India (June 2023), tables 1.1 and 1.2",
+        "licence": "No licence stated; government publication, cited with attribution",
+    },
+}
+ZONES = {"Seismic Zone-II": 2, "Seismic Zone-III": 3, "Seismic Zone-IV": 4, "Seismic Zone-V": 5}
+ROMAN = {2: "II", 3: "III", 4: "IV", 5: "V"}
+IMD_GRADE_COUNTS = {"P1": 12, "P2": 25, "P3": 48, "P4": 15}
+IMD_STATES = [
+    "Andaman &", "Andhra", "Pradesh (AP)", "AP", "Odisha", "Puducherry", "West Bengal", "Daman & Diu",
+    "Dadra & Nagar Haveli", "Gujarat", "Lakshadweep", "Tamil Nadu", "Goa", "Karnataka", "Kerala", "Maharastra",
+]
+
+
+def fetch(name: str, raw_dir: Path) -> Path:
+    path = raw_dir / SOURCES[name]["file"]
+    if not path.exists():
+        raw_dir.mkdir(parents=True, exist_ok=True)
+        print(f"downloading {SOURCES[name]['url']}")
+        urllib.request.urlretrieve(SOURCES[name]["url"], path)
+    return path
+
+
+def geometries(path: Path, columns: list[str], geometry: str) -> tuple[dict[str, list], np.ndarray]:
+    table = pq.read_table(path, columns=[*columns, geometry])
+    shapes = shapely.make_valid(shapely.from_wkb(table.column(geometry).to_numpy(zero_copy_only=False)))
+    return {name: table.column(name).to_pylist() for name in columns}, shapes
+
+
+def cyclone_grades(pdf: Path, crosswalk: Path) -> dict[str, tuple[str, str]]:
+    text = "\n".join(page.extract_text() for page in PdfReader(pdf).pages[8:12])
+    rows = []
+    for line in text.splitlines():
+        match = re.match(r"^\s*(.+?)\s+(P[1-4])\s*$", line)
+        if not match or match.group(1).strip().startswith("Total"):
+            continue
+        name = match.group(1).strip()
+        for state in IMD_STATES:
+            if name.startswith(state + " ") and name != "Dadra & Nagar Haveli":
+                name = name[len(state):].strip()
+                break
+        rows.append((name, match.group(2)))
+    counts = Counter(grade for _, grade in rows)
+    if len(rows) != 100 or dict(counts) != IMD_GRADE_COUNTS:
+        raise ValueError(f"IMD tables parsed to {len(rows)} rows {dict(counts)}, expected 100 {IMD_GRADE_COUNTS}")
+
+    mapping = {row["imd_district"]: row for row in csv.DictReader(crosswalk.open(encoding="utf-8"))}
+    unmapped = [name for name, _ in rows if name not in mapping]
+    if unmapped:
+        raise ValueError(f"IMD districts missing from the crosswalk: {unmapped}")
+    grades: dict[str, tuple[str, str]] = {}
+    for name, grade in rows:
+        for district in mapping[name]["lgd_districts"].split(";"):
+            grades[district] = (grade, f"IMD lists {name}" if mapping[name]["note"] == "same" else f"IMD lists {name} ({mapping[name]['note']})")
+    return grades
+
+
+def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
+    pin_cols, pins = geometries(fetch("pincodes", raw_dir), ["Pincode"], "geometry")
+    dist_cols, districts = geometries(fetch("districts", raw_dir), ["dtname", "stname", "dist_lgd"], "geometry")
+    zone_cols, zones = geometries(fetch("seismic", raw_dir), ["seismic_zo"], "geom")
+    _, floods = geometries(fetch("flood", raw_dir), [], "geometry")
+    grades = cyclone_grades(fetch("cyclone", raw_dir), HERE / "imd_district_crosswalk.csv")
+
+    names = Counter(dist_cols["dtname"])
+    missing = [name for name in grades if names[name] != 1]
+    if missing:
+        raise ValueError(f"crosswalk targets not found exactly once in the district file: {missing}")
+
+    count = len(pins)
+    points = shapely.point_on_surface(pins)
+    district_of = np.full(count, -1)
+    point_idx, district_idx = shapely.STRtree(districts).query(points, predicate="within")
+    district_of[point_idx] = district_idx
+
+    labelled = [i for i, label in enumerate(zone_cols["seismic_zo"]) if label in ZONES]
+    zone_level = np.array([ZONES[zone_cols["seismic_zo"][i]] for i in labelled])
+    pin_idx, zone_idx = shapely.STRtree(zones[labelled]).query(pins, predicate="intersects")
+    overlap = shapely.area(shapely.intersection(pins[pin_idx], zones[labelled][zone_idx]))
+    pin_area = shapely.area(pins)
+    share = np.zeros((count, 6))
+    np.add.at(share, (pin_idx, zone_level[zone_idx]), overlap)
+    share = share / np.where(pin_area > 0, pin_area, 1)[:, None]
+
+    pin_idx, flood_idx = shapely.STRtree(floods).query(pins, predicate="intersects")
+    flooded = np.zeros(count)
+    np.add.at(flooded, pin_idx, shapely.area(shapely.intersection(pins[pin_idx], floods[flood_idx])))
+    flood_pct = np.clip(100 * flooded / np.where(pin_area > 0, pin_area, 1), 0, 100)
+
+    records = []
+    for i in range(count):
+        d = district_of[i]
+        district = dist_cols["dtname"][d] if d >= 0 else None
+        touched = [level for level in range(2, 6) if share[i, level] > 0.01]
+        dominant = int(np.argmax(share[i])) if share[i].max() > 0 else None
+        grade, grade_note = grades.get(district, (None, None)) if district else (None, None)
+        records.append({
+            "pincode": str(pin_cols["Pincode"][i]),
+            "district": district,
+            "state": dist_cols["stname"][d].title() if d >= 0 else None,
+            "district_lgd": int(dist_cols["dist_lgd"][d]) if d >= 0 else None,
+            "seismic_zone": ROMAN.get(dominant),
+            "seismic_zone_max": ROMAN.get(max(touched)) if touched else None,
+            "flood_area_pct": round(float(flood_pct[i]), 1),
+            "cyclone_grade": grade,
+            "cyclone_note": grade_note,
+        })
+
+    with out_csv.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(records[0]))
+        writer.writeheader()
+        writer.writerows(records)
+    fields = ["district", "state", "district_lgd", "seismic_zone", "seismic_zone_max", "flood_area_pct", "cyclone_grade", "cyclone_note"]
+    payload = {
+        "built_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "fields": fields,
+        "sources": {name: {key: value for key, value in source.items() if key != "file"} for name, source in SOURCES.items()},
+        "pincodes": {record["pincode"]: [record[field] for field in fields] for record in records},
+    }
+    out_json.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
+
+    print(f"pincodes {count}, with district {int((district_of >= 0).sum())}")
+    print("dominant seismic zone", Counter(r["seismic_zone"] for r in records))
+    print("cyclone graded pincodes", Counter(r["cyclone_grade"] for r in records))
+    print("pincodes with any flood history", sum(r["flood_area_pct"] > 0 for r in records), "with >= 10%", sum(r["flood_area_pct"] >= 10 for r in records))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--raw-dir", type=Path, default=HERE / "raw")
+    parser.add_argument("--out-json", type=Path, default=HERE.parent.parent / "backend" / "data" / "hazard" / "pincode_hazard.json")
+    parser.add_argument("--out-csv", type=Path, default=HERE.parent / "dbt" / "seeds" / "pincode_hazard.csv")
+    args = parser.parse_args()
+    args.out_json.parent.mkdir(parents=True, exist_ok=True)
+    args.out_csv.parent.mkdir(parents=True, exist_ok=True)
+    build(args.raw_dir, args.out_json, args.out_csv)

@@ -20,6 +20,7 @@ from mcp.server.transport_security import TransportSecuritySettings
 from app.config import GUIDELINES_MD
 from app.db import fetch_history, fetch_submission_detail
 from app.schemas import decision_from_score, indicative_product_segment
+from app.tools.hazard_lookup import lookup as hazard_lookup, verify_location
 from app.tools.rag_lookup import retrieve
 from app.tools.risk_calculator import risk_score_calculator
 
@@ -30,9 +31,12 @@ def public_base_url() -> str:
 
 
 def deterministic_assessment(property_facts: dict[str, Any]) -> dict[str, Any]:
+    property_facts = verify_location(property_facts)
     scored = risk_score_calculator(property_facts)
     tiv = property_facts.get("tiv")
     return {
+        "official_hazard": property_facts["official_hazard"],
+        "seismic_zone_used": property_facts.get("seismic_zone"),
         "risk_score": scored["score"],
         "decision": decision_from_score(scored["score"]),
         "risk_flags": scored["flags"],
@@ -64,7 +68,7 @@ mcp = MCPServer(
 )
 
 
-@mcp.tool(description="Score a commercial property with the deterministic underwriting engine and return the decision, risk flags and score breakdown. Nothing is stored.")
+@mcp.tool(description="Score a commercial property with the deterministic underwriting engine and return the decision, risk flags and score breakdown. Pass the 6-digit pincode to check the declared seismic zone against official data and add flood and cyclone evidence. Nothing is stored.")
 def assess_property(
     construction_type: str,
     occupancy_type: str,
@@ -76,6 +80,7 @@ def assess_property(
     distance_to_fire_zone_miles: float | None = None,
     prior_claims_count_5yr: int | None = None,
     tiv: float | None = None,
+    pincode: str | None = None,
 ) -> dict[str, Any]:
     return deterministic_assessment(
         {
@@ -89,8 +94,14 @@ def assess_property(
             "distance_to_fire_zone_miles": distance_to_fire_zone_miles,
             "prior_claims_count_5yr": prior_claims_count_5yr,
             "tiv": tiv,
+            "zip": pincode,
         }
     )
+
+
+@mcp.tool(description="Look up official natural-hazard evidence for an Indian 6-digit pincode: seismic zone (IS 1893:2016 map), share of the pincode area flooded in 1998-2022 satellite records (NRSC/NDEM) and the IMD cyclone hazard grade of its district.")
+def lookup_hazard(pincode: str) -> dict[str, Any]:
+    return hazard_lookup(pincode) or {"error": f"no hazard data for pincode {pincode}"}
 
 
 @mcp.tool(description="Retrieve the underwriting guideline sections (RAG over Gemini embeddings in Qdrant) most relevant to a question.")

@@ -14,3 +14,17 @@ models:
       +materialized: view
     marts:
       +materialized: table
+
+seeds:
+  uw_risk_analytics:
+    pincode_hazard:
+      +column_types:
+        pincode: varchar
+        district: varchar
+        state: varchar
+        district_lgd: integer
+        seismic_zone: varchar
+        seismic_zone_max: varchar
+        flood_area_pct: double
+        cyclone_grade: varchar
+        cyclone_note: varchar
