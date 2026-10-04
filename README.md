@@ -4,7 +4,7 @@ AI-assisted commercial property underwriting for Indian commercial property. An 
 
 Built by **Pranjal Jain, Adithya Shankaran and Sanjeev Sharma** as the capstone of Xebia's Quantum Shift AI Practitioner+ program (August 2026). Adithya extended it into this production-style version: evals, observability, MCP and A2A, human review, Postgres and the dbt pipeline.
 
-**Live app:** _added at deploy_ · **dbt docs and lineage:** _GitHub Pages link added at deploy_
+**Live app:** [uw-risk-copilot.vercel.app](https://uw-risk-copilot.vercel.app) · **AI quality:** [evals page](https://uw-risk-copilot.vercel.app/#quality) · **dbt docs and lineage:** [GitHub Pages](https://adikshan11.github.io/uw-risk-copilot/) · **MCP:** `https://uw-risk-copilot.vercel.app/api/mcp/` · **A2A card:** [agent-card.json](https://uw-risk-copilot.vercel.app/api/.well-known/agent-card.json)
 
 ## The rule that shapes everything
 
