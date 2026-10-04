@@ -171,7 +171,7 @@ export default function PaperForm({ onUse }: { onUse: (values: Record<string, un
                   <td>
                     <input value={values[name] ?? ''} inputMode={NUMERIC.has(name) ? 'numeric' : undefined} onChange={(event) => setValues((current) => ({ ...current, [name]: event.target.value }))} aria-label={t(`f.${name}`)} />
                     <div className="paper-meta">
-                      <span className={`confidence confidence-${field.confidence}`}>{t(`paper.conf_${field.confidence}`)}</span>
+                      {!field.issue && <span className={`confidence confidence-${field.confidence}`}>{t(`paper.conf_${field.confidence}`)}</span>}
                       {field.issue && <span className="paper-issue">{t(`paper.issue_${field.issue}`)}</span>}
                       {field.read_as && String(field.read_as) !== String(field.value ?? '') && <span className="muted-text">{t('paper.read_as', { text: String(field.read_as) })}</span>}
                     </div>

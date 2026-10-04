@@ -61,3 +61,10 @@ def test_endpoint_rejects_other_file_types(monkeypatch):
     monkeypatch.setattr(main, "GEMINI_API_KEY", "set")
     response = TestClient(main.app).post("/underwrite/read-form", files={"image": ("page.pdf", b"x", "application/pdf")})
     assert response.status_code == 415
+
+
+def test_letters_in_numbers_are_flagged_not_dropped():
+    fields = validate(reading(year_built="2O19", building_value_inr="2,5O,00,000", stock_inventory_value_inr="Rs. 80,00,000/-"))["fields"]
+    assert fields["year_built"]["value"] is None and fields["year_built"]["issue"] == "not_a_number"
+    assert fields["building_value_inr"]["value"] is None and fields["building_value_inr"]["issue"] == "not_a_number"
+    assert fields["stock_inventory_value_inr"]["value"] == 8000000

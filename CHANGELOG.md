@@ -2,6 +2,17 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.7.0] - 2026-10-04
+
+### Changed
+- Developer mode is no longer shown to visitors; it turns on with `?dev` in the address (or the AI quality and MCP pages) and off from its own button.
+- Appearance is a single sun and moon toggle that starts from the device setting.
+- The rolling name now shows imaarat.ai in English, Hindi, Bengali, Tamil, Kannada, Punjabi and Urdu.
+
+### Fixed
+- Amounts and years read from a paper form that contain letters (such as 2O19) are flagged as not a number instead of having the letters dropped, which could have turned 2,5O,00,000 into a much smaller amount.
+- The review screen shows the specific problem instead of "unreadable" when a value fails a check, and the photo crops are larger.
+
 ## [2.6.1] - 2026-10-04
 
 ### Fixed

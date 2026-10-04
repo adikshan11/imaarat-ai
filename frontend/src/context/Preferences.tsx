@@ -6,13 +6,12 @@ import type { Language } from '@/i18n/languages'
 
 type Messages = Record<string, string>
 type Vars = Record<string, string | number>
-export type Theme = 'system' | 'light' | 'dark'
 
 interface Preferences {
   dev: boolean
   setDev: (value: boolean) => void
-  theme: Theme
-  setTheme: (value: Theme) => void
+  dark: boolean
+  toggleTheme: () => void
   language: Language
   setLanguage: (code: string) => void
   t: (key: string, vars?: Vars) => string
@@ -61,21 +60,35 @@ const initialLanguage = () => {
 const PreferencesContext = createContext<Preferences | undefined>(undefined)
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
-  const [dev, setDev] = useState(() => stored('imaarat.dev') === '1' || ['quality', 'integrations'].includes(window.location.hash.slice(1)))
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = stored('imaarat.theme')
-    return saved === 'light' || saved === 'dark' ? saved : 'system'
+  const [dev, setDev] = useState(() => {
+    const query = new URLSearchParams(window.location.search).get('dev')
+    if (query !== null) return query !== '0'
+    return stored('imaarat.dev') === '1' || ['quality', 'integrations'].includes(window.location.hash.slice(1))
   })
+  const [chosen, setChosen] = useState<'light' | 'dark' | null>(() => {
+    const saved = stored('imaarat.theme')
+    return saved === 'light' || saved === 'dark' ? saved : null
+  })
+  const [systemDark, setSystemDark] = useState(() => window.matchMedia('(prefers-color-scheme: dark)').matches)
+  const dark = (chosen ?? (systemDark ? 'dark' : 'light')) === 'dark'
+  const toggleTheme = () => setChosen(dark ? 'light' : 'dark')
   const [code, setCode] = useState(initialLanguage)
   const [messages, setMessages] = useState<Messages>(english)
   const language = LANGUAGES.find((item) => item.code === code) ?? LANGUAGES[0]
 
   useEffect(() => { store('imaarat.dev', dev ? '1' : '0') }, [dev])
   useEffect(() => {
-    store('imaarat.theme', theme)
-    if (theme === 'system') delete document.documentElement.dataset.theme
-    else document.documentElement.dataset.theme = theme
-  }, [theme])
+    const query = window.matchMedia('(prefers-color-scheme: dark)')
+    const listen = (event: MediaQueryListEvent) => setSystemDark(event.matches)
+    query.addEventListener('change', listen)
+    return () => query.removeEventListener('change', listen)
+  }, [])
+  useEffect(() => {
+    if (chosen) {
+      store('imaarat.theme', chosen)
+      document.documentElement.dataset.theme = chosen
+    }
+  }, [chosen])
   useEffect(() => {
     let current = true
     store('imaarat.lang', language.code)
@@ -100,7 +113,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const label = (prefix: string, id: string) => messages[`${prefix}.${id}`] ?? english[`${prefix}.${id}`] ?? humanize(id)
 
   return (
-    <PreferencesContext.Provider value={{ dev, setDev, theme, setTheme, language, setLanguage: setCode, t, label, english: (key: string) => english[key] ?? key }}>
+    <PreferencesContext.Provider value={{ dev, setDev, dark, toggleTheme, language, setLanguage: setCode, t, label, english: (key: string) => english[key] ?? key }}>
       {children}
     </PreferencesContext.Provider>
   )
