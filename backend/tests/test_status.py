@@ -23,3 +23,13 @@ def test_status_reports_qdrant_when_ai_is_configured(monkeypatch):
     body = TestClient(main.app).get("/status").json()
     assert body["ai"] is True
     assert body["vector_store"] == "qdrant"
+
+
+def test_public_base_url_prefers_explicit_setting(monkeypatch):
+    from app.interop import public_base_url
+
+    monkeypatch.setenv("VERCEL_PROJECT_PRODUCTION_URL", "old.vercel.app")
+    monkeypatch.setenv("PUBLIC_BASE_URL", "https://imaarat-ai.vercel.app/api")
+    assert public_base_url() == "https://imaarat-ai.vercel.app/api"
+    monkeypatch.delenv("PUBLIC_BASE_URL")
+    assert public_base_url() == "https://old.vercel.app/api"

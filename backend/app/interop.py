@@ -26,8 +26,10 @@ from app.tools.risk_calculator import risk_score_calculator
 
 
 def public_base_url() -> str:
+    if os.getenv("PUBLIC_BASE_URL"):
+        return os.environ["PUBLIC_BASE_URL"]
     host = os.getenv("VERCEL_PROJECT_PRODUCTION_URL")
-    return f"https://{host}/api" if host else os.getenv("PUBLIC_BASE_URL", "http://localhost:8000")
+    return f"https://{host}/api" if host else "http://localhost:8000"
 
 
 def deterministic_assessment(property_facts: dict[str, Any]) -> dict[str, Any]:

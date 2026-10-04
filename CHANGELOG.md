@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.6.1] - 2026-10-04
+
+### Fixed
+- The A2A agent card advertises the imaarat-ai address when PUBLIC_BASE_URL is set, instead of the project's oldest domain.
+
 ## [2.6.0] - 2026-10-04
 
 ### Changed
