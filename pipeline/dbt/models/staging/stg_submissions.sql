@@ -4,6 +4,7 @@ select
     cast(created_at as timestamp) as assessed_at,
     json_extract_string(raw_input, '$.city') as city,
     json_extract_string(raw_input, '$.state') as state,
+    regexp_replace(coalesce(json_extract_string(raw_input, '$.zip'), ''), '[^0-9]', '', 'g') as pincode,
     json_extract_string(raw_input, '$.construction_type') as construction_type,
     json_extract_string(raw_input, '$.occupancy_type') as occupancy_type,
     json_extract_string(raw_input, '$.cat_zone') as cat_zone,

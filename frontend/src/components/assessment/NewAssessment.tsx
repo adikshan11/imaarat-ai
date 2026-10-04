@@ -3,6 +3,7 @@ import type { BackendSubmission, MitigationPreview, SubmissionInput } from '@/ty
 import { previewUnderwriting } from '@/api/underwriting'
 import { useRiskContext } from '@/context/RiskContext'
 import Card from '@/components/shared/Card'
+import HazardCard from '@/components/assessment/HazardCard'
 import { usePreferences } from '@/context/Preferences'
 import { inr } from '@/lib/format'
 
@@ -511,6 +512,7 @@ export default function NewAssessment({ onCompleted, onCancel }: { onCompleted: 
       </div>
 
       <aside className="right-panel">
+        <HazardCard hazard={preview?.official_hazard} declaredZone={form.seismic_zone} pincode={form.zip} />
         <div className="form-actions-panel">
           {error && <div className="error-banner">{error}</div>}
           <button type="button" className="btn btn-secondary" style={{ width: '100%', marginBottom: 8 }} onClick={onCancel}>{t('new.cancel')}</button>

@@ -13,6 +13,7 @@ from app.observability import publish_trace, traced
 from app.schemas import decision_from_score
 from app.tools.comparables import comparable_lookup
 from app.tools.rag_lookup import format_hit, retrieve
+from app.tools.hazard_lookup import verify_location
 from app.tools.risk_calculator import risk_score_calculator
 from app.tools.vision_extract import extract_property_features
 
@@ -24,7 +25,7 @@ def intake_node(state: UWState) -> dict:
 
 
 def extract_features_node(state: UWState) -> dict:
-    return {"extracted_features": extract_property_features(state.get("image_path"), state["raw_input"])}
+    return {"extracted_features": verify_location(extract_property_features(state.get("image_path"), state["raw_input"]))}
 
 
 def retrieval_query(raw: dict) -> str:

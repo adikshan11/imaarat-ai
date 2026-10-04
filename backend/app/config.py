@@ -20,6 +20,7 @@ DB_PATH = DB_DIR / "uw_risk.db"
 PROPERTIES_CSV = RAW_DIR / "properties.csv"
 GUIDELINES_PDF = RAW_DIR / "underwriting_guidelines.pdf"
 GUIDELINES_MD = RAW_DIR / "underwriting_guidelines.md"
+HAZARD_JSON = DATA_DIR / "hazard" / "pincode_hazard.json"
 
 GEMINI_MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
 GEMINI_FALLBACK_MODEL = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.5-flash-lite")

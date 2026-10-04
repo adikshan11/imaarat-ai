@@ -2,7 +2,7 @@ import Card from '@/components/shared/Card'
 import { apiBaseUrl } from '@/api/underwriting'
 import { usePreferences } from '@/context/Preferences'
 
-const MCP_TOOLS = ['assess_property', 'search_guidelines', 'get_assessment', 'list_assessments']
+const MCP_TOOLS = ['assess_property', 'lookup_hazard', 'search_guidelines', 'get_assessment', 'list_assessments']
 const A2A_SKILLS = ['assess_property', 'underwriting_guidance']
 
 export default function Integrations() {

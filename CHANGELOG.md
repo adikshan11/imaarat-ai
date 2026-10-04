@@ -2,6 +2,13 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.3.0] - 2026-10-04
+
+### Added
+- Location hazard check for every Indian PIN code: seismic zone from the IS 1893:2016 map, the share of the area flooded in 1998-2022 satellite records and the IMD cyclone grade of its district, built from open government data with a tested pipeline.
+- When a proposal states a lower seismic zone than the official one for its PIN code, the score uses the official zone and the assessment is flagged.
+- Hazard evidence in the form, the result page, a portfolio check of declared against official hazards, an API endpoint and an MCP tool.
+
 ## [2.2.0] - 2026-10-04
 
 ### Added

@@ -28,7 +28,22 @@ export interface PrototypeMitigationModel {
   risk_profile: { id: string; name: string; score: number }[]
   positive_factors: { id: string; name: string; benefit: number }[]
 }
+export interface OfficialHazard {
+  pincode: string
+  district: string | null
+  state: string | null
+  district_lgd: number | null
+  seismic_zone: string | null
+  seismic_zone_max: string | null
+  flood_area_pct: number
+  cyclone_grade: string | null
+  cyclone_note: string | null
+  built_at: string
+}
+
 export interface MitigationPreview {
+  official_hazard?: OfficialHazard | null
+  seismic_zone_used?: string
   risk_score: number
   authoritative_risk_score: number
   authoritative_decision?: string
@@ -96,7 +111,7 @@ export interface AnalyticsSnapshot {
   generated_at: string
   assessments: number
   tiv_inr: number
-  marts: Record<'mart_cat_exposure' | 'mart_city_accumulation' | 'mart_risk_drivers' | 'mart_review_funnel' | 'mart_reference_benchmarks', MartRow[]>
+  marts: Record<'mart_cat_exposure' | 'mart_city_accumulation' | 'mart_risk_drivers' | 'mart_review_funnel' | 'mart_reference_benchmarks', MartRow[]> & { mart_hazard_verification?: MartRow[] }
 }
 
 export interface FormatSummary {

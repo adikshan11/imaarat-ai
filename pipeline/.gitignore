@@ -4,3 +4,4 @@ warehouse.duckdb.wal
 dbt/target/
 dbt/logs/
 dbt/.user.yml
+hazard/raw/

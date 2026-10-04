@@ -4,6 +4,8 @@ import type { BackendSubmission, StructuredMemo } from '@/types/backend'
 import { downloadSubmissionReport } from '@/api/underwriting'
 import { usePreferences } from '@/context/Preferences'
 import ReviewPanel from '@/components/assessment/ReviewPanel'
+import HazardCard from '@/components/assessment/HazardCard'
+import type { OfficialHazard } from '@/types/backend'
 
 function Memo({ memo }: { memo: StructuredMemo }) {
   const { t } = usePreferences()
@@ -63,6 +65,7 @@ export default function BackendAssessmentResult({ submission, onBack, onReviewed
       <div className="kpi"><div className="kpi-label">{t('res.segment')}</div><div className="kpi-value kpi-value-text">{segment}</div></div>
     </div>
     <ReviewPanel submission={submission} onReviewed={onReviewed} />
+    <HazardCard hazard={features.official_hazard as OfficialHazard | null | undefined} declaredZone={String(features.seismic_zone_declared ?? submission.raw_input?.seismic_zone ?? '')} />
     <div className="dashboard-grid">
       <Card title={t('res.flags_title')}>
         <p>{submission.rationale}</p>

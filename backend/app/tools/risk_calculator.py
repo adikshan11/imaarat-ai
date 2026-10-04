@@ -246,6 +246,8 @@ def risk_score_calculator(features: dict) -> dict:
         breakdown["tiv"] = _HIGH_TIV_SCORE
         flags.append("high_tiv_concentration")
 
+    flags.extend(features.get("hazard_flags") or [])
+
     score = min(score, 100)
     model_features = {**features, "risk_breakdown": breakdown}
     return {

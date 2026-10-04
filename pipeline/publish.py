@@ -16,7 +16,7 @@ from sqlalchemy import Column, Integer, MetaData, Table, Text, insert  # noqa: E
 
 from app.db import get_engine, is_postgres  # noqa: E402
 
-MARTS = ("mart_cat_exposure", "mart_city_accumulation", "mart_risk_drivers", "mart_review_funnel", "mart_reference_benchmarks")
+MARTS = ("mart_cat_exposure", "mart_city_accumulation", "mart_risk_drivers", "mart_review_funnel", "mart_reference_benchmarks", "mart_hazard_verification")
 OUTPUT = ROOT.parent / "backend" / "data" / "analytics" / "latest.json"
 
 
