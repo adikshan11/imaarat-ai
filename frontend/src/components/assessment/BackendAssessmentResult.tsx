@@ -2,6 +2,7 @@ import React from 'react'
 import Card from '@/components/shared/Card'
 import type { BackendSubmission, StructuredMemo } from '@/types/backend'
 import { downloadSubmissionReport } from '@/api/underwriting'
+import ReviewPanel from '@/components/assessment/ReviewPanel'
 
 const label = (value: string) => value
   .replaceAll('_', ' ')
@@ -19,7 +20,8 @@ function renderMemo(memo: StructuredMemo) {
   return sections.filter(([, lines]) => lines.length > 0).map(([heading, lines]) => <section key={heading} className="memo-section"><h3>{heading}</h3><ul>{lines.map((line, index) => <li key={index}>{line}</li>)}</ul></section>)
 }
 
-export default function BackendAssessmentResult({ submission, onBack }: { submission: BackendSubmission; onBack: () => void }) {
+export default function BackendAssessmentResult({ submission, onBack, onReviewed }: { submission: BackendSubmission; onBack: () => void; onReviewed: (updated: BackendSubmission) => void }) {
+  const cited = new Set(submission.memo_json?.guideline_citations ?? [])
   const features = submission.extracted_features ?? {}
   const mitigation = submission.prototype_mitigation_model
   const displayPolicyType = (submission.policy_type ?? 'Not supplied').replace('/', ' / ')
@@ -53,9 +55,10 @@ export default function BackendAssessmentResult({ submission, onBack }: { submis
     <div className="kpi-row">
       <div className="kpi"><div className="kpi-label">Risk score</div><div className="kpi-value">{submission.risk_score}</div></div>
       <div className="kpi"><div className="kpi-label">Indicative view</div><div className="kpi-value">{mitigation?.risk_adjusted_view ?? 'Not available'}</div></div>
-      <div className="kpi"><div className="kpi-label">Decision</div><div className="kpi-value">{submission.decision}</div></div>
+      <div className="kpi"><div className="kpi-label">{submission.review_status === 'pending_review' ? 'Decision (awaiting review)' : 'Decision'}</div><div className="kpi-value">{submission.final_decision ?? submission.decision}</div></div>
       <div className="kpi"><div className="kpi-label">Policy segment</div><div className="kpi-value">{displayPolicyType}</div></div>
     </div>
+    <ReviewPanel submission={submission} onReviewed={onReviewed} />
     <div className="dashboard-grid">
       <Card title="Decision and risk flags">
         <p>{submission.rationale}</p>
@@ -82,11 +85,19 @@ export default function BackendAssessmentResult({ submission, onBack }: { submis
       </Card>
     </div>
     <Card title="AI-Assisted Underwriting memo">
-      <p>Status: {submission.ai_memo_status ?? (submission.memo_json ? 'Available' : 'Unavailable')}</p>
+      <p>
+        Status: {submission.ai_memo_status ?? (submission.memo_json ? 'Available' : 'Unavailable')}
+        {submission.memo_model ? ` · ${submission.memo_model}` : ''}
+        {submission.trace_url && <> · <a href={submission.trace_url} target="_blank" rel="noreferrer">View AI trace</a></>}
+      </p>
+      {cited.size > 0 && <p className="card-footnote">Grounded in guideline sections {[...cited].join(', ')}, validated against what was retrieved.</p>}
       {submission.ai_memo_status !== 'Available' || !submission.memo_json ? <p>Reason: {submission.ai_memo_reason ?? 'AI review did not complete'}</p> : <div className="memo-content">{renderMemo(submission.memo_json)}</div>}
     </Card>
     <div className="dashboard-grid">
-      <Card title="Guideline evidence"><ul>{submission.guideline_chunks.map((chunk, index) => <li key={index}>{chunk}</li>)}</ul></Card>
+      <Card title="Guideline evidence (RAG)"><ul>{submission.guideline_chunks.map((chunk, index) => {
+        const id = chunk.match(/^\[(G\d+)\]/)?.[1]
+        return <li key={index} style={id && cited.has(id) ? { fontWeight: 600 } : undefined}>{chunk}{id && cited.has(id) ? ' (cited)' : ''}</li>
+      })}</ul></Card>
       <Card title="Reference properties"><div className="table-wrap"><table><thead><tr><th>Property</th><th>Occupancy</th><th>CAT zone</th></tr></thead><tbody>{submission.comparables.map((item, index) => <tr key={index}><td>{String(item.property_id ?? '')}</td><td>{String(item.occupancy_type ?? '')}</td><td>{String(item.cat_zone ?? '')}</td></tr>)}</tbody></table></div><p className="card-footnote">Reference data — synthetic model properties, not verified market comparables.</p></Card>
     </div>
   </div>

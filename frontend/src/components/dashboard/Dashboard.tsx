@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import Card from '@/components/shared/Card'
+import PortfolioAnalytics from '@/components/dashboard/PortfolioAnalytics'
 import { useRiskContext } from '@/context/RiskContext'
 import type { BackendHistoryRow } from '@/types/backend'
 
@@ -47,7 +48,7 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
     return acc
   }, {} as Record<string, number>)
   const average = submissions.length ? Math.round(submissions.reduce((sum, item) => sum + item.risk_score, 0) / submissions.length) : 0
-  const highCat = submissions.filter((item) => item.risk_flags.includes('high_cat_zone_exposure')).length
+  const pendingReview = submissions.filter((item) => item.review_status === 'pending_review').length
   const totalValue = submissions.reduce((sum, item) => sum + Number(item.total_value_at_risk_inr ?? item.raw_input?.tiv ?? 0), 0)
   const withSprinklers = submissions.filter((item) => String(item.raw_input?.sprinkler_system).toUpperCase() === 'Y').length
   const withFireAlarm = submissions.filter((item) => item.raw_input?.fire_alarm === true).length
@@ -79,7 +80,7 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
       <div className="kpi-row">
         <div className="kpi"><div className="kpi-label">Submissions</div><div className="kpi-value">{submissions.length}</div></div>
         <div className="kpi"><div className="kpi-label">Average risk score</div><div className="kpi-value">{average}</div></div>
-        <div className="kpi"><div className="kpi-label">CAT exposure</div><div className="kpi-value">{highCat}</div></div>
+        <div className="kpi"><div className="kpi-label">Awaiting underwriter review</div><div className="kpi-value">{pendingReview}</div></div>
         <div className="kpi"><div className="kpi-label">Total value at risk</div><div className="kpi-value">{money(totalValue)}</div></div>
       </div>
 
@@ -109,6 +110,8 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
         </Card>
       </div>
 
+      <PortfolioAnalytics />
+
       <Card title="Recent assessments">
         <div className="table-toolbar">
           <label className="table-search"><span>Search</span><input placeholder="Property or location" value={query} onChange={(event) => setQuery(event.target.value)} /></label>
@@ -124,7 +127,7 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
               <td>{String(item.raw_input?.city ?? '')}, {String(item.raw_input?.state ?? '')}</td>
               <td><strong>{item.risk_score}</strong></td>
               <td>{item.prototype_mitigation_model?.risk_adjusted_view ?? '—'}</td>
-              <td><span className={`decision-pill decision-${item.decision}`}>{item.decision}</span></td>
+              <td><span className={`decision-pill decision-${item.final_decision ?? item.decision}`}>{item.final_decision ?? item.decision}</span>{item.review_status === 'pending_review' && <div className="muted-text">awaiting review</div>}{item.review_status === 'overridden' && <div className="muted-text">overridden from {item.decision}</div>}</td>
               <td><div className="flag-chip-list">{item.risk_flags.length ? item.risk_flags.map((flag) => <span className="flag-chip" key={flag}>{label(flag)}</span>) : <span className="muted-text">None</span>}</div></td>
               <td><button className="btn btn-secondary" onClick={() => onView(item)}>View</button></td>
             </tr>)}</tbody>

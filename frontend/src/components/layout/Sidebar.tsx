@@ -1,7 +1,7 @@
 import React from 'react'
 
 interface Props {
-  activeView: 'dashboard' | 'new' | 'assessment' | 'underwriting'
+  activeView: string
   onNavigate: (view: string) => void
 }
 
@@ -25,9 +25,15 @@ const Sidebar: React.FC<Props> = ({ activeView, onNavigate }) => {
           <button className={`nav-item ${activeView === 'new' ? 'active' : ''}`} onClick={() => onNavigate('new')}>
             <span>New Assessment</span>
           </button>
+          <button className={`nav-item ${activeView === 'quality' ? 'active' : ''}`} onClick={() => onNavigate('quality')}>
+            <span>AI Quality</span>
+          </button>
+          <button className={`nav-item ${activeView === 'integrations' ? 'active' : ''}`} onClick={() => onNavigate('integrations')}>
+            <span>MCP &amp; A2A</span>
+          </button>
         </nav>
 
-        <div className="sidebar-footer">Portfolio scoring model v4.2 · CAT tables updated quarterly</div>
+        <div className="sidebar-footer">Python decides · Gemini explains · LangGraph orchestrates</div>
       </div>
     </aside>
   )

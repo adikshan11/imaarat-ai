@@ -11,6 +11,7 @@ interface RiskContextState {
   refresh: () => Promise<void>
   submit: (input: SubmissionInput, images: File[]) => Promise<BackendSubmission>
   loadDetail: (submissionId: number) => Promise<BackendSubmission>
+  applyReview: (updated: BackendSubmission) => void
 }
 
 const RiskContext = createContext<RiskContextState | undefined>(undefined)
@@ -48,6 +49,11 @@ export function RiskProvider({ children }: { children: ReactNode }) {
     return result
   }
 
+  const applyReview = (updated: BackendSubmission) => {
+    setSelectedSubmission(updated)
+    setSubmissions((current) => current.map((item) => (item.id === updated.id ? { ...item, review_status: updated.review_status, final_decision: updated.final_decision } : item)))
+  }
+
   return (
     <RiskContext.Provider value={{
       submissions,
@@ -57,6 +63,7 @@ export function RiskProvider({ children }: { children: ReactNode }) {
       refresh,
       submit,
       loadDetail,
+      applyReview,
     }}>
       {children}
     </RiskContext.Provider>

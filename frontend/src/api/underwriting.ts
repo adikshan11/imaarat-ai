@@ -1,4 +1,4 @@
-import type { BackendHistoryRow, BackendSubmission, MitigationPreview, SubmissionInput } from '@/types/backend'
+import type { AnalyticsSnapshot, BackendHistoryRow, BackendSubmission, EvalReport, MitigationPreview, ReviewInput, SubmissionInput } from '@/types/backend'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 
@@ -53,3 +53,21 @@ export async function downloadSubmissionReport(submissionId: number): Promise<Bl
   }
   return response.blob()
 }
+
+export async function reviewSubmission(submissionId: number, review: ReviewInput): Promise<BackendSubmission> {
+  return parseResponse<BackendSubmission>(await fetch(`${API_BASE_URL}/underwrite/history/${submissionId}/review`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(review),
+  }))
+}
+
+export async function fetchAnalytics(): Promise<AnalyticsSnapshot> {
+  return parseResponse<AnalyticsSnapshot>(await fetch(`${API_BASE_URL}/underwrite/analytics`))
+}
+
+export async function fetchEvals(): Promise<EvalReport> {
+  return parseResponse<EvalReport>(await fetch(`${API_BASE_URL}/underwrite/evals`))
+}
+
+export const apiBaseUrl = new URL(API_BASE_URL, window.location.origin).toString().replace(/\/$/, '')

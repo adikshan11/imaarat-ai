@@ -7,7 +7,12 @@ export interface StructuredMemo {
   decision: string
   rationale: string
   suggested_next_steps: string[]
+  guideline_citations?: string[]
 }
+
+export type ReviewStatus = 'not_required' | 'pending_review' | 'approved' | 'overridden'
+
+export interface GuidelineHit { id: string; title: string; text: string; score: number }
 
 export interface MitigationBenefit { factor: string; benefit: number }
 export interface ProtectionAdjustment { factor: string; adjustment: number }
@@ -55,6 +60,14 @@ export interface BackendSubmission {
   total_value_at_risk_inr?: number | null
   ai_memo_status?: 'Available' | 'Unavailable' | string
   ai_memo_reason?: string | null
+  memo_model?: string
+  guideline_hits?: GuidelineHit[]
+  trace_url?: string | null
+  review_status?: ReviewStatus
+  final_decision?: string | null
+  reviewer?: string | null
+  review_note?: string | null
+  reviewed_at?: string | null
   created_at?: string
 }
 
@@ -69,8 +82,39 @@ export type BackendHistoryRow = Pick<
   | 'risk_breakdown'
   | 'prototype_mitigation_model'
   | 'total_value_at_risk_inr'
+  | 'review_status'
+  | 'final_decision'
   | 'created_at'
 >
+
+export interface ReviewInput { final_decision: string; reviewer: string; note: string }
+
+export type MartRow = Record<string, string | number | boolean | null>
+export interface AnalyticsSnapshot {
+  generated_at: string
+  assessments: number
+  tiv_inr: number
+  marts: Record<'mart_cat_exposure' | 'mart_city_accumulation' | 'mart_risk_drivers' | 'mart_review_funnel' | 'mart_reference_benchmarks', MartRow[]>
+}
+
+export interface FormatSummary {
+  memos: number
+  contract_pass_rate: number
+  faithfulness: number | null
+  citation_precision: number | null
+  avg_input_tokens: number | null
+  avg_latency_ms: number | null
+}
+export interface EvalReport {
+  generated_at: string
+  model: string
+  fallback_model: string
+  judge_model: string
+  deterministic: { cases: number; accuracy: number; rows: { id: string; score: number; decision: string; correct: boolean }[] }
+  retrieval: { k: number; hit_rate: number; recall: number; mrr: number; rows: { id: string; retrieved: string[]; relevant: string[]; hit: boolean; recall: number }[] } | null
+  prompt_tokens: { toon_tokens: number; json_tokens: number; saving: number; rows: { id: string; toon: number; json: number }[] } | null
+  memos: { toon: FormatSummary; json: FormatSummary } | null
+}
 
 export interface SubmissionInput {
   proposer_name?: string
