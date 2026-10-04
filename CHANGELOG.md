@@ -2,6 +2,15 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.1.0] - 2026-10-04
+
+### Added
+- Dark mode that follows the device, with a light or dark override in the sidebar.
+- Glass cards over a soft gradient background, matching the portfolio design.
+
+### Changed
+- One token-based stylesheet replaces the old one, with right-to-left support for later languages and a fix for sideways scrolling on phones.
+
 ## [2.0.0] - 2026-10-04
 
 ### Added

@@ -116,7 +116,7 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
           <button className="btn btn-secondary table-sort-button" type="button" onClick={() => setSortDirection((current) => current === 'desc' ? 'asc' : 'desc')} aria-label={t('table.toggle_sort')}>{sortDirection === 'desc' ? '↓' : '↑'}</button>
         </div>
         <div className="table-wrap">
-          <table>
+          <table className="table-wide">
             <thead><tr><th>{t('col.property')}</th><th>{t('col.location')}</th><th>{t('col.score')}</th><th>{t('col.indicative')}</th><th>{t('col.decision')}</th><th>{t('col.flags')}</th><th /></tr></thead>
             <tbody>{filtered.map((item) => <tr key={`${item.id}-${item.property_id}`}>
               <td><span className="truncate-cell" title={item.property_id}>{item.property_id}</span></td>

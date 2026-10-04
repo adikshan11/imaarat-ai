@@ -1,4 +1,5 @@
 import { usePreferences } from '@/context/Preferences'
+import type { Theme } from '@/context/Preferences'
 
 interface Props {
   activeView: string
@@ -6,7 +7,7 @@ interface Props {
 }
 
 export default function Sidebar({ activeView, onNavigate }: Props) {
-  const { t, dev, setDev } = usePreferences()
+  const { t, dev, setDev, theme, setTheme } = usePreferences()
   const item = (view: string, text: string) => (
     <button className={`nav-item ${activeView === view ? 'active' : ''}`} onClick={() => onNavigate(view)}>
       <span>{text}</span>
@@ -39,6 +40,12 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
         </>}
 
         <div className="sidebar-footer">
+          <label className="sidebar-control">
+            <span>{t('theme.label')}</span>
+            <select value={theme} onChange={(event) => setTheme(event.target.value as Theme)}>
+              {(['system', 'light', 'dark'] as const).map((value) => <option key={value} value={value}>{t(`theme.${value}`)}</option>)}
+            </select>
+          </label>
           <label className="mode-switch" title={t('mode.dev_hint')}>
             <input type="checkbox" checked={dev} onChange={(event) => setDev(event.target.checked)} />
             <span className="mode-switch-track" aria-hidden="true" />
