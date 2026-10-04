@@ -337,7 +337,7 @@ export default function NewAssessment({ onCompleted, onCancel }: { onCompleted: 
         <div className="preview-eyebrow">{t('pv.eyebrow')}</div>
         <div className="donut-svg-wrap" data-testid="risk-donut">
           <svg width="120" height="120" viewBox="0 0 120 120" aria-label={t('pv.chart')}>
-            <circle cx="60" cy="60" r={SVG_R} fill="none" stroke="#e5e7eb" strokeWidth={SVG_SW} />
+            <circle className="donut-track" cx="60" cy="60" r={SVG_R} fill="none" strokeWidth={SVG_SW} />
             {svgSegs.map(seg => (
               <g key={seg.id} transform={`rotate(${seg.acc * 360 - 90} 60 60)`}
                  onMouseEnter={() => setHoveredSegId(seg.id)}
@@ -352,7 +352,7 @@ export default function NewAssessment({ onCompleted, onCancel }: { onCompleted: 
             ))}
             {/* Indicative view center — this number changes when protection controls are toggled */}
             <text x="60" y="54" textAnchor="middle" fontSize="23" fontWeight="800" fill="currentColor" data-testid="risk-score">{previewModel.risk_adjusted_view}</text>
-            <text x="60" y="67" textAnchor="middle" fontSize="8" fontWeight="600" fill="#9ca3af" letterSpacing="0.5">{t('pv.indicative')}</text>
+            <text x="60" y="67" textAnchor="middle" fontSize="8" fontWeight="600" className="donut-caption" letterSpacing="0.5">{t('pv.indicative')}</text>
           </svg>
           {hoveredSeg && (
             <div className="donut-tooltip">
