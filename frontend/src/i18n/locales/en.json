@@ -7,6 +7,8 @@
   "nav.quality": "AI quality",
   "nav.integrations": "MCP & A2A",
   "mode.dev": "Developer mode",
+  "lang.label": "Language",
+  "lang.machine": "This translation was made by machine and has not yet been reviewed by a native speaker.",
   "theme.label": "Appearance",
   "theme.system": "Match device",
   "theme.light": "Light",

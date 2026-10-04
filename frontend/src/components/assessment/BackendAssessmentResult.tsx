@@ -57,7 +57,7 @@ export default function BackendAssessmentResult({ submission, onBack, onReviewed
     <div className="page-subtitle">{t('res.eyebrow')}</div>
     <h1 className="page-title">{submission.property_id}</h1>
     <div className="kpi-row">
-      <div className="kpi"><div className="kpi-label">{t('res.score')}</div><div className="kpi-value">{t('score.of', { score: submission.risk_score })}</div><div className="kpi-hint">{t('score.hint')}</div></div>
+      <div className="kpi"><div className="kpi-label">{t('res.score')}</div><div className="kpi-value"><bdi dir="ltr">{t('score.of', { score: submission.risk_score })}</bdi></div><div className="kpi-hint">{t('score.hint')}</div></div>
       <div className="kpi"><div className="kpi-label">{t(submission.review_status === 'pending_review' ? 'res.decision_pending' : 'res.decision')}</div><div className="kpi-value">{label('decision', decision)}</div><div className="kpi-hint">{t(`decision_help.${decision}`)}</div></div>
       <div className="kpi"><div className="kpi-label">{t('res.indicative')}</div><div className="kpi-value">{mitigation?.risk_adjusted_view ?? t('res.not_available')}</div></div>
       <div className="kpi"><div className="kpi-label">{t('res.segment')}</div><div className="kpi-value kpi-value-text">{segment}</div></div>

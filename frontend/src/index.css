@@ -40,7 +40,7 @@
     inset -1px -1.5px 0 -0.5px rgb(255 255 255 / 0.45),
     0 0 0 1px rgb(20 16 40 / 0.05),
     0 8px 24px -12px rgb(20 16 40 / 0.18);
-  --sans: Inter, 'Noto Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sans: var(--script-font, Inter), Inter, 'Noto Sans', system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
   color-scheme: light;
 }
