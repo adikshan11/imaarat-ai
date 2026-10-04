@@ -10,10 +10,10 @@ const Sidebar: React.FC<Props> = ({ activeView, onNavigate }) => {
     <aside className="sidebar">
       <div className="sidebar-inner">
         <div className="brand">
-          <div className="brand-logo">P</div>
+          <div className="brand-logo">I</div>
           <div className="brand-text">
-            <div className="brand-title">Property Risk Assesment</div>
-            <div className="brand-sub">Underwriting Intelligence</div>
+            <div className="brand-title">Imaarat</div>
+            <div className="brand-sub">Property underwriting · India</div>
           </div>
         </div>
 

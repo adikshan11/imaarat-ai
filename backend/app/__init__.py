@@ -1,1 +1,1 @@
-"""UW Risk Copilot package."""
+"""Imaarat underwriting package."""

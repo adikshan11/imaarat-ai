@@ -1,4 +1,4 @@
-# UW Risk Copilot — Commercial Property Underwriting Backend
+# Imaarat: commercial property underwriting backend
 
 A FastAPI + LangGraph backend providing deterministic underwriting scoring, Gemini Vision property-image analysis, RAG-grounded underwriting evidence retrieval, and AI-assisted structured underwriting memos for Indian commercial property.
 

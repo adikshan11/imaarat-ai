@@ -12,7 +12,7 @@ load_dotenv(dotenv_path=str(ENV_FILE))
 DATA_DIR = BASE_DIR / "data"
 RAW_DIR = DATA_DIR / "raw"
 DEMO_DB_PATH = DATA_DIR / "demo" / "uw_risk.db"
-WRITABLE_DIR = Path("/tmp/uw-risk-copilot") if os.getenv("VERCEL") else DATA_DIR
+WRITABLE_DIR = Path("/tmp/imaarat") if os.getenv("VERCEL") else DATA_DIR
 DB_DIR = WRITABLE_DIR / "db"
 VECTORSTORE_DIR = WRITABLE_DIR / "vectorstore"
 

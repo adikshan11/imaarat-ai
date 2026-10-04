@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
         yield
 
 
-app = FastAPI(title="UW Risk Copilot", lifespan=lifespan)
+app = FastAPI(title="Imaarat", lifespan=lifespan)
 app.mount("/mcp", mcp_app())
 add_a2a(app)
 

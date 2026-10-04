@@ -1,1 +1,1 @@
-"""UW Risk Copilot tool modules."""
+"""Imaarat tool modules."""
