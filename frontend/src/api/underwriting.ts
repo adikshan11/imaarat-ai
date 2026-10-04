@@ -1,4 +1,4 @@
-import type { AnalyticsSnapshot, BackendHistoryRow, BackendSubmission, EvalReport, MitigationPreview, ReviewInput, SubmissionInput } from '@/types/backend'
+import type { AnalyticsSnapshot, BackendHistoryRow, BackendSubmission, DeploymentStatus, EvalReport, MitigationPreview, ReviewInput, SubmissionInput } from '@/types/backend'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 
@@ -42,6 +42,10 @@ export async function previewUnderwriting(input: SubmissionInput): Promise<Mitig
 
 export async function checkHealth(): Promise<{ status: string }> {
   return parseResponse<{ status: string }>(await fetch(`${API_BASE_URL}/health`))
+}
+
+export async function fetchStatus(): Promise<DeploymentStatus> {
+  return parseResponse<DeploymentStatus>(await fetch(`${API_BASE_URL}/status`))
 }
 
 export async function downloadSubmissionReport(submissionId: number): Promise<Blob> {

@@ -87,6 +87,8 @@ export type BackendHistoryRow = Pick<
   | 'created_at'
 >
 
+export interface DeploymentStatus { version: string; ai: boolean; vector_store: string; tracing: boolean; persistent_storage: boolean }
+
 export interface ReviewInput { final_decision: string; reviewer: string; note: string }
 
 export type MartRow = Record<string, string | number | boolean | null>

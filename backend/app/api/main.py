@@ -11,10 +11,11 @@ from fastapi.responses import JSONResponse, Response
 
 from contextlib import asynccontextmanager
 
-from app.config import DB_PATH
-from app.db import fetch_history, fetch_submission_detail, init_db, record_review, save_submission, seed_demo_database
+from app import __version__
+from app.config import DB_PATH, GEMINI_API_KEY, QDRANT_URL
+from app.db import fetch_history, fetch_submission_detail, init_db, is_postgres, record_review, save_submission, seed_demo_database
 from app.interop import add_a2a, mcp, mcp_app
-from app.observability import flush
+from app.observability import ENABLED as TRACING_ENABLED, flush
 from app.schemas import decision_from_score, indicative_product_segment
 from app.reports import build_submission_pdf
 
@@ -42,6 +43,17 @@ app.add_middleware(
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/status")
+def status() -> dict[str, Any]:
+    return {
+        "version": __version__,
+        "ai": bool(GEMINI_API_KEY),
+        "vector_store": "qdrant" if QDRANT_URL and GEMINI_API_KEY else "local",
+        "tracing": TRACING_ENABLED,
+        "persistent_storage": is_postgres(),
+    }
 
 
 def property_tiv_from_components(*values: float | None, fallback: float | None) -> float | None:

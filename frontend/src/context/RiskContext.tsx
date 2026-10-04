@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { fetchHistory, fetchSubmissionDetail, submitUnderwriting } from '@/api/underwriting'
-import type { BackendHistoryRow, BackendSubmission, SubmissionInput } from '@/types/backend'
+import { fetchHistory, fetchStatus, fetchSubmissionDetail, submitUnderwriting } from '@/api/underwriting'
+import type { BackendHistoryRow, BackendSubmission, DeploymentStatus, SubmissionInput } from '@/types/backend'
 
 interface RiskContextState {
   submissions: BackendHistoryRow[]
   selectedSubmission: BackendSubmission | null
   loading: boolean
   error: string | null
+  status: DeploymentStatus | null
   refresh: () => Promise<void>
   submit: (input: SubmissionInput, images: File[]) => Promise<BackendSubmission>
   loadDetail: (submissionId: number) => Promise<BackendSubmission>
@@ -21,6 +22,7 @@ export function RiskProvider({ children }: { children: ReactNode }) {
   const [selectedSubmission, setSelectedSubmission] = useState<BackendSubmission | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [status, setStatus] = useState<DeploymentStatus | null>(null)
 
   const refresh = async () => {
     setLoading(true)
@@ -34,7 +36,10 @@ export function RiskProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  useEffect(() => { void refresh() }, [])
+  useEffect(() => {
+    void refresh()
+    fetchStatus().then(setStatus).catch(() => setStatus(null))
+  }, [])
 
   const submit = async (input: SubmissionInput, images: File[]) => {
     const result = await submitUnderwriting(input, images)
@@ -60,6 +65,7 @@ export function RiskProvider({ children }: { children: ReactNode }) {
       selectedSubmission,
       loading,
       error,
+      status,
       refresh,
       submit,
       loadDetail,

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import Card from '@/components/shared/Card'
 import { fetchAnalytics } from '@/api/underwriting'
+import { usePreferences } from '@/context/Preferences'
+import { inrShort } from '@/lib/format'
 import type { AnalyticsSnapshot } from '@/types/backend'
 
-const crore = (value: unknown) => `₹${(Number(value || 0) / 1e7).toLocaleString('en-IN', { maximumFractionDigits: 0 })} Cr`
-
 export default function PortfolioAnalytics() {
+  const { t, label, dev } = usePreferences()
   const [snapshot, setSnapshot] = useState<AnalyticsSnapshot | null>(null)
 
   useEffect(() => {
@@ -14,29 +15,30 @@ export default function PortfolioAnalytics() {
 
   if (!snapshot) return null
   const { mart_cat_exposure: cat, mart_city_accumulation: cities } = snapshot.marts
+  const time = snapshot.generated_at.slice(0, 16).replace('T', ' ')
 
   return (
     <>
-      <Card title="CAT exposure (dbt mart)">
+      <Card title={t(dev ? 'cat.title_dev' : 'cat.title')}>
         <div className="table-wrap">
           <table>
-            <thead><tr><th>CAT zone</th><th>Assessments</th><th>Insured value</th><th>Avg score</th><th>Declined</th></tr></thead>
+            <thead><tr><th>{t('cat.zone')}</th><th>{t('cat.assessments')}</th><th>{t('cat.sum_insured')}</th><th>{t('cat.avg')}</th><th>{t('cat.declined')}</th></tr></thead>
             <tbody>{cat.map((row) => (
-              <tr key={String(row.cat_zone)}><td>{String(row.cat_zone)}</td><td>{String(row.assessments)}</td><td>{crore(row.tiv_inr)}</td><td>{String(row.avg_risk_score)}</td><td>{String(row.decline_pct)}%</td></tr>
+              <tr key={String(row.cat_zone)}><td>{label('opt.cat', String(row.cat_zone))}</td><td>{String(row.assessments)}</td><td>{inrShort(row.tiv_inr)}</td><td>{String(row.avg_risk_score)}</td><td>{String(row.decline_pct)}%</td></tr>
             ))}</tbody>
           </table>
         </div>
       </Card>
-      <Card title="City accumulation (dbt mart)">
+      <Card title={t(dev ? 'city.title_dev' : 'city.title')}>
         <div className="table-wrap">
           <table>
-            <thead><tr><th>#</th><th>City</th><th>Insured value</th><th>Portfolio share</th><th>Max score</th></tr></thead>
+            <thead><tr><th>#</th><th>{t('city.city')}</th><th>{t('cat.sum_insured')}</th><th>{t('city.share')}</th><th>{t('city.max')}</th></tr></thead>
             <tbody>{cities.map((row) => (
-              <tr key={`${row.city}-${row.state}`}><td>{String(row.accumulation_rank)}</td><td>{String(row.city)}, {String(row.state)}</td><td>{crore(row.tiv_inr)}</td><td>{String(row.portfolio_share_pct)}%</td><td>{String(row.max_risk_score)}</td></tr>
+              <tr key={`${row.city}-${row.state}`}><td>{String(row.accumulation_rank)}</td><td>{String(row.city)}, {String(row.state)}</td><td>{inrShort(row.tiv_inr)}</td><td>{String(row.portfolio_share_pct)}%</td><td>{String(row.max_risk_score)}</td></tr>
             ))}</tbody>
           </table>
         </div>
-        <p className="card-footnote">Built nightly by the ELT pipeline: Postgres → Parquet → dbt on DuckDB (tested) → snapshot. Last run {snapshot.generated_at.slice(0, 16).replace('T', ' ')} UTC.</p>
+        <p className="card-footnote">{t(dev ? 'pipeline.note_dev' : 'pipeline.note', { time })}</p>
       </Card>
     </>
   )
