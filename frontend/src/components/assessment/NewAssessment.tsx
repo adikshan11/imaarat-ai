@@ -490,7 +490,7 @@ export default function NewAssessment({ onCompleted, onCancel }: { onCompleted: 
             <div className="form-row form-row-2"><Field name="building_value_inr" type="number" /><Field name="plant_machinery_value_inr" type="number" /></div>
             <div className="form-row form-row-2"><Field name="furniture_fixtures_equipment_value_inr" type="number" /><Field name="stock_inventory_value_inr" type="number" /></div>
             <Field name="other_contents_value_inr" type="number" />
-            <div className="derived-value"><span>{t('values.total')}</span><strong>{displayedTiv ? inr(displayedTiv) : '—'}</strong></div>
+            <div className="derived-value"><span>{t('values.total')}</span><strong><bdi dir="ltr">{displayedTiv ? inr(displayedTiv) : '—'}</bdi></strong></div>
           </div>
         </Card>
 

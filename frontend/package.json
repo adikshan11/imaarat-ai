@@ -1,13 +1,14 @@
 {
   "name": "imaarat",
   "private": true,
-  "version": "2.1.0",
+  "version": "2.2.0",
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "typecheck": "node scripts/typecheck.mjs",
     "build": "node scripts/build.mjs",
     "lint": "oxlint",
+    "check:locales": "node scripts/check_locales.mjs",
     "preview": "vite preview"
   },
   "engines": {

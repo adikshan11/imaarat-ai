@@ -1,5 +1,6 @@
 import { usePreferences } from '@/context/Preferences'
 import type { Theme } from '@/context/Preferences'
+import { LANGUAGES } from '@/i18n/languages'
 
 interface Props {
   activeView: string
@@ -7,7 +8,7 @@ interface Props {
 }
 
 export default function Sidebar({ activeView, onNavigate }: Props) {
-  const { t, dev, setDev, theme, setTheme } = usePreferences()
+  const { t, dev, setDev, theme, setTheme, language, setLanguage } = usePreferences()
   const item = (view: string, text: string) => (
     <button className={`nav-item ${activeView === view ? 'active' : ''}`} onClick={() => onNavigate(view)}>
       <span>{text}</span>
@@ -40,6 +41,12 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
         </>}
 
         <div className="sidebar-footer">
+          <label className="sidebar-control">
+            <span>{t('lang.label')}</span>
+            <select value={language.code} onChange={(event) => setLanguage(event.target.value)}>
+              {LANGUAGES.map((item) => <option key={item.code} value={item.code} lang={item.code}>{item.code === 'en' ? item.name : `${item.name} · ${item.english}${item.draft ? ' (draft)' : ''}`}</option>)}
+            </select>
+          </label>
           <label className="sidebar-control">
             <span>{t('theme.label')}</span>
             <select value={theme} onChange={(event) => setTheme(event.target.value as Theme)}>

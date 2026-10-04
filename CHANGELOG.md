@@ -2,7 +2,14 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-## [2.1.0] - 2026-10-04
+## [2.2.0] - 2026-10-04
+
+### Added
+- The whole interface in 26 languages: English, the 22 languages of the Eighth Schedule, Bhojpuri, Chhattisgarhi and Tulu, with each script's Noto font and right-to-left layout for Urdu, Sindhi and Kashmiri.
+- A notice that translations are machine-made and not yet reviewed, with Santali, Kashmiri, Manipuri, Bodo and Tulu marked as drafts.
+- A CI check that every translation has the same keys and placeholders as English.
+
+
 
 ### Added
 - Dark mode that follows the device, with a light or dark override in the sidebar.

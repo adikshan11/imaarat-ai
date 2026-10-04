@@ -75,9 +75,9 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
     {loading ? <Card><p>{t('dash.loading')}</p></Card> : <>
       <div className="kpi-row">
         <div className="kpi"><div className="kpi-label">{t('kpi.submissions')}</div><div className="kpi-value">{submissions.length}</div></div>
-        <div className="kpi"><div className="kpi-label">{t('kpi.avg_score')}</div><div className="kpi-value">{t('score.of', { score: average })}</div><div className="kpi-hint">{t('score.hint')}</div></div>
+        <div className="kpi"><div className="kpi-label">{t('kpi.avg_score')}</div><div className="kpi-value"><bdi dir="ltr">{t('score.of', { score: average })}</bdi></div><div className="kpi-hint">{t('score.hint')}</div></div>
         <div className="kpi"><div className="kpi-label">{t('kpi.pending')}</div><div className="kpi-value">{pendingReview}</div></div>
-        <div className="kpi"><div className="kpi-label">{t('kpi.sum_insured')}</div><div className="kpi-value">{inrShort(totalValue)}</div></div>
+        <div className="kpi"><div className="kpi-label">{t('kpi.sum_insured')}</div><div className="kpi-value"><bdi dir="ltr">{inrShort(totalValue)}</bdi></div></div>
       </div>
 
       <div className="dashboard-grid">

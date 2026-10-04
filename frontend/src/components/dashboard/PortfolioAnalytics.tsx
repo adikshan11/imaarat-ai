@@ -24,7 +24,7 @@ export default function PortfolioAnalytics() {
           <table>
             <thead><tr><th>{t('cat.zone')}</th><th>{t('cat.assessments')}</th><th>{t('cat.sum_insured')}</th><th>{t('cat.avg')}</th><th>{t('cat.declined')}</th></tr></thead>
             <tbody>{cat.map((row) => (
-              <tr key={String(row.cat_zone)}><td>{label('opt.cat', String(row.cat_zone))}</td><td>{String(row.assessments)}</td><td>{inrShort(row.tiv_inr)}</td><td>{String(row.avg_risk_score)}</td><td>{String(row.decline_pct)}%</td></tr>
+              <tr key={String(row.cat_zone)}><td>{label('opt.cat', String(row.cat_zone))}</td><td>{String(row.assessments)}</td><td><bdi dir="ltr">{inrShort(row.tiv_inr)}</bdi></td><td>{String(row.avg_risk_score)}</td><td><bdi dir="ltr">{String(row.decline_pct)}%</bdi></td></tr>
             ))}</tbody>
           </table>
         </div>
@@ -34,7 +34,7 @@ export default function PortfolioAnalytics() {
           <table>
             <thead><tr><th>#</th><th>{t('city.city')}</th><th>{t('cat.sum_insured')}</th><th>{t('city.share')}</th><th>{t('city.max')}</th></tr></thead>
             <tbody>{cities.map((row) => (
-              <tr key={`${row.city}-${row.state}`}><td>{String(row.accumulation_rank)}</td><td>{String(row.city)}, {String(row.state)}</td><td>{inrShort(row.tiv_inr)}</td><td>{String(row.portfolio_share_pct)}%</td><td>{String(row.max_risk_score)}</td></tr>
+              <tr key={`${row.city}-${row.state}`}><td>{String(row.accumulation_rank)}</td><td>{String(row.city)}, {String(row.state)}</td><td><bdi dir="ltr">{inrShort(row.tiv_inr)}</bdi></td><td><bdi dir="ltr">{String(row.portfolio_share_pct)}%</bdi></td><td>{String(row.max_risk_score)}</td></tr>
             ))}</tbody>
           </table>
         </div>
