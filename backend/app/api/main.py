@@ -331,6 +331,35 @@ def review_submission(submission_id: int, review: Review) -> dict[str, Any]:
     return fetch_submission_detail(submission_id) or {}
 
 
+@app.get("/underwrite/analytics")
+def analytics() -> dict[str, Any]:
+    """Latest dbt mart snapshot: Postgres when the nightly pipeline has published one, else the bundled file."""
+    from app.config import DATA_DIR
+    from app.db import get_engine, is_postgres
+    from sqlalchemy import inspect as sql_inspect, text
+
+    if is_postgres() and sql_inspect(get_engine()).has_table("analytics_snapshots"):
+        with get_engine().connect() as conn:
+            row = conn.execute(text("SELECT payload FROM analytics_snapshots ORDER BY id DESC LIMIT 1")).first()
+        if row:
+            return json.loads(row.payload)
+    bundled = DATA_DIR / "analytics" / "latest.json"
+    if bundled.exists():
+        return json.loads(bundled.read_text(encoding="utf-8"))
+    raise HTTPException(status_code=404, detail="No analytics snapshot yet; run the pipeline")
+
+
+@app.get("/underwrite/evals")
+def evals() -> dict[str, Any]:
+    """Latest evaluation report written by evals/run_evals.py."""
+    from app.config import BASE_DIR
+
+    report = BASE_DIR / "evals" / "results" / "latest.json"
+    if not report.exists():
+        raise HTTPException(status_code=404, detail="No evaluation report yet; run python -m evals.run_evals")
+    return json.loads(report.read_text(encoding="utf-8"))
+
+
 @app.get("/underwrite/history")
 def history() -> list[dict[str, Any]]:
     return fetch_history()

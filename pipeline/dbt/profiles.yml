@@ -1,0 +1,7 @@
+uw_risk_analytics:
+  target: local
+  outputs:
+    local:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '../warehouse.duckdb') }}"
+      threads: 4

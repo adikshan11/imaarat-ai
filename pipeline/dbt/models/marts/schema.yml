@@ -1,0 +1,47 @@
+version: 2
+
+models:
+  - name: fct_assessments
+    description: One row per underwriting assessment, with the system decision and the underwriter's final decision.
+    columns:
+      - name: assessment_id
+        data_tests: [unique, not_null]
+      - name: property_id
+        data_tests: [not_null]
+      - name: risk_score
+        data_tests: [not_null]
+      - name: system_decision
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Accept", "Refer", "Decline (mitigation possible)", "Auto-Decline"]
+      - name: final_decision
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Accept", "Refer", "Decline (mitigation possible)", "Auto-Decline"]
+      - name: review_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["not_required", "pending_review", "approved", "overridden"]
+
+  - name: mart_cat_exposure
+    columns:
+      - name: cat_zone
+        data_tests: [unique, not_null]
+
+  - name: mart_city_accumulation
+    columns:
+      - name: accumulation_rank
+        data_tests: [not_null]
+
+  - name: mart_risk_drivers
+    columns:
+      - name: risk_flag
+        data_tests: [unique, not_null]
+
+  - name: mart_reference_benchmarks
+    columns:
+      - name: reference_properties
+        data_tests: [not_null]

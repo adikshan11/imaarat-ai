@@ -1,0 +1,35 @@
+name: Evals
+
+on:
+  schedule:
+    - cron: "0 21 * * 0"  # Monday 02:30 IST
+  workflow_dispatch:
+    inputs:
+      memo_cases:
+        description: Generated memos per prompt format
+        default: "8"
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      QDRANT_URL: ${{ secrets.QDRANT_URL }}
+      QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+      LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+      LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+      LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt deepeval==4.2.8
+      - run: python -m evals.run_evals --memo-cases ${{ inputs.memo_cases || '8' }}
+        working-directory: backend
+      - run: cat backend/evals/results/latest.md >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: eval-results
+          path: backend/evals/results/

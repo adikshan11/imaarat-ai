@@ -1,0 +1,12 @@
+version: 2
+
+sources:
+  - name: lake
+    description: Parquet snapshots extracted from the operational database by pipeline/extract.py.
+    meta:
+      external_location: "../lake/{name}.parquet"
+    tables:
+      - name: submissions
+        description: One row per underwriting assessment, with the raw submission and the AI result as JSON.
+      - name: reference_properties
+        description: 300 synthetic reference properties used for similarity lookups.

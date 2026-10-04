@@ -1,0 +1,166 @@
+{
+  "generated_at": "2026-10-04T07:05:57+00:00",
+  "assessments": 5,
+  "tiv_inr": 16687200000.0,
+  "marts": {
+    "mart_cat_exposure": [
+      {
+        "cat_zone": "Wind",
+        "assessments": 3,
+        "tiv_inr": 11887200000.0,
+        "avg_risk_score": 38.3,
+        "decline_pct": 33.3
+      },
+      {
+        "cat_zone": "Flood",
+        "assessments": 2,
+        "tiv_inr": 4800000000.0,
+        "avg_risk_score": 65.0,
+        "decline_pct": 50.0
+      }
+    ],
+    "mart_city_accumulation": [
+      {
+        "city": "Chennai",
+        "state": "TN",
+        "assessments": 1,
+        "tiv_inr": 6887200000.0,
+        "max_risk_score": 25,
+        "portfolio_share_pct": 41.3,
+        "accumulation_rank": 1
+      },
+      {
+        "city": "Mumbai",
+        "state": "MH",
+        "assessments": 3,
+        "tiv_inr": 5800000000.0,
+        "max_risk_score": 90,
+        "portfolio_share_pct": 34.8,
+        "accumulation_rank": 2
+      },
+      {
+        "city": "Kochi",
+        "state": "KL",
+        "assessments": 1,
+        "tiv_inr": 4000000000.0,
+        "max_risk_score": 40,
+        "portfolio_share_pct": 24.0,
+        "accumulation_rank": 3
+      }
+    ],
+    "mart_risk_drivers": [
+      {
+        "risk_flag": "high_cat_zone_exposure",
+        "assessments": 5,
+        "share_pct": 100.0
+      },
+      {
+        "risk_flag": "high_tiv_concentration",
+        "assessments": 5,
+        "share_pct": 100.0
+      },
+      {
+        "risk_flag": "adverse_loss_history",
+        "assessments": 3,
+        "share_pct": 60.0
+      },
+      {
+        "risk_flag": "roof_replacement_likely",
+        "assessments": 2,
+        "share_pct": 40.0
+      },
+      {
+        "risk_flag": "coastal_wind_surge_exposure",
+        "assessments": 1,
+        "share_pct": 20.0
+      },
+      {
+        "risk_flag": "no_sprinkler_high_hazard_occupancy",
+        "assessments": 1,
+        "share_pct": 20.0
+      }
+    ],
+    "mart_review_funnel": [
+      {
+        "system_decision": "Accept",
+        "final_decision": "Accept",
+        "review_status": "not_required",
+        "assessments": 2
+      },
+      {
+        "system_decision": "Auto-Decline",
+        "final_decision": "Auto-Decline",
+        "review_status": "not_required",
+        "assessments": 1
+      },
+      {
+        "system_decision": "Decline (mitigation possible)",
+        "final_decision": "Decline (mitigation possible)",
+        "review_status": "not_required",
+        "assessments": 1
+      },
+      {
+        "system_decision": "Refer",
+        "final_decision": "Refer",
+        "review_status": "not_required",
+        "assessments": 1
+      }
+    ],
+    "mart_reference_benchmarks": [
+      {
+        "occupancy_type": "Industrial",
+        "cat_zone": "Flood",
+        "reference_properties": 50,
+        "avg_roof_age_years": 20.4,
+        "avg_prior_claims": 3.0,
+        "sprinklered_pct": 0.0,
+        "avg_tiv_usd": 2020550.0
+      },
+      {
+        "occupancy_type": "Mixed-Use",
+        "cat_zone": "Earthquake",
+        "reference_properties": 50,
+        "avg_roof_age_years": 22.0,
+        "avg_prior_claims": 0.0,
+        "sprinklered_pct": 100.0,
+        "avg_tiv_usd": 2020687.0
+      },
+      {
+        "occupancy_type": "Multifamily",
+        "cat_zone": "None",
+        "reference_properties": 50,
+        "avg_roof_age_years": 23.6,
+        "avg_prior_claims": 3.0,
+        "sprinklered_pct": 100.0,
+        "avg_tiv_usd": 2020824.0
+      },
+      {
+        "occupancy_type": "Office",
+        "cat_zone": "Wind",
+        "reference_properties": 50,
+        "avg_roof_age_years": 22.5,
+        "avg_prior_claims": 0.0,
+        "sprinklered_pct": 0.0,
+        "avg_tiv_usd": 2020961.0
+      },
+      {
+        "occupancy_type": "Retail",
+        "cat_zone": "Hail",
+        "reference_properties": 50,
+        "avg_roof_age_years": 21.7,
+        "avg_prior_claims": 3.0,
+        "sprinklered_pct": 100.0,
+        "avg_tiv_usd": 2020276.0
+      },
+      {
+        "occupancy_type": "Warehouse",
+        "cat_zone": "Wildfire",
+        "reference_properties": 50,
+        "avg_roof_age_years": 21.5,
+        "avg_prior_claims": 0.0,
+        "sprinklered_pct": 100.0,
+        "avg_tiv_usd": 2020413.0
+      }
+    ]
+  }
+}
