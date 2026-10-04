@@ -1,0 +1,14 @@
+__pycache__/
+.vscode/
+.pytest_cache/
+*.pyc
+.venv/
+.env
+.DS_Store
+*.sqlite3
+*.db
+!data/demo/uw_risk.db
+server.log
+data/db/
+data/backups
+data/vectorstore/

@@ -1,0 +1,13 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Property Risk Assessment">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0D4838"/>
+      <stop offset="100%" stop-color="#1A6C54"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="16" fill="url(#bg)"/>
+  <path d="M32 8L48 15V30.5C48 42.8 40.8 50.4 32 54C23.2 50.4 16 42.8 16 30.5V15L32 8Z" fill="none" stroke="#EAF6F0" stroke-width="2.2" opacity="0.88"/>
+  <path d="M22 18H30.8C36.9 18 41 21.2 41 27.2C41 33.2 36.9 36.4 30.8 36.4H24V46H18V18H22ZM24 22.4V32H30.3C33.7 32 35.8 30.5 35.8 27.1C35.8 23.7 33.7 22.4 30.3 22.4H24Z" fill="#FFFFFF"/>
+  <path d="M39.5 18H45L37.5 46H32.2L39.5 18Z" fill="#E8F4EC" opacity="0.8"/>
+</svg>

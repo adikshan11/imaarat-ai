@@ -1,0 +1,11 @@
+fastapi==0.115.0
+python-multipart==0.0.32
+python-dotenv==1.0.1
+pydantic==2.9.2
+langgraph==0.2.53
+langchain-core==0.3.86
+google-genai==1.0.0
+pypdf==5.4.0
+pillow==10.4.0
+reportlab==4.2.5
+qdrant-client==1.19.1
