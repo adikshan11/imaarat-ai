@@ -67,6 +67,10 @@ def generate(name: str, contents: Any, schema: type[BaseModel] | None = None, sy
     raise last_error or RuntimeError("no Gemini model configured")
 
 
+def count_tokens(text: str) -> int:
+    return client().models.count_tokens(model=config.GEMINI_MODEL_NAME, contents=text).total_tokens
+
+
 def embed(texts: list[str], task_type: str) -> list[list[float]]:
     response = client().models.embed_content(
         model=config.GEMINI_EMBEDDING_MODEL_NAME,

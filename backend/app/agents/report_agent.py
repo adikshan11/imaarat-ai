@@ -141,6 +141,7 @@ def generate_memo(state: dict) -> dict[str, Any]:
         return _failure(state, "Unavailable", error_text)
 
     state["memo_model"] = result["model"]
+    state["memo_usage"] = {key: result[key] for key in ("input_tokens", "output_tokens", "latency_ms")}
     text = result["text"].strip().removeprefix("```json").removesuffix("```").strip()
     if not text:
         return _failure(state, "Incomplete", "empty response")
