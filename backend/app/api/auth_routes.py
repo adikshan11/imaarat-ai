@@ -1,16 +1,54 @@
+import json
 import os
 from pathlib import Path
+from uuid import UUID
 
 from authlib.integrations.httpx_client import OAuth2Client
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse, RedirectResponse, Response
+from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import select
 
 from app import auth
+from app import policy
 from app.db import get_engine
 from app.settings import dependency_url
 
 
 router = APIRouter(prefix="/auth")
+
+
+class TokenInput(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    scopes: list[str] = Field(min_length=1, max_length=2)
+    lifetime: int = Field(default=3600, ge=60, le=86400)
+
+
+@router.post("/tokens")
+def create_token(request: Request, body: TokenInput):
+    principal = auth.resolve_principal(request)
+    auth.require_csrf(request, principal)
+    grant = policy.issue_token(get_engine(), principal, set(body.scopes), lifetime=body.lifetime)
+    return JSONResponse({"id": grant.id, "token": grant.token, "expires_at": grant.expires_at}, status_code=201, headers={"Cache-Control": "no-store"})
+
+
+@router.get("/tokens")
+def list_tokens(request: Request):
+    principal = auth.resolve_principal(request)
+    auth.require_recent_auth(principal)
+    now = auth.clock(None)
+    with get_engine().connect() as conn:
+        rows = conn.execute(select(policy.tokens.c.id, policy.tokens.c.scopes, policy.tokens.c.expires_at).where(policy.tokens.c.owner_id == principal.owner_id, policy.tokens.c.revoked_at.is_(None), policy.tokens.c.expires_at > now).limit(10)).all()
+    return JSONResponse([{"id": row.id, "scopes": json.loads(row.scopes), "expires_at": row.expires_at} for row in rows], headers={"Cache-Control": "no-store"})
+
+
+@router.delete("/tokens/{token_id}")
+def delete_token(token_id: UUID, request: Request):
+    principal = auth.resolve_principal(request)
+    auth.require_csrf(request, principal)
+    auth.require_recent_auth(principal)
+    policy.revoke_token(get_engine(), principal, str(token_id))
+    return Response(status_code=204, headers={"Cache-Control": "no-store"})
 
 
 def oauth_client(**kwargs):

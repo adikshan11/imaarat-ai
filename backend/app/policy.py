@@ -88,4 +88,5 @@ def resolve_token(engine, token: str, now=None):
 
 def revoke_token(engine, principal, token_id):
     with engine.begin() as conn:
+        auth.lock_session(conn, principal)
         conn.execute(update(tokens).where(tokens.c.id == token_id, tokens.c.owner_id == principal.owner_id).values(revoked_at=auth.clock(None)))

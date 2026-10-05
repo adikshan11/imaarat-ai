@@ -39,6 +39,17 @@ def connections(request):
             return httpx2.Response(200, json={"auth": {"client_token": "isolated-test-token", "lease_duration": 600, "renewable": True, "policies": ["imaarat-broker"]}})
         assert request.headers["x-vault-token"] == "isolated-test-token"
         path = request.url.path
+        if request.method == "GET":
+            existing = versions.get(path.replace("/metadata/", "/data/"))
+            if existing is None:
+                return httpx2.Response(404)
+            return httpx2.Response(200, json={"data": {"current_version": len(existing), "versions": {str(index + 1): {"destroyed": value is None} for index, value in enumerate(existing)}}})
+        if request.method == "PUT":
+            payload = json.loads(request.content)
+            existing = versions[path.replace("/destroy/", "/data/")]
+            for version in payload["versions"]:
+                existing[version - 1] = None
+            return httpx2.Response(204)
         if request.method == "POST":
             payload = json.loads(request.content)
             existing = versions.get(path, [])
@@ -103,7 +114,7 @@ def test_disable_destroy(connections):
         service.replace(first, created["id"], disabled["version"], "never-store-this-value")
     deleted = service.delete(first, created["id"], disabled["version"])
     assert deleted["state"] == "deleted"
-    assert versions == {}
+    assert all(value is None for stored in versions.values() for value in stored)
     assert service.list(first) == []
 
 
@@ -139,7 +150,7 @@ def test_interrupted_cleanup(connections, monkeypatch):
     current = service.list(first)[0]
     assert current["operation"] == "replace"
     assert service.delete(first, created["id"], current["version"])["state"] == "deleted"
-    assert versions == {}
+    assert all(value is None for stored in versions.values() for value in stored)
 
 
 def test_revoked_admission(connections):
@@ -194,6 +205,45 @@ def test_late_create(connections, monkeypatch):
     with pytest.raises(HTTPException):
         write(*delayed[0])
     assert "delayed-canary" not in str(versions)
+
+
+def test_replay_concurrency(connections):
+    from concurrent.futures import ThreadPoolExecutor
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from sqlalchemy import insert, select
+    from app.broker import envelope
+
+    service, first, second, engine, versions, calls = connections
+    if engine.dialect.name != "postgresql":
+        pytest.skip("Concurrent admission requires the remote PostgreSQL service")
+    now = auth.clock(None)
+    key = Ed25519PrivateKey.generate()
+    headers = envelope.sign(key, "api", "GET", "/connections", first.session_id, b"", now=now)
+    with engine.begin() as conn:
+        conn.execute(insert(envelope.nonces).values(id="expired", expires_at=now - 1))
+
+    def attempt(value):
+        try:
+            envelope.verify(engine, {"api": key.public_key()}, headers, "GET", "/connections", b"", now=now)
+            return 200
+        except HTTPException as error:
+            return error.status_code
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        results = list(pool.map(attempt, range(8)))
+    assert results.count(200) == 1
+    assert results.count(401) == 7
+    with engine.connect() as conn:
+        assert conn.execute(select(envelope.nonces.c.id).where(envelope.nonces.c.id == "expired")).first() is None
+    with pytest.raises(HTTPException):
+        envelope.verify(engine, {"api": key.public_key()}, headers, "GET", "/connections", b"", now=now + 31)
+    for value in range(29):
+        fresh = envelope.sign(key, "api", "GET", "/connections", first.session_id, b"", now=now)
+        envelope.verify(engine, {"api": key.public_key()}, fresh, "GET", "/connections", b"", now=now)
+    fresh = envelope.sign(key, "api", "GET", "/connections", first.session_id, b"", now=now)
+    with pytest.raises(HTTPException) as error:
+        envelope.verify(engine, {"api": key.public_key()}, fresh, "GET", "/connections", b"", now=now)
+    assert error.value.status_code == 429
 
 
 def test_vault_errors():

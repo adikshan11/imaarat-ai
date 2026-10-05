@@ -22,9 +22,11 @@ class VaultClient:
         verify = ssl.create_default_context(cafile=ca_file) if ca_file else True
         self.client = httpx2.Client(base_url=self.url, verify=verify, timeout=5, follow_redirects=False, trust_env=False, transport=transport)
 
-    def response(self, method, path, **kwargs):
+    def response(self, method, path, missing=False, **kwargs):
         try:
             response = self.client.request(method, path, **kwargs)
+            if missing and response.status_code == 404:
+                return {"data": {"current_version": 0, "versions": {}}}
             if response.status_code not in {200, 204}:
                 raise HTTPException(503, "vault_unavailable")
             return response.json() if response.status_code != 204 else {}
@@ -67,7 +69,31 @@ class VaultClient:
 
     def destroy(self, owner_id, connection_id):
         path = self.path(owner_id, connection_id)
-        self.response("DELETE", "/v1/imaarat/metadata/" + path, headers={"X-Vault-Token": self.authenticate()})
+        headers = {"X-Vault-Token": self.authenticate()}
+        metadata_path = "/v1/imaarat/metadata/" + path
+        details = self.response("GET", metadata_path, missing=True, headers=headers).get("data") or {}
+        current = details.get("current_version")
+        if type(current) is not int or current < 0:
+            raise HTTPException(503, "vault_unavailable")
+        result = self.response("POST", "/v1/imaarat/data/" + path, headers=headers, json={"options": {"cas": current}, "data": {"retired": True}})
+        fence = (result.get("data") or {}).get("version")
+        if type(fence) is not int or fence != current + 1:
+            raise HTTPException(503, "vault_unavailable")
+        details = self.response("GET", metadata_path, headers=headers).get("data") or {}
+        versions = details.get("versions")
+        if details.get("current_version") != fence or not isinstance(versions, dict) or not versions or len(versions) > 100:
+            raise HTTPException(503, "vault_unavailable")
+        try:
+            numbers = [int(value) for value in versions]
+        except (ValueError, TypeError):
+            raise HTTPException(503, "vault_unavailable") from None
+        if any(not 1 <= value <= fence for value in numbers):
+            raise HTTPException(503, "vault_unavailable")
+        self.response("PUT", "/v1/imaarat/destroy/" + path, headers=headers, json={"versions": numbers})
+        confirmed = self.response("GET", metadata_path, headers=headers).get("data") or {}
+        states = confirmed.get("versions") or {}
+        if confirmed.get("current_version") != fence or set(states) != set(versions) or any(value.get("destroyed") is not True for value in states.values()):
+            raise HTTPException(503, "vault_unavailable")
 
     def close(self):
         self.token = None
