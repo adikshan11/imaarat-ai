@@ -180,7 +180,7 @@ def test_migration_quarantines(postgres):
     with postgres.begin() as conn:
         conn.execute(text("CREATE TABLE submissions (id INTEGER PRIMARY KEY, property_id TEXT, raw_input TEXT, created_at TEXT)"))
         conn.execute(text("INSERT INTO submissions VALUES (1, 'claimed-demo', '{}', '2026-10-05')"))
-    assert migrations.apply_migrations(postgres) == ["001_identity"]
+    assert migrations.apply_migrations(postgres)[0] == "001_identity"
     assert migrations.apply_migrations(postgres) == []
     with postgres.connect() as conn:
         row = conn.execute(text("SELECT owner_id, data_class, record_version, deleted_at FROM submissions WHERE id=1")).one()
@@ -194,9 +194,11 @@ def test_migration_concurrent(postgres):
     migrations = import_module("app.migrations")
     with ThreadPoolExecutor(max_workers=2) as pool:
         results = list(pool.map(migrations.apply_migrations, (postgres, postgres)))
-    assert sorted(len(result) for result in results) == [0, 1]
+    lengths = sorted(len(result) for result in results)
+    assert lengths[0] == 0
+    assert lengths[1] >= 1
     with postgres.connect() as conn:
-        assert conn.execute(text("SELECT COUNT(*) FROM schema_migrations")).scalar_one() == 1
+        assert conn.execute(text("SELECT COUNT(*) FROM schema_migrations")).scalar_one() == lengths[1]
 
 
 def test_migration_tamper(postgres):

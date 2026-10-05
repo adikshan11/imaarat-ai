@@ -338,7 +338,7 @@ def owned_table(conn) -> Table:
 def owned_filter(table: Table, principal):
     from fastapi import HTTPException
 
-    if not principal.owner_id or "assessment:read" not in principal.scopes:
+    if not principal.owner_id or not {"assessment:read", "interop:read"} & principal.scopes:
         raise HTTPException(403, "scope_required")
     data_class = "synthetic" if principal.role == "guest" else "private"
     return (table.c.owner_id == principal.owner_id) & (table.c.data_class == data_class) & table.c.deleted_at.is_(None)
@@ -378,7 +378,7 @@ def owned_submission(principal, submission_id: int) -> dict[str, Any] | None:
     return result
 
 
-def owned_history(principal, limit: int = 50, before: int | None = None) -> list[dict[str, Any]]:
+def owned_history(principal, limit: int = 25, before: int | None = None) -> list[dict[str, Any]]:
     from fastapi import HTTPException
 
     if type(limit) is not int or not 1 <= limit <= 100 or (before is not None and (type(before) is not int or before < 1)):

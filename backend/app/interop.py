@@ -18,7 +18,11 @@ from mcp.server.mcpserver import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
 
 from app.config import GUIDELINES_MD
-from app.db import fetch_history, fetch_submission_detail
+from app.db import owned_history, owned_submission
+from app.policy import current_principal
+from fastapi import HTTPException
+from app.settings import dependency_url
+from urllib.parse import urlsplit
 from app.schemas import decision_from_score, indicative_product_segment
 from app.tools.hazard_lookup import lookup as hazard_lookup, verify_location
 from app.tools.rag_lookup import retrieve
@@ -84,6 +88,7 @@ def assess_property(
     tiv: float | None = None,
     pincode: str | None = None,
 ) -> dict[str, Any]:
+    current_principal("interop:assess")
     return deterministic_assessment(
         {
             "construction_type": construction_type,
@@ -103,23 +108,31 @@ def assess_property(
 
 @mcp.tool(description="Look up official natural-hazard evidence for an Indian 6-digit pincode: seismic zone (IS 1893:2016 map), share of the pincode area flooded in 1998-2022 satellite records (NRSC/NDEM) and the IMD cyclone hazard grade of its district.")
 def lookup_hazard(pincode: str) -> dict[str, Any]:
+    current_principal("interop:read")
+    if len(pincode) != 6 or not pincode.isascii() or not pincode.isdigit():
+        raise HTTPException(422, "pincode_invalid")
     return hazard_lookup(pincode) or {"error": f"no hazard data for pincode {pincode}"}
 
 
 @mcp.tool(description="Retrieve the underwriting guideline sections (RAG over Gemini embeddings in Qdrant) most relevant to a question.")
 def search_guidelines(query: str, k: int = 3) -> list[dict[str, Any]]:
-    return retrieve(query, k=k)
+    current_principal("interop:read")
+    raise HTTPException(503, "governed_inference_unavailable")
 
 
 @mcp.tool(description="Get one stored underwriting assessment by its numeric id, with decision, review status and AI rationale.")
 def get_assessment(assessment_id: int) -> dict[str, Any]:
-    detail = fetch_submission_detail(assessment_id)
-    return assessment_summary(detail) if detail else {"error": f"assessment {assessment_id} not found"}
+    principal = current_principal("interop:read")
+    detail = owned_submission(principal, assessment_id)
+    if detail is None:
+        raise HTTPException(404, "not_found")
+    return assessment_summary(detail)
 
 
 @mcp.tool(description="List stored underwriting assessments, newest first, optionally filtered by decision (Accept, Refer, Decline (mitigation possible), Auto-Decline).")
 def list_assessments(decision: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
-    rows = [row for row in fetch_history() if decision is None or row["decision"] == decision]
+    principal = current_principal("interop:read")
+    rows = [row for row in owned_history(principal, limit=limit) if decision is None or row["decision"] == decision]
     return [
         {key: row.get(key) for key in ("id", "property_id", "risk_score", "decision", "final_decision", "review_status", "risk_flags")}
         for row in rows[:limit]
@@ -128,15 +141,18 @@ def list_assessments(decision: str | None = None, limit: int = 20) -> list[dict[
 
 @mcp.resource("uw://guidelines", name="underwriting-guidelines", description="The full underwriting guidelines (sections G1 to G12).", mime_type="text/markdown")
 def guidelines() -> str:
+    current_principal("interop:read")
     return GUIDELINES_MD.read_text(encoding="utf-8")
 
 
 def mcp_app():
+    origin = dependency_url(os.getenv("APP_ORIGIN", ""), os.getenv("APP_ENV", "production"))
+    hosts = [urlsplit(origin).netloc] if origin else []
     return mcp.streamable_http_app(
         streamable_http_path="/",
         stateless_http=True,
         json_response=True,
-        transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=False),
+        transport_security=TransportSecuritySettings(enable_dns_rebinding_protection=True, allowed_hosts=hosts, allowed_origins=[origin] if origin else []),
     )
 
 
@@ -144,25 +160,12 @@ class UnderwritingAgentExecutor(AgentExecutor):
     """A2A skill handler: property data in, underwriting assessment out; text in, guideline sections out."""
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
-        data_parts = get_data_parts(context.message.parts) if context.message else []
-        if data_parts:
-            from app.agents.graph import run_graph
-            from app.db import save_submission
-
-            facts = dict(data_parts[0])
-            facts.setdefault("property_id", f"A2A-{context.context_id[:8] if context.context_id else 'request'}")
-            state = run_graph(facts)
-            state["id"] = save_submission(state)["id"]
-            reply = new_data_message(assessment_summary(state), context_id=context.context_id, task_id=context.task_id)
-        else:
-            question = context.get_user_input()
-            hits = retrieve(question, k=3)
-            text = "\n\n".join(f"[{hit['id']}] {hit['title']}: {hit['text']}" for hit in hits) or "No guidance retrieved (retrieval needs GEMINI_API_KEY)."
-            reply = new_text_message(text, context_id=context.context_id, task_id=context.task_id)
-        await event_queue.enqueue_event(reply)
+        current_principal("interop:assess")
+        raise HTTPException(503, "durable_admission_unavailable")
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
-        raise NotImplementedError("Assessments run to completion and cannot be cancelled")
+        current_principal("interop:assess")
+        raise HTTPException(503, "durable_admission_unavailable")
 
 
 def agent_card() -> AgentCard:

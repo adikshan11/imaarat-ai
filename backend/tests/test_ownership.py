@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from importlib import import_module
 from importlib.util import find_spec
 
@@ -12,6 +13,13 @@ from app import auth, db
 
 @pytest.fixture
 def owners(monkeypatch):
+    from app.api import main
+
+    @asynccontextmanager
+    async def lifespan(app):
+        yield
+
+    monkeypatch.setattr(main.app.router, "lifespan_context", lifespan)
     engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
     auth.metadata.create_all(engine)
     db.metadata.create_all(engine)
@@ -62,6 +70,7 @@ def test_interop_isolation(owners, monkeypatch):
     from app import interop
 
     engine, first, second = owners
+    auth.metadata.create_all(engine)
     saved = db.save_owned_submission(first.principal, {"property_id": "owned", "raw_input": {}, "decision": "Accept", "risk_score": 5})
     with pytest.raises(HTTPException):
         interop.get_assessment(saved["id"])
@@ -83,6 +92,7 @@ def test_token_boundaries(owners):
     assert find_spec("app.policy") is not None, "Scoped transport tokens are missing"
     policy = import_module("app.policy")
     engine, first, second = owners
+    auth.metadata.create_all(engine)
     grant = policy.issue_token(engine, first.principal, {"interop:read"}, now=auth.clock(None))
     assert grant.token not in repr(grant)
     with engine.connect() as conn:

@@ -15,6 +15,9 @@ from contextlib import asynccontextmanager
 from app import __version__
 from app.api.errors import internal_error, unavailable_response
 from app.api.auth_routes import router as auth_router
+from app.api.connection_routes import router as connection_router
+from app import auth, policy
+from app.db import get_engine, owned_history, owned_submission
 from app.config import DB_PATH, GEMINI_API_KEY, QDRANT_URL
 from app.db import fetch_history, fetch_submission_detail, init_db, is_postgres, record_review, save_submission, seed_demo_database
 from app.interop import add_a2a, mcp, mcp_app
@@ -35,16 +38,48 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="imaarat.ai", lifespan=lifespan)
 app.add_exception_handler(Exception, internal_error)
 app.include_router(auth_router)
+app.include_router(connection_router)
 app.mount("/mcp", mcp_app())
 add_a2a(app)
 
 
 @app.middleware("http")
 async def readiness_gate(request: Request, call_next):
-    if os.getenv("APP_ENV", "production") != "test" and request.url.path not in {"/health", "/status", "/ready"}:
-        if not runtime_readiness()["ready"]:
-            return unavailable_response()
-    return await call_next(request)
+    if os.getenv("APP_ENV", "production") == "test":
+        return await call_next(request)
+    path = request.url.path
+    if path in {"/health", "/status", "/ready"}:
+        return await call_next(request)
+    if not runtime_readiness()["ready"]:
+        return unavailable_response()
+    try:
+        if path.startswith("/auth/"):
+            response = await call_next(request)
+        else:
+            transport = path == "/a2a" or path.startswith("/mcp")
+            if transport:
+                header = request.headers.get("authorization", "")
+                if not header.startswith("Bearer "):
+                    raise HTTPException(401, "authentication_required")
+                principal = policy.resolve_token(get_engine(), header[7:])
+                origin = request.headers.get("origin")
+                if origin is not None and origin != os.getenv("APP_ORIGIN", "").rstrip("/"):
+                    raise HTTPException(403, "origin_invalid")
+                if path == "/a2a":
+                    raise HTTPException(503, "durable_admission_unavailable")
+            else:
+                principal = auth.resolve_principal(request)
+                if request.method not in {"GET", "HEAD", "OPTIONS"}:
+                    auth.require_csrf(request, principal)
+                if (request.method not in {"GET", "HEAD"} and not path.startswith("/connections")) or path == "/underwrite/analytics":
+                    raise HTTPException(503, "durable_admission_unavailable")
+            request.state.principal = principal
+            with policy.principal_context(principal):
+                response = await call_next(request)
+        response.headers["Cache-Control"] = "no-store"
+        return response
+    except HTTPException as error:
+        return JSONResponse({"detail": error.detail}, status_code=error.status_code, headers={"Cache-Control": "no-store"})
 
 app.add_middleware(
     CORSMiddleware,
@@ -427,21 +462,23 @@ def evals() -> dict[str, Any]:
 
 
 @app.get("/underwrite/history")
-def history() -> list[dict[str, Any]]:
+def history(request: Request, limit: int = 25, before: int | None = None) -> list[dict[str, Any]]:
+    if os.getenv("APP_ENV", "production") != "test":
+        return owned_history(request.state.principal, limit=limit, before=before)
     return fetch_history()
 
 
 @app.get("/underwrite/history/{submission_id}")
-def history_detail(submission_id: int) -> dict[str, Any]:
-    detail = fetch_submission_detail(submission_id)
+def history_detail(submission_id: int, request: Request) -> dict[str, Any]:
+    detail = owned_submission(request.state.principal, submission_id) if os.getenv("APP_ENV", "production") != "test" else fetch_submission_detail(submission_id)
     if detail is None:
         raise HTTPException(status_code=404, detail="Submission not found")
     return detail
 
 
 @app.get("/underwrite/history/{submission_id}/report.pdf")
-def history_report(submission_id: int) -> Response:
-    detail = fetch_submission_detail(submission_id)
+def history_report(submission_id: int, request: Request) -> Response:
+    detail = owned_submission(request.state.principal, submission_id) if os.getenv("APP_ENV", "production") != "test" else fetch_submission_detail(submission_id)
     if detail is None:
         raise HTTPException(status_code=404, detail="Submission not found")
     try:
