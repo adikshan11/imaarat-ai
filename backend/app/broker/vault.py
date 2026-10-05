@@ -1,5 +1,7 @@
+from concurrent.futures import ThreadPoolExecutor
+import json
 import ssl
-from threading import Lock
+from threading import BoundedSemaphore, Lock
 import time
 from uuid import UUID
 
@@ -19,22 +21,47 @@ class VaultClient:
         self.token = None
         self.expires_at = 0
         self.lock = Lock()
+        self.requests = ThreadPoolExecutor(max_workers=4)
+        self.capacity = BoundedSemaphore(4)
         verify = ssl.create_default_context(cafile=ca_file) if ca_file else True
         self.client = httpx2.Client(base_url=self.url, verify=verify, timeout=5, follow_redirects=False, trust_env=False, transport=transport)
 
     def response(self, method, path, missing=False, **kwargs):
+        if not self.capacity.acquire(blocking=False):
+            raise HTTPException(503, "vault_unavailable")
         try:
-            response = self.client.request(method, path, **kwargs)
-            if missing and response.status_code == 404:
-                return {"data": {"current_version": 0, "versions": {}}}
-            if response.status_code not in {200, 204}:
-                raise HTTPException(503, "vault_unavailable")
-            return response.json() if response.status_code != 204 else {}
+            future = self.requests.submit(self.read_response, method, path, missing, kwargs)
+        except Exception:
+            self.capacity.release()
+            raise HTTPException(503, "vault_unavailable") from None
+        try:
+            return future.result(timeout=10)
         except Exception:
             raise HTTPException(503, "vault_unavailable") from None
 
+    def read_response(self, method, path, missing, kwargs):
+        started = time.monotonic()
+        try:
+            with self.client.stream(method, path, **kwargs) as response:
+                if missing and response.status_code == 404:
+                    return {"data": {"current_version": 0, "versions": {}}}
+                if response.status_code not in {200, 204} or response.headers.get("content-encoding", "identity") != "identity":
+                    raise ValueError()
+                payload = bytearray()
+                for chunk in response.iter_bytes():
+                    if len(payload) + len(chunk) > 65536 or time.monotonic() - started >= 10:
+                        raise ValueError()
+                    payload.extend(chunk)
+                if time.monotonic() - started >= 10:
+                    raise ValueError()
+                return json.loads(payload) if response.status_code != 204 else {}
+        finally:
+            self.capacity.release()
+
     def authenticate(self):
-        with self.lock:
+        if not self.lock.acquire(timeout=5):
+            raise HTTPException(503, "vault_unavailable")
+        try:
             if self.token and time.time() < self.expires_at - 30:
                 return self.token
             if self.token and time.time() < self.expires_at:
@@ -50,6 +77,8 @@ class VaultClient:
             self.token = details["client_token"]
             self.expires_at = time.time() + ttl
             return self.token
+        finally:
+            self.lock.release()
 
     def path(self, owner_id, connection_id):
         try:
@@ -97,4 +126,5 @@ class VaultClient:
 
     def close(self):
         self.token = None
+        self.requests.shutdown(wait=False, cancel_futures=True)
         self.client.close()

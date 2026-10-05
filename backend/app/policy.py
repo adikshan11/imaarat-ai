@@ -7,7 +7,7 @@ from secrets import token_urlsafe
 from uuid import uuid4
 
 from fastapi import HTTPException
-from sqlalchemy import BigInteger, Column, ForeignKey, String, Table, insert, select, update
+from sqlalchemy import BigInteger, Column, ForeignKey, String, Table, delete, insert, select
 
 from app import auth
 
@@ -60,6 +60,7 @@ def issue_token(engine, principal, scopes: set[str], now=None, lifetime=3600):
     allowed = {"interop:read", "interop:assess"}
     if not scopes or not scopes <= allowed or type(lifetime) is not int or not 60 <= lifetime <= 86400:
         raise HTTPException(422, "token_scope_invalid")
+    supplied_now = now
     now = auth.clock(now)
     token = token_urlsafe(32)
     token_id = str(uuid4())
@@ -68,6 +69,11 @@ def issue_token(engine, principal, scopes: set[str], now=None, lifetime=3600):
         user = conn.execute(select(auth.users).where(auth.users.c.id == principal.owner_id).with_for_update()).one_or_none()
         if user is None or user.disabled_at is not None or user.role == "guest":
             raise HTTPException(403, "member_required")
+        now = auth.clock(supplied_now)
+        auth.lock_session(conn, principal, now)
+        auth.require_recent_auth(principal, now)
+        auth.reserve_identity(conn, "tokens:" + principal.owner_id, now, 10)
+        conn.execute(delete(tokens).where(tokens.c.owner_id == principal.owner_id, (tokens.c.expires_at <= now) | tokens.c.revoked_at.is_not(None)))
         existing = conn.execute(select(tokens.c.id).where(tokens.c.owner_id == principal.owner_id, tokens.c.revoked_at.is_(None), tokens.c.expires_at > now)).all()
         if len(existing) >= 10:
             raise HTTPException(429, "token_limit")
@@ -89,4 +95,4 @@ def resolve_token(engine, token: str, now=None):
 def revoke_token(engine, principal, token_id):
     with engine.begin() as conn:
         auth.lock_session(conn, principal)
-        conn.execute(update(tokens).where(tokens.c.id == token_id, tokens.c.owner_id == principal.owner_id).values(revoked_at=auth.clock(None)))
+        conn.execute(delete(tokens).where(tokens.c.id == token_id, tokens.c.owner_id == principal.owner_id))

@@ -39,6 +39,8 @@ class ConnectionService:
         user = conn.execute(select(auth.users).where(auth.users.c.id == principal.owner_id).with_for_update()).one_or_none()
         if user is None or user.disabled_at is not None or user.role not in {"member", "reviewer", "operator"}:
             raise HTTPException(403, "member_required")
+        auth.lock_session(conn, principal)
+        auth.require_recent_auth(principal)
 
     def credential(self, value):
         if not isinstance(value, str) or not 16 <= len(value) <= 512 or any(not 33 <= ord(char) <= 126 for char in value):

@@ -225,8 +225,10 @@ def revoke_session(engine: Engine, principal: Principal, now: int | None = None)
 
 
 def lock_session(conn, principal: Principal, now: int | None = None):
-    now = clock(now)
+    if conn.dialect.name == "postgresql":
+        conn.exec_driver_sql("SET LOCAL lock_timeout = '5s'")
     row = conn.execute(select(sessions).where(sessions.c.id == principal.session_id, sessions.c.owner_id == principal.owner_id).with_for_update()).one_or_none()
+    now = clock(now)
     if row is None or row.revoked_at is not None or now >= row.expires_at or now - row.last_seen >= 1800 or row.authenticated_at != principal.authenticated_at:
         raise HTTPException(401, "session_invalid")
     return row
