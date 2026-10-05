@@ -117,6 +117,32 @@ def test_token_boundaries(owners):
         policy.issue_token(engine, guest.principal, {"interop:read"})
 
 
+def test_token_api(owners, monkeypatch):
+    from app.api import main
+
+    engine, first, second = owners
+    auth.metadata.create_all(engine)
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("APP_ORIGIN", "https://example.test")
+
+    def ready():
+        return {"ready": True}
+
+    monkeypatch.setattr(main, "runtime_readiness", ready)
+    with TestClient(main.app, base_url="https://example.test") as client:
+        client.cookies.set("__Host-imaarat_session", first.token)
+        headers = {"Origin": "https://example.test", "X-CSRF-Token": first.csrf_token}
+        assert client.post("/auth/tokens", json={"scopes": ["interop:read"]}).status_code == 403
+        response = client.post("/auth/tokens", headers=headers, json={"scopes": ["interop:read"]})
+        assert response.status_code == 201
+        created = response.json()
+        assert len(created["token"]) == 43
+        assert response.headers["cache-control"] == "no-store"
+        assert created["token"] not in client.get("/auth/tokens").text
+        assert client.delete("/auth/tokens/" + created["id"], headers=headers).status_code == 204
+        assert client.get("/auth/tokens").json() == []
+
+
 def test_revoked_token_issue(owners):
     policy = import_module("app.policy")
     engine, first, second = owners

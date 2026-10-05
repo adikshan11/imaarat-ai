@@ -177,6 +177,25 @@ def test_signed_broker_http(connections):
         assert "invalid-canary" not in response.text
 
 
+def test_late_create(connections, monkeypatch):
+    service, first, second, engine, versions, calls = connections
+    write = service.vault.write
+    delayed = []
+
+    def delayed_write(*args):
+        delayed.append(args)
+        raise HTTPException(503, "vault_unavailable")
+
+    monkeypatch.setattr(service.vault, "write", delayed_write)
+    with pytest.raises(HTTPException):
+        service.create(first, "delayed-canary-credential", "gemini")
+    current = service.list(first)[0]
+    assert service.delete(first, current["id"], current["version"])["state"] == "deleted"
+    with pytest.raises(HTTPException):
+        write(*delayed[0])
+    assert "delayed-canary" not in str(versions)
+
+
 def test_vault_errors():
     assert find_spec("app.broker") is not None, "Private credential broker is missing"
     module = import_module("app.broker.vault")
