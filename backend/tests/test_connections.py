@@ -280,6 +280,27 @@ def test_vault_response_bound():
     vault.close()
 
 
+def test_vault_deadline():
+    from threading import Event
+
+    module = import_module("app.broker.vault")
+    released = Event()
+
+    def stalled(request):
+        released.wait(15)
+        return httpx2.Response(200, json={"data": {}})
+
+    vault = module.VaultClient("https://bao.test", "test-role", "test-secret-id", transport=httpx2.MockTransport(stalled))
+    try:
+        with pytest.raises(HTTPException) as error:
+            vault.response("GET", "/v1/imaarat/metadata/test")
+        assert error.value.status_code == 503
+        assert not released.is_set()
+    finally:
+        released.set()
+        vault.close()
+
+
 def test_vault_errors():
     assert find_spec("app.broker") is not None, "Private credential broker is missing"
     module = import_module("app.broker.vault")
