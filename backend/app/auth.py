@@ -153,6 +153,13 @@ def create_member(engine: Engine, github_id: int, now: int | None = None, previo
         raise HTTPException(403, "identity_mismatch")
     now = clock(now)
     with engine.begin() as conn:
+        if previous_session:
+            predecessor = conn.execute(select(sessions).where(sessions.c.id == previous_session).with_for_update()).first()
+            if predecessor is None or predecessor.revoked_at is not None or now >= predecessor.expires_at or (predecessor.authenticated_at is not None and now - predecessor.last_seen >= 1800):
+                raise HTTPException(401, "session_invalid")
+            predecessor_user = conn.execute(select(users).where(users.c.id == predecessor.owner_id).with_for_update()).one()
+            if predecessor_user.disabled_at is not None or (predecessor_user.github_id is not None and predecessor_user.github_id != github_id):
+                raise HTTPException(403, "identity_mismatch")
         if conn.dialect.name == "postgresql":
             from sqlalchemy.dialects.postgresql import insert as upsert
         else:
@@ -165,6 +172,7 @@ def create_member(engine: Engine, github_id: int, now: int | None = None, previo
         grant = issue_session(conn, user.id, user.role, now)
         if previous_session:
             conn.execute(update(sessions).where(sessions.c.id == previous_session).values(revoked_at=now))
+            conn.execute(update(oauth_transactions).where(oauth_transactions.c.previous_session == previous_session, oauth_transactions.c.consumed_at.is_(None)).values(consumed_at=now, code_verifier=""))
         return grant
 
 
@@ -173,7 +181,14 @@ def resolve_session(engine: Engine, token: str, now: int | None = None) -> Princ
         raise HTTPException(401, "session_invalid")
     now = clock(now)
     with engine.begin() as conn:
-        row = conn.execute(select(sessions, users.c.role, users.c.disabled_at).join(users).where(sessions.c.id == digest(token)).with_for_update()).first()
+        row = conn.execute(select(sessions, users.c.role, users.c.disabled_at).join(users).where(sessions.c.id == digest(token)).with_for_update(of=sessions)).first()
+        if row is not None:
+            user = conn.execute(select(users).where(users.c.id == row.owner_id).with_for_update()).one()
+            from types import SimpleNamespace
+
+            row = SimpleNamespace(**dict(row._mapping))
+            row.role = user.role
+            row.disabled_at = user.disabled_at
         if row is None or row.revoked_at is not None or row.disabled_at is not None or now >= row.expires_at or (row.role != "guest" and now - row.last_seen >= 1800):
             raise HTTPException(401, "session_invalid")
         conn.execute(update(sessions).where(sessions.c.id == row.id).values(last_seen=now))
@@ -203,8 +218,10 @@ def require_csrf(request: Request, principal: Principal) -> None:
 
 
 def revoke_session(engine: Engine, principal: Principal, now: int | None = None) -> None:
+    now = clock(now)
     with engine.begin() as conn:
-        conn.execute(update(sessions).where(sessions.c.id == principal.session_id, sessions.c.owner_id == principal.owner_id).values(revoked_at=clock(now)))
+        conn.execute(update(sessions).where(sessions.c.id == principal.session_id, sessions.c.owner_id == principal.owner_id).values(revoked_at=now))
+        conn.execute(update(oauth_transactions).where(oauth_transactions.c.previous_session == principal.session_id, oauth_transactions.c.consumed_at.is_(None)).values(consumed_at=now, code_verifier=""))
 
 
 def require_recent_auth(principal: Principal, now: int | None = None) -> None:

@@ -208,6 +208,25 @@ def test_migration_tamper(postgres):
         migrations.apply_migrations(postgres)
 
 
+def test_rotation_concurrent(postgres):
+    auth = identity()
+    import_module("app.migrations").apply_migrations(postgres)
+    first = auth.create_member(postgres, 42, now=1000)
+
+    def rotate(engine):
+        try:
+            return auth.create_member(engine, 42, previous_session=first.principal.session_id, now=1001)
+        except HTTPException as error:
+            return error.status_code
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(rotate, (postgres, postgres)))
+    assert sum(isinstance(result, auth.SessionGrant) for result in results) == 1
+    assert sum(result == 401 for result in results) == 1
+    with pytest.raises(HTTPException):
+        auth.resolve_session(postgres, first.token, now=1002)
+
+
 def test_owned_storage(postgres, monkeypatch):
     auth = identity()
     from app import db
