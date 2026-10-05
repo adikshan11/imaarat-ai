@@ -1,14 +1,15 @@
 import './App.css'
-import { Activity, useEffect, useRef, useState } from 'react'
+import { Activity, Suspense, lazy, useEffect, useRef, useState } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import StatusBanner from '@/components/layout/StatusBanner'
 import Dashboard from '@/components/dashboard/Dashboard'
 import NewAssessment from '@/components/assessment/NewAssessment'
 import BackendAssessmentResult from '@/components/assessment/BackendAssessmentResult'
-import AIQuality from '@/components/quality/AIQuality'
-import Integrations from '@/components/integrations/Integrations'
-import PaperForm from '@/components/paper/PaperForm'
-import HowItWorks from '@/components/about/HowItWorks'
+
+const AIQuality = lazy(() => import('@/components/quality/AIQuality'))
+const Integrations = lazy(() => import('@/components/integrations/Integrations'))
+const PaperForm = lazy(() => import('@/components/paper/PaperForm'))
+const HowItWorks = lazy(() => import('@/components/about/HowItWorks'))
 import { RiskProvider, useRiskContext } from '@/context/RiskContext'
 import { PreferencesProvider, usePreferences } from '@/context/Preferences'
 import type { BackendSubmission } from '@/types/backend'
@@ -84,6 +85,7 @@ function Application() {
             setView('result')
           }
         }} onCancel={() => { setDraftOpen(false); setPrefill(null); setView('dashboard') }} /></Activity>}
+        <Suspense fallback={<div className="page-loading" aria-busy="true" />}>
         {view === 'how' && <HowItWorks />}
         {view === 'paper' && <PaperForm onUse={startDraft} />}
         {view === 'result' && resultSubmission && <BackendAssessmentResult submission={resultSubmission} onBack={() => setView('dashboard')} onReviewed={(updated) => {
@@ -93,6 +95,7 @@ function Application() {
         }} />}
         {view === 'quality' && <AIQuality />}
         {view === 'integrations' && <Integrations />}
+        </Suspense>
         <footer className="site-footer">Made with <span className="heart" aria-label="love">♥</span> by <a href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> · © 2026 imaarat.ai</footer>
       </main>
     </div>

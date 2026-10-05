@@ -118,7 +118,7 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
         </div>
         <div className="table-wrap">
           <table className="table-wide">
-            <thead><tr><th>{t('col.property')}</th><th>{t('col.location')}</th><th>{t('col.score')}</th><th>{t('col.indicative')}</th><th>{t('col.decision')}</th><th>{t('col.flags')}</th><th /></tr></thead>
+            <thead><tr><th>{t('col.property')}</th><th>{t('col.location')}</th><th>{t('col.score')}</th><th>{t('col.indicative')}</th><th>{t('col.decision')}</th><th>{t('col.flags')}</th><th><span className="sr-only">{t('table.view')}</span></th></tr></thead>
             <tbody>{filtered.map((item) => <tr key={`${item.id}-${item.property_id}`}>
               <td><span className="truncate-cell" title={item.property_id}>{item.property_id}</span></td>
               <td>{String(item.raw_input?.city ?? '')}, {String(item.raw_input?.state ?? '')}</td>

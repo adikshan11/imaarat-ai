@@ -2,6 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.11.0] - 2026-10-05
+
+### Changed
+- Faster, steadier first load, measured with Lighthouse: the demo notice no longer pushes the page down after loading (desktop layout shift was 0.71), web fonts load without blocking the first paint, the unused Playfair Display font is gone, and secondary pages load only when opened.
+- Hashed assets are cached for a year, since their names change whenever their content does.
+- Accessibility and search: correct heading order, a labelled action column, readable footer contrast, no prohibited ARIA attribute, and a page description.
+
+### Added
+- A Lighthouse workflow that audits the live site on mobile and desktop every week and on demand.
+
 ## [2.10.1] - 2026-10-05
 
 ### Changed
