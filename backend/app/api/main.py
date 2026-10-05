@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 from typing import Any
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
@@ -12,27 +13,36 @@ from fastapi.responses import JSONResponse, Response
 from contextlib import asynccontextmanager
 
 from app import __version__
+from app.api.errors import internal_error, unavailable_response
 from app.config import DB_PATH, GEMINI_API_KEY, QDRANT_URL
 from app.db import fetch_history, fetch_submission_detail, init_db, is_postgres, record_review, save_submission, seed_demo_database
 from app.interop import add_a2a, mcp, mcp_app
 from app.observability import ENABLED as TRACING_ENABLED, flush
 from app.schemas import decision_from_score, indicative_product_segment
 from app.reports import build_submission_pdf
+from app.settings import runtime_readiness
 from app.tools.form_reader import read_form
 from app.tools.hazard_lookup import lookup as hazard_lookup, sources as hazard_sources, verify_location
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    seed_demo_database()
-    init_db()
     async with mcp.session_manager.run():
         yield
 
 
 app = FastAPI(title="imaarat.ai", lifespan=lifespan)
+app.add_exception_handler(Exception, internal_error)
 app.mount("/mcp", mcp_app())
 add_a2a(app)
+
+
+@app.middleware("http")
+async def readiness_gate(request: Request, call_next):
+    if os.getenv("APP_ENV", "production") != "test" and request.url.path not in {"/health", "/status", "/ready"}:
+        if not runtime_readiness()["ready"]:
+            return unavailable_response()
+    return await call_next(request)
 
 app.add_middleware(
     CORSMiddleware,
@@ -49,6 +59,8 @@ def health() -> dict[str, str]:
 
 @app.get("/status")
 def status() -> dict[str, Any]:
+    if os.getenv("APP_ENV", "production") != "test":
+        return {"version": __version__, **runtime_readiness()}
     return {
         "version": __version__,
         "ai": bool(GEMINI_API_KEY),
@@ -56,6 +68,12 @@ def status() -> dict[str, Any]:
         "tracing": TRACING_ENABLED,
         "persistent_storage": is_postgres(),
     }
+
+
+@app.get("/ready")
+def ready() -> JSONResponse:
+    body = runtime_readiness()
+    return JSONResponse(body, status_code=200 if body["ready"] else 503, headers={"Cache-Control": "no-store"})
 
 
 def property_tiv_from_components(*values: float | None, fallback: float | None) -> float | None:

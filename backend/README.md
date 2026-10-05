@@ -4,6 +4,16 @@ A FastAPI + LangGraph backend providing deterministic underwriting scoring, Gemi
 
 **The React frontend lives in `../frontend/`.**
 
+## Security implementation status
+
+- The security upgrade is in progress, not a deployed security certification.
+- Application environments require explicitly configured Postgres. SQLite is restricted to the unit-test profile.
+- Startup does not create schemas or copy the bundled demo database. Explicit migrations and seed commands are being implemented separately.
+- Health is process liveness only. Readiness stays unavailable until storage, migrations, worker, broker, vault, models, index and security controls are verified.
+- Unready application instances reject assessment, history, MCP and A2A requests. A configured key alone never proves working AI.
+- Local inference defaults to one request and a 4,096-token context. Context must be explicitly configured between 1,024 and 8,192 tokens. Model capacity and quality are not verified yet.
+- Existing architecture and setup examples below describe the earlier prototype. They are not instructions for activating the secured deployment.
+
 ---
 
 ## Architecture

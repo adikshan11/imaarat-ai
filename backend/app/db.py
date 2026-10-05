@@ -29,6 +29,7 @@ from sqlalchemy import (
 from sqlalchemy.engine import Engine
 
 from app.config import DB_PATH, DEMO_DB_PATH, PROPERTIES_CSV
+from app.settings import SettingsError, load_settings
 
 metadata = MetaData()
 
@@ -97,6 +98,8 @@ _ready: set[str] = set()
 
 
 def database_url() -> str:
+    if os.getenv("APP_ENV", "production") != "test":
+        return load_settings().database_url
     url = os.getenv("DATABASE_URL", "")
     if url:
         return url.replace("postgres://", "postgresql+psycopg://", 1).replace("postgresql://", "postgresql+psycopg://", 1)
@@ -108,7 +111,8 @@ def get_engine() -> Engine:
     if url not in _engines:
         if url.startswith("sqlite"):
             DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-        _engines[url] = create_engine(url, pool_pre_ping=True)
+        options = {"connect_timeout": 5} if url.startswith("postgresql") else {}
+        _engines[url] = create_engine(url, pool_pre_ping=True, connect_args=options, hide_parameters=True)
     return _engines[url]
 
 
@@ -150,6 +154,8 @@ def seed_properties_from_csv() -> None:
 
 def seed_demo_database() -> None:
     """Start a fresh database from the bundled demo portfolio."""
+    if os.getenv("APP_ENV", "production") != "test":
+        raise SettingsError("explicit_seed_required")
     if not DEMO_DB_PATH.exists():
         return
     if not is_postgres():
@@ -185,6 +191,8 @@ def ensure_submission_columns() -> None:
 
 
 def init_db() -> None:
+    if os.getenv("APP_ENV", "production") != "test":
+        raise SettingsError("explicit_migration_required")
     url = database_url()
     if url in _ready:
         return
