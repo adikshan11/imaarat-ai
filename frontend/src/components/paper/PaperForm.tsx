@@ -13,7 +13,6 @@ const NUMBER_BOXES = ['year_built', 'num_stories', 'square_footage', 'roof_age_y
 const MONEY_BOXES = ['building_value_inr', 'plant_machinery_value_inr', 'stock_inventory_value_inr', 'other_contents_value_inr']
 const TICKS = ['sprinkler_system', 'fire_alarm', 'flood_protection']
 const NUMERIC = new Set(['zip', ...NUMBER_BOXES, ...MONEY_BOXES])
-const PERSONAL = ['proposer_name', 'insured_legal_name', 'contact_person', 'mobile', 'email', 'policy_period_start', 'policy_period_end']
 
 async function shrink(file: File): Promise<Blob> {
   const bitmap = await createImageBitmap(file)
@@ -69,16 +68,8 @@ function PrintableForm() {
     <div className="print-area" aria-hidden="true">
       <section className="pf-page">
         <span className="pf-corner pf-tl" /><span className="pf-corner pf-tr" /><span className="pf-corner pf-bl" /><span className="pf-corner pf-br" />
-        <header className="pf-head"><strong>Imaarat · {t('paper.page1')}</strong><span>IMR-PF-1 · 1/2</span></header>
-        <p className="pf-keep">{t('paper.keep_page1')}</p>
-        {PERSONAL.map((key) => <Box key={key} {...both(`f.${key}`)} />)}
-        <Box {...both('paper.signature')} tall />
-        <p className="pf-small">{t('paper.declaration')}</p>
-      </section>
-      <section className="pf-page">
-        <span className="pf-corner pf-tl" /><span className="pf-corner pf-tr" /><span className="pf-corner pf-bl" /><span className="pf-corner pf-br" />
-        <header className="pf-head"><strong>Imaarat · {t('paper.page2')}</strong><span>IMR-PF-1 · 2/2</span></header>
-        <p className="pf-keep">{t('paper.upload_page2')}</p>
+        <header className="pf-head"><strong>Imaarat · {t('paper.form_title')}</strong><span>IMR-PF-2</span></header>
+        <p className="pf-keep">{t('paper.upload_form')}</p>
         <Box {...both('f.zip')} cells={6} />
         <Box {...both('f.address')} />
         <div className="pf-row">{TEXT_BOXES.slice(1).map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>

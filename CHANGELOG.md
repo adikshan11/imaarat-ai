@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.14.0] - 2026-10-06
+
+### Changed
+- The paper proposal is now one A4 page with only property and risk details (form IMR-PF-2). The old first page asked for names, contact details and a signature that the app never read, so it is gone; nothing personal goes on paper or into the uploaded photo.
+- Printing the form no longer adds a third page with the site footer.
+
 ## [2.13.1] - 2026-10-06
 
 ### Changed

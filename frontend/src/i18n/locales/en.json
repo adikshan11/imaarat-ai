@@ -23,7 +23,6 @@
   "status.no_ai": "Demo deployment: the AI memo, photo review and guideline search are switched off, so assessments use the rule engine only.",
   "status.ephemeral": "Assessments on this demo are not kept after the server restarts.",
   "status.sample": "All properties shown are sample data. No real customer data is used.",
-
   "decision.Accept": "Accept",
   "decision.Refer": "Refer",
   "decision.Decline (mitigation possible)": "Decline (mitigation possible)",
@@ -32,7 +31,6 @@
   "decision_help.Refer": "Needs a senior underwriter's approval.",
   "decision_help.Decline (mitigation possible)": "Decline unless the listed risk improvements are made.",
   "decision_help.Auto-Decline": "Outside appetite.",
-
   "flag.roof_replacement_likely": "Roof likely needs replacement",
   "flag.aging_roof": "Ageing roof",
   "flag.combustible_construction": "Combustible construction",
@@ -47,7 +45,6 @@
   "flag.declared_seismic_zone_below_official": "Declared seismic zone below the official zone",
   "flag.flood_history_at_pincode": "Flood history at this PIN code",
   "flag.imd_cyclone_prone_district": "IMD cyclone-prone district",
-
   "bd.roof_age": "Roof age",
   "bd.construction": "Construction",
   "bd.sprinkler": "Sprinklers",
@@ -57,7 +54,6 @@
   "bd.wildland": "Wildfire zone",
   "bd.loss_history": "Claims history",
   "bd.tiv": "Sum insured",
-
   "seg.climate": "Climate",
   "seg.cat": "Natural catastrophe",
   "seg.construction": "Construction",
@@ -66,7 +62,6 @@
   "seg.loss": "Claims history",
   "seg.age": "Building age",
   "seg.mitigation": "Mitigation credit",
-
   "factor.sprinkler": "Sprinklers",
   "factor.fire_alarm": "Fire alarm",
   "factor.flood_protection": "Flood protection",
@@ -74,7 +69,6 @@
   "factor.generator": "Backup generator",
   "factor.drainage": "Drainage",
   "factor.security_protective_safeguards": "Security safeguards",
-
   "level.Critical": "Critical",
   "level.Very High": "Very high",
   "level.High": "High",
@@ -85,10 +79,8 @@
   "reco.Elevated Risk": "Elevated risk",
   "reco.Standard Risk": "Standard risk",
   "reco.Preview": "Preview",
-
   "score.of": "{score} / 100",
   "score.hint": "Higher is riskier",
-
   "dash.eyebrow": "Portfolio",
   "dash.title": "Underwriting portfolio",
   "dash.lead": "Commercial property risks assessed, the decisions taken and where the exposure sits.",
@@ -133,7 +125,6 @@
   "table.none": "None",
   "table.no_match": "No matching assessments.",
   "table.empty": "No assessments yet.",
-
   "cat.title": "Natural-catastrophe exposure",
   "cat.title_dev": "CAT exposure (dbt mart_cat_exposure)",
   "cat.zone": "Main hazard",
@@ -148,7 +139,6 @@
   "city.max": "Highest score",
   "pipeline.note": "Updated nightly. Last update {time} UTC.",
   "pipeline.note_dev": "Built nightly by the ELT pipeline: Postgres → Parquet → dbt on DuckDB (tested) → snapshot. Last run {time} UTC.",
-
   "res.back": "Back to portfolio",
   "res.pdf": "Download PDF report",
   "res.pdf_busy": "Preparing report...",
@@ -201,7 +191,6 @@
   "ref.property": "Property",
   "ref.occupancy": "Occupancy",
   "ref.cat": "Main hazard",
-
   "rev.done_title": "Underwriter review",
   "rev.approved": "Approved",
   "rev.overridden": "Changed",
@@ -224,7 +213,6 @@
   "rev.override": "Change decision",
   "rev.approve": "Approve referral",
   "rev.error": "Review could not be saved",
-
   "new.eyebrow": "New proposal",
   "new.title": "New property assessment",
   "new.lead": "Enter the proposal and survey details. The risk preview updates as you type.",
@@ -341,7 +329,6 @@
   "pv.total": "Mitigation credit: {value} points",
   "pv.segment": "Indicative product",
   "pv.recalc": "Recalculating...",
-
   "q.eyebrow": "AI quality",
   "q.title": "Evaluation results",
   "q.lead": "Measured, not assumed: a golden set of {cases} properties covering every scoring rule and decision band, run in CI.",
@@ -370,7 +357,6 @@
   "q.fallback": "Fallback model",
   "q.judge": "Judge",
   "q.prompt_tokens": "Prompt tokens TOON / JSON",
-
   "int.eyebrow": "Interoperability",
   "int.title": "MCP server and A2A agent",
   "int.lead": "The underwriting engine is usable by AI assistants (MCP) and by other agents (A2A), not only through this UI.",
@@ -388,7 +374,6 @@
   "int.skill.underwriting_guidance": "ask in text; get the most relevant guideline sections.",
   "int.try": "Try A2A from a terminal",
   "int.tool.lookup_hazard": "Official seismic zone, flood history and IMD cyclone grade for an Indian PIN code.",
-
   "hz.title": "Location hazard check",
   "hz.lead": "Official data for PIN {pincode}: {district}, {state}.",
   "hz.none": "No official hazard data for this PIN code. Check that it is a valid 6-digit Indian PIN code.",
@@ -412,22 +397,17 @@
   "hzv.flood": "Flood history at the PIN code",
   "hzv.cyclone": "In an IMD cyclone-prone district (P1–P2)",
   "hzv.note": "Every proposal's PIN code is checked against official hazard data in the nightly pipeline.",
-
   "nav.paper": "Paper form",
   "paper.eyebrow": "Paper proposal",
   "paper.title": "Fill on paper, assess online",
-  "paper.lead": "For proposers who find a web form hard: print the form, fill it by hand, photograph page 2 and let the AI read it. A person checks every value before the assessment runs.",
+  "paper.lead": "For proposers who find a web form hard: print the form, fill it by hand, photograph it and let the AI read it. A person checks every value before the assessment runs.",
   "paper.step_print": "Print the form",
-  "paper.print_help": "Two A4 pages in the language you have chosen, with English underneath. Page 1 has personal details and stays with you. Page 2 has the property and risk details and is the only page you upload.",
+  "paper.print_help": "One A4 page in the language you have chosen, with English underneath. It asks only about the property and its risks, so no names, phone numbers or signatures go on paper or into the photo.",
   "paper.print": "Print or save as PDF",
-  "paper.page1": "Page 1 · Proposer details",
-  "paper.page2": "Page 2 · Property and risk",
-  "paper.keep_page1": "Keep this page. Do not photograph or upload it.",
-  "paper.upload_page2": "Photograph only this page and upload it to Imaarat.",
-  "paper.signature": "Signature and date",
-  "paper.declaration": "I declare that the details on both pages are true to the best of my knowledge.",
+  "paper.form_title": "Property and risk details",
+  "paper.upload_form": "Photograph this page and upload it to Imaarat. Do not write names or phone numbers on it.",
   "paper.digits_hint": "Write one digit per box for the PIN code. Write amounts in rupees, digits only. Leave a box empty if you do not know.",
-  "paper.step_upload": "Upload a photo of page 2",
+  "paper.step_upload": "Upload a photo of the form",
   "paper.upload_help": "Take the photo in good light, flat and straight, with all four corner marks visible.",
   "paper.consent": "I understand this demo reads the photo with Google's free Gemini API, which may use uploads to improve Google's products, so the photo must not show personal details.",
   "paper.upload": "Take or choose a photo",
@@ -454,7 +434,6 @@
   "paper.use": "Use these values",
   "paper.model_note": "Read by {model}. Handwriting accuracy has not been measured yet, so every value needs a human check.",
   "paper.prefilled": "These values came from a paper form. Check every field, then assess.",
-
   "nav.how": "How it works",
   "how.eyebrow": "How it works",
   "how.title": "From property details to a review-ready assessment",

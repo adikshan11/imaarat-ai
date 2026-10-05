@@ -361,7 +361,7 @@ async def read_paper_form(request: Request, image: UploadFile = File(...)) -> di
     if not ready:
         raise HTTPException(status_code=503, detail=f"AI form reading is switched off on this deployment: {reason}")
     if image.content_type not in ("image/jpeg", "image/png", "image/webp"):
-        raise HTTPException(status_code=415, detail="Upload a JPEG, PNG or WebP photo of page 2")
+        raise HTTPException(status_code=415, detail="Upload a JPEG, PNG or WebP photo of the form")
     data = await image.read()
     if len(data) > 4_000_000:
         raise HTTPException(status_code=413, detail="The photo is larger than 4 MB")
