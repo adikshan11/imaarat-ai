@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Card from '@/components/shared/Card'
+import SelectField from '@/components/shared/SelectField'
 import { reviewSubmission } from '@/api/underwriting'
 import { usePreferences } from '@/context/Preferences'
 import type { BackendSubmission } from '@/types/backend'
@@ -52,12 +53,7 @@ export default function ReviewPanel({ submission, onReviewed }: { submission: Ba
       <p>{t(dev ? 'rev.lead_dev' : 'rev.lead', { score: submission.risk_score })}</p>
       <div className="form-grid form-gap">
         <div className="form-row form-row-2">
-          <label>
-            <span className="field-label-text">{t('rev.final_label')}</span>
-            <select value={finalDecision} onChange={(event) => setFinalDecision(event.target.value)}>
-              {DECISIONS.map((decision) => <option key={decision} value={decision}>{label('decision', decision)}</option>)}
-            </select>
-          </label>
+          <SelectField label={t('rev.final_label')} value={finalDecision} onChange={setFinalDecision} options={DECISIONS.map((decision) => ({ value: decision, label: label('decision', decision) }))} />
           <label>
             <span className="field-label-text">{t('rev.reviewer')}</span>
             <input value={reviewer} onChange={(event) => setReviewer(event.target.value)} />

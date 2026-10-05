@@ -2,6 +2,20 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.9.0] - 2026-10-05
+
+### Added
+- A "How it works" page that explains the four steps in plain language, what the demo does not claim, and the sources behind it.
+- A phone tab bar with a sliding indicator, swipe and drag between tabs, and arrow-key navigation that also works right to left.
+- An accessible dropdown that uses the phone's own picker on touch screens.
+- CI now runs lint, 17 unit tests and five browser checks (navigation, labels in all 26 languages, touch, desktop and an unfinished draft) on every pull request, with every action pinned to an exact commit.
+
+### Changed
+- An assessment draft is kept when you switch tabs, and finished results reopen from the New assessment tab.
+
+### Removed
+- Unused preview calculations in the proposal form.
+
 ## [2.8.0] - 2026-10-05
 
 ### Changed

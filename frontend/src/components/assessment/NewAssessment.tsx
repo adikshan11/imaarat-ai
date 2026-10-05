@@ -3,6 +3,7 @@ import type { BackendSubmission, MitigationPreview, SubmissionInput } from '@/ty
 import { previewUnderwriting } from '@/api/underwriting'
 import { useRiskContext } from '@/context/RiskContext'
 import Card from '@/components/shared/Card'
+import SelectField from '@/components/shared/SelectField'
 import HazardCard from '@/components/assessment/HazardCard'
 import { usePreferences } from '@/context/Preferences'
 import { inr } from '@/lib/format'
@@ -307,18 +308,8 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
     ? [...backendRiskProfile, { id: 'mitigation', name: 'Mitigation benefit', score: previewModel.mitigation_benefit }]
     : backendRiskProfile
   const previewTotal = previewProfile.reduce((sum, item) => sum + Math.abs(item.score), 0)
-  let previewOffset = 0
-  const previewGradient = previewTotal ? previewProfile.map((item) => {
-    const color = SEGMENT_COLORS[item.id] ?? '#94a3b8'
-    const start = (previewOffset / previewTotal) * 100
-    previewOffset += Math.abs(item.score)
-    return `${color} ${start}% ${(previewOffset / previewTotal) * 100}%`
-  }).join(', ') : '#e5e7eb 0 100%'
   const previewBadge = previewModel?.recommendation ?? 'Preview'
   const riskLevel = previewModel?.risk_level ?? 'Pending'
-  const catExposure = previewProfile.find((item) => item.id === 'cat')?.score ?? 0
-  const climateRisk = previewProfile.find((item) => item.id === 'climate')?.score ?? 0
-  const protectionRisk = previewProfile.find((item) => item.id === 'protection')?.score ?? 0
   const derivedTiv = componentTiv(form)
   const displayedTiv = derivedTiv ?? optionalNumber(form.tiv)
 
@@ -434,7 +425,7 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
 
         <Card title={t('sec.building')}>
           <div className="form-grid">
-            <div className="form-row form-row-2"><label><span className="field-label-text">{t('f.construction_type')}</span><select value={form.construction_type} onChange={(event) => update('construction_type', event.target.value)}>{['Frame', 'Joisted Masonry', 'Non-Combustible', 'Masonry Non-Combustible', 'Fire Resistive'].map((item) => <option key={item} value={item}>{label('opt.con', item)}</option>)}</select></label><Field name="year_built" type="number" /></div>
+            <div className="form-row form-row-2"><SelectField label={t('f.construction_type')} value={form.construction_type} onChange={(value) => update('construction_type', value)} options={['Frame', 'Joisted Masonry', 'Non-Combustible', 'Masonry Non-Combustible', 'Fire Resistive'].map((item) => ({ value: item, label: label('opt.con', item) }))} /><Field name="year_built" type="number" /></div>
             <div className="form-row form-row-3"><Field name="square_footage" type="number" /><Field name="num_stories" type="number" /><Field name="building_height_m" type="number" optional /></div>
             <div className="form-row form-row-3"><Field name="wall_material" optional /><Field name="floor_material" optional /><Field name="roof_material" optional /></div>
             <div className="form-row form-row-2"><Field name="roof_type" optional /><Field name="roof_age_years" type="number" optional /></div>
@@ -443,7 +434,7 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
 
         <Card title={t('sec.hazards')}>
           <div className="form-grid">
-            <div className="form-row form-row-2"><label><span className="field-label-text">{t('f.cat_zone')}</span><select value={form.cat_zone} onChange={(event) => update('cat_zone', event.target.value)}>{['None', 'Wind', 'Hail', 'Wildfire', 'Flood', 'Earthquake'].map((item) => <option key={item} value={item}>{label('opt.cat', item)}</option>)}</select></label><label><span className="field-label-text">{t('f.seismic_zone')}</span><select value={form.seismic_zone} onChange={(event) => update('seismic_zone', event.target.value)}>{['II', 'III', 'IV', 'V'].map((item) => <option key={item}>{item}</option>)}</select></label></div>
+            <div className="form-row form-row-2"><SelectField label={t('f.cat_zone')} value={form.cat_zone} onChange={(value) => update('cat_zone', value)} options={['None', 'Wind', 'Hail', 'Wildfire', 'Flood', 'Earthquake'].map((item) => ({ value: item, label: label('opt.cat', item) }))} /><SelectField label={t('f.seismic_zone')} value={form.seismic_zone} onChange={(value) => update('seismic_zone', value)} options={['II', 'III', 'IV', 'V'].map((item) => ({ value: item, label: item }))} /></div>
             <div className="form-row form-row-2">
               <Field name="distance_to_coast_miles" type="number" optional hint={t('hint.coast')} />
               <Field name="distance_to_fire_zone_miles" type="number" optional hint={t('hint.fire')} />

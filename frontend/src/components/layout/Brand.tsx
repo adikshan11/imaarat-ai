@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const NAMES = [
   { word: 'imaarat', lang: 'en' },
@@ -11,19 +11,8 @@ const NAMES = [
 ]
 
 export function BrandMark({ size = 40 }: { size?: number }) {
-  const gradient = useId()
   return (
-    <svg className="brand-mark" width={size} height={size} viewBox="0 0 40 40" aria-hidden="true">
-      <defs>
-        <linearGradient id={gradient} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#34d399" />
-          <stop offset="1" stopColor="#0f766e" />
-        </linearGradient>
-      </defs>
-      <rect width="40" height="40" rx="11" fill={`url(#${gradient})`} />
-      <path d="M8 31h24" stroke="#ffffff" strokeOpacity="0.55" strokeWidth="1.6" strokeLinecap="round" />
-      <text x="20" y="26.5" textAnchor="middle" fontSize="21" fontWeight="700" fill="#ffffff" fontFamily="'Noto Sans Devanagari', 'Nirmala UI', sans-serif">इ</text>
-    </svg>
+    <img className="brand-mark" src="/favicon.svg?v=imaarat-2" width={size} height={size} alt="" aria-hidden="true" />
   )
 }
 
