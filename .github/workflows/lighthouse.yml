@@ -1,0 +1,46 @@
+name: Lighthouse
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: Page to audit
+        default: https://imaarat-ai.vercel.app/
+  schedule:
+    - cron: "0 3 * * 1"
+  pull_request:
+    paths:
+      - .github/workflows/lighthouse.yml
+      - .github/scripts/lighthouse_summary.mjs
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      AUDIT_URL: ${{ inputs.url || 'https://imaarat-ai.vercel.app/' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - run: npm install --prefix "$RUNNER_TEMP/lighthouse" --no-save --package-lock=false lighthouse@13.5.0
+      - name: Audit mobile and desktop
+        run: |
+          mkdir -p reports
+          LH="$RUNNER_TEMP/lighthouse/node_modules/.bin/lighthouse"
+          FLAGS='--only-categories=performance,accessibility,best-practices,seo --output=json --output=html --chrome-flags=--headless=new --quiet'
+          $LH "$AUDIT_URL" $FLAGS --form-factor=mobile --screenEmulation.mobile --output-path=reports/mobile
+          $LH "$AUDIT_URL" $FLAGS --preset=desktop --output-path=reports/desktop
+      - run: node .github/scripts/lighthouse_summary.mjs reports/mobile.report.json reports/desktop.report.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: reports/
+          if-no-files-found: warn
