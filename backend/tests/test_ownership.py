@@ -32,6 +32,9 @@ def owners(monkeypatch):
 
     monkeypatch.setattr(auth, "get_engine", storage)
     monkeypatch.setattr(db, "get_engine", storage)
+    from app.api import auth_routes
+
+    monkeypatch.setattr(auth_routes, "get_engine", storage)
     first = auth.create_member(engine, 42)
     second = auth.create_member(engine, 43)
     yield engine, first, second
@@ -151,6 +154,20 @@ def test_revoked_token_issue(owners):
     with pytest.raises(HTTPException) as error:
         policy.issue_token(engine, first.principal, {"interop:read"})
     assert error.value.status_code == 401
+
+
+def test_token_retention(owners):
+    policy = import_module("app.policy")
+    engine, first, second = owners
+    now = auth.clock(None)
+    for value in range(10):
+        grant = policy.issue_token(engine, first.principal, {"interop:read"}, now=now)
+        policy.revoke_token(engine, first.principal, grant.id)
+    with engine.connect() as conn:
+        assert conn.execute(text("SELECT COUNT(*) FROM interop_tokens")).scalar_one() == 0
+    with pytest.raises(HTTPException) as error:
+        policy.issue_token(engine, first.principal, {"interop:read"}, now=now)
+    assert error.value.status_code == 429
 
 
 def test_transport_denial(owners, monkeypatch):

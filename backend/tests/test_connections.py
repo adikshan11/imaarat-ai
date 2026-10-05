@@ -246,6 +246,27 @@ def test_replay_concurrency(connections):
     assert error.value.status_code == 429
 
 
+def test_admission_freshness(connections, monkeypatch):
+    service, first, second, engine, versions, calls = connections
+    current = auth.clock(None)
+    lock = auth.lock_session
+
+    def waited(*args, **kwargs):
+        row = lock(*args, **kwargs)
+
+        def later(now):
+            return current + 301 if now is None else now
+
+        monkeypatch.setattr(auth, "clock", later)
+        return row
+
+    monkeypatch.setattr(auth, "lock_session", waited)
+    with pytest.raises(HTTPException) as error:
+        service.create(first, "never-store-expired-auth", "gemini")
+    assert error.value.status_code == 403
+    assert versions == {}
+
+
 def test_vault_errors():
     assert find_spec("app.broker") is not None, "Private credential broker is missing"
     module = import_module("app.broker.vault")
