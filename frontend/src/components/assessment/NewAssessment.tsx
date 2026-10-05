@@ -345,7 +345,7 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
     return { ...s, frac, acc }
   })
   const hoveredSeg = svgSegs.find(s => s.id === hoveredSegId) ?? null
-  const previewCard = previewModel && <div className="preview-card" data-testid="mitigation-preview">
+  const previewCard = preview && previewModel && <div className="preview-card" data-testid="mitigation-preview">
     <div className="preview-header-row">
       <div>
         <div className="preview-eyebrow">{t('pv.eyebrow')}</div>
