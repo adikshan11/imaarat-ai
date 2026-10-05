@@ -26,6 +26,11 @@ seeds:
       - name: flood_area_pct
         data_tests:
           - not_null
+      - name: urban_flood_source
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["Greater Chennai Corporation", "BBMP Bengaluru"]
 
 models:
   - name: mart_hazard_verification

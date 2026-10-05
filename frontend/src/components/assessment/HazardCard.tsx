@@ -17,6 +17,7 @@ export default function HazardCard({ hazard, declaredZone, pincode }: { hazard: 
       <div className="risk-stack form-gap">
         <div className="risk-line"><span>{t('hz.seismic')}</span><strong>{hazard.seismic_zone ? t('hz.zone', { zone: hazard.seismic_zone }) : '—'}</strong></div>
         <div className="risk-line"><span>{t('hz.flood')}</span><strong><bdi dir="ltr">{hazard.flood_area_pct}%</bdi></strong></div>
+        {hazard.urban_flood_points !== null && hazard.urban_flood_points !== undefined && <div className="risk-line"><span>{t('hz.urban', { source: hazard.urban_flood_source ?? '' })}</span><strong>{hazard.urban_flood_points}</strong></div>}
         <div className="risk-line"><span>{t('hz.cyclone')}</span><strong>{hazard.cyclone_grade ? label('grade', hazard.cyclone_grade) : t('hz.cyclone_none')}</strong></div>
       </div>
       <p className="card-footnote">{hazard.seismic_source?.startsWith('IS 1893 town list: ') ? t('hz.source_town', { town: hazard.seismic_source.slice(19) }) : t('hz.source_map')}</p>

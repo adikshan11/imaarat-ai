@@ -43,6 +43,36 @@ SOURCES = {
         "origin": "NRSC / NDEM satellite-observed flood inundation 1998-2022",
         "licence": "Published by the aggregator as CC0; NRSC terms not verified",
     },
+    "chennai_inundation": {
+        "file": "chennai_inundation.kml",
+        "url": "https://data.opencity.in/dataset/022dd080-e927-40d7-897d-adf3ee98ad69/resource/ceddf53f-03c0-4866-8ba8-5e84c8007a85/download/814ca028-4c84-4bd0-aa67-6dbaeb9b6ba5.kml",
+        "origin": "Greater Chennai Corporation, inundation points with depth (OpenCity, updated November 2025)",
+        "licence": "Public domain, as published on OpenCity",
+    },
+    "chennai_2015": {
+        "file": "chennai_2015.kml",
+        "url": "https://data.opencity.in/dataset/022dd080-e927-40d7-897d-adf3ee98ad69/resource/80ed2fa7-1150-4f55-8125-682ab55282ac/download/93d2905a-a580-482d-96b0-4d9ccf5273ef.kml",
+        "origin": "Greater Chennai Corporation, flooding points in 2015 (OpenCity)",
+        "licence": "Public domain, as published on OpenCity",
+    },
+    "bengaluru_vulnerable": {
+        "file": "bengaluru_vulnerable.kml",
+        "url": "https://data.opencity.in/dataset/b03218ea-4b7c-4fa9-ab67-b9054d7ecc4c/resource/a7d8a01f-1fbc-41e1-85f0-f15ea16b2d27/download/6b3c63b0-f461-4e9c-a2c2-006f734c5b41.kml",
+        "origin": "BBMP, locations vulnerable to flooding in Bengaluru Urban (OpenCity, updated November 2025)",
+        "licence": "Public domain, as published on OpenCity",
+    },
+    "bengaluru_flood_prone": {
+        "file": "bengaluru_flood_prone.kml",
+        "url": "https://data.opencity.in/dataset/b03218ea-4b7c-4fa9-ab67-b9054d7ecc4c/resource/d90fe768-caba-4c6e-b6b5-a75acd5e88a9/download/00fb1229-dcfd-4f59-813f-885e0c629add.kml",
+        "origin": "BBMP, flood-prone locations (OpenCity)",
+        "licence": "Public domain, as published on OpenCity",
+    },
+    "bengaluru_low_lying": {
+        "file": "bengaluru_low_lying.kml",
+        "url": "https://data.opencity.in/dataset/b03218ea-4b7c-4fa9-ab67-b9054d7ecc4c/resource/62ceac3b-f6e2-4dd1-ae9f-be80b1f2fda8/download/8e87a2fc-e014-4c6e-81f1-d5cb4db57a46.kml",
+        "origin": "BBMP, low-lying areas (OpenCity)",
+        "licence": "Public domain, as published on OpenCity",
+    },
     "towns": {
         "file": "is1893_town_zones.csv",
         "url": "https://archive.org/details/gov.in.is.1893.1.2016",
@@ -60,6 +90,10 @@ ZONES = {"Seismic Zone-II": 2, "Seismic Zone-III": 3, "Seismic Zone-IV": 4, "Sei
 ROMAN = {2: "II", 3: "III", 4: "IV", 5: "V"}
 IMD_GRADE_COUNTS = {"P1": 12, "P2": 25, "P3": 48, "P4": 15}
 TOWN_RADIUS_KM = 10.0
+CITY_LAYERS = {
+    "Greater Chennai Corporation": ("Chennai", ["chennai_inundation", "chennai_2015"]),
+    "BBMP Bengaluru": ("Bengaluru Urban", ["bengaluru_vulnerable", "bengaluru_flood_prone", "bengaluru_low_lying"]),
+}
 OFFICE_SUFFIX = re.compile(r"\s+(h\.?\s?p?\.?\s?o\.?|g\.?\s?p\.?\s?o\.?|s\.?\s?o\.?|b\.?\s?o\.?)$", re.I)
 IMD_STATES = [
     "Andaman &", "Andhra", "Pradesh (AP)", "AP", "Odisha", "Puducherry", "West Bengal", "Daman & Diu",
@@ -108,6 +142,12 @@ def cyclone_grades(pdf: Path, crosswalk: Path) -> dict[str, tuple[str, str]]:
         for district in mapping[name]["lgd_districts"].split(";"):
             grades[district] = (grade, f"IMD lists {name}" if mapping[name]["note"] == "same" else f"IMD lists {name} ({mapping[name]['note']})")
     return grades
+
+
+def kml_points(path: Path) -> np.ndarray:
+    text = path.read_text(encoding="utf-8")
+    coordinates = re.findall(r"<Point>\s*<coordinates>\s*([-\d.]+),([-\d.]+)", text)
+    return shapely.points(np.array([[float(x), float(y)] for x, y in coordinates]))
 
 
 def town_centres(offices: list[str], points: np.ndarray, towns: Path) -> tuple[list[tuple[str, str, float, float]], list[str]]:
@@ -173,6 +213,17 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
         closer = (distance <= TOWN_RADIUS_KM) & (distance < nearest)
         town_zone[closer], town_name[closer], nearest[closer] = zone, town, distance[closer]
 
+    city_points = np.zeros(count, dtype=int)
+    city_source = np.full(count, None, dtype=object)
+    pin_tree = shapely.STRtree(pins)
+    for source, (district, layers) in CITY_LAYERS.items():
+        points = np.concatenate([kml_points(fetch(layer, raw_dir)) for layer in layers])
+        point_idx, pin_idx = pin_tree.query(points, predicate="within")
+        np.add.at(city_points, pin_idx, 1)
+        covered = np.array([dist_cols["dtname"][d] == district if d >= 0 else False for d in district_of]) | (np.bincount(pin_idx, minlength=count) > 0)
+        city_source[covered] = source
+        print(f"{source}: {len(points)} points, {len(set(point_idx.tolist()))} inside a PIN code, {int(covered.sum())} PIN codes covered")
+
     records = []
     for i in range(count):
         d = district_of[i]
@@ -191,6 +242,8 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
             "seismic_zone_max": ROMAN.get(max(touched)) if touched else None,
             "seismic_source": f"IS 1893 town list: {town_name[i]}" if town_zone[i] else "zone map",
             "flood_area_pct": round(float(flood_pct[i]), 1),
+            "urban_flood_points": int(city_points[i]) if city_source[i] else None,
+            "urban_flood_source": city_source[i],
             "cyclone_grade": grade,
             "cyclone_note": grade_note,
         })
@@ -199,7 +252,7 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
         writer = csv.DictWriter(handle, fieldnames=list(records[0]))
         writer.writeheader()
         writer.writerows(records)
-    fields = ["district", "state", "district_lgd", "seismic_zone", "seismic_zone_map", "seismic_zone_max", "seismic_source", "flood_area_pct", "cyclone_grade", "cyclone_note"]
+    fields = ["district", "state", "district_lgd", "seismic_zone", "seismic_zone_map", "seismic_zone_max", "seismic_source", "flood_area_pct", "urban_flood_points", "urban_flood_source", "cyclone_grade", "cyclone_note"]
     payload = {
         "built_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "fields": fields,

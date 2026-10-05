@@ -35,7 +35,7 @@ def hazard_flags(hazard: dict[str, Any] | None, declared_zone: str | None) -> li
     official = hazard.get("seismic_zone")
     if official in ZONE_ORDER and declared_zone in ZONE_ORDER and ZONE_ORDER.index(official) > ZONE_ORDER.index(declared_zone):
         flags.append("declared_seismic_zone_below_official")
-    if (hazard.get("flood_area_pct") or 0) >= FLOOD_FLAG_PCT:
+    if (hazard.get("flood_area_pct") or 0) >= FLOOD_FLAG_PCT or (hazard.get("urban_flood_points") or 0) >= 1:
         flags.append("flood_history_at_pincode")
     if hazard.get("cyclone_grade") in CYCLONE_FLAG_GRADES:
         flags.append("imd_cyclone_prone_district")

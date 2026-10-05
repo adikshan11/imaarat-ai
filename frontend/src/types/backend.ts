@@ -38,6 +38,8 @@ export interface OfficialHazard {
   seismic_zone_max: string | null
   seismic_source: string | null
   flood_area_pct: number
+  urban_flood_points: number | null
+  urban_flood_source: string | null
   cyclone_grade: string | null
   cyclone_note: string | null
   built_at: string

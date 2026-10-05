@@ -29,5 +29,7 @@ seeds:
         seismic_zone_max: varchar
         seismic_source: varchar
         flood_area_pct: double
+        urban_flood_points: integer
+        urban_flood_source: varchar
         cyclone_grade: varchar
         cyclone_note: varchar

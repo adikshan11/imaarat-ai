@@ -50,6 +50,19 @@ def test_flood_share_separates_floodplain_from_dry_city():
     assert lookup("560001")["flood_area_pct"] == 0
 
 
+def test_city_flood_points_cover_urban_waterlogging():
+    central = lookup("560001")
+    assert central["flood_area_pct"] == 0 and central["urban_flood_points"] >= 1
+    assert central["urban_flood_source"] == "BBMP Bengaluru"
+    assert lookup("600113")["urban_flood_source"] == "Greater Chennai Corporation"
+    mumbai = lookup("400001")
+    assert mumbai["urban_flood_points"] is None and mumbai["urban_flood_source"] is None
+
+
+def test_city_flood_points_raise_the_flood_flag():
+    assert "flood_history_at_pincode" in verify_location({"zip": "560001", "seismic_zone": "II"})["hazard_flags"]
+
+
 def test_unknown_or_malformed_pincode_returns_none():
     assert lookup("000000") is None
     assert lookup("12345") is None
@@ -69,7 +82,7 @@ def test_understated_seismic_zone_is_scored_at_official_zone():
 def test_higher_declared_zone_is_kept():
     features = verify_location({"zip": "560001", "seismic_zone": "IV"})
     assert features["seismic_zone"] == "IV"
-    assert features["hazard_flags"] == []
+    assert "declared_seismic_zone_below_official" not in features["hazard_flags"]
 
 
 def test_without_pincode_scoring_is_unchanged():
