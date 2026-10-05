@@ -398,6 +398,7 @@
   "hz.source_map": "Seismic zone from the IS 1893 zone map; check a site survey for exact location.",
   "hz.understated": "The proposal states Zone {declared}, but this PIN code is in Zone {official}, so the score uses Zone {official}.",
   "hz.flood": "Area flooded in 1998–2022 satellite records",
+  "hz.urban": "Flood points recorded in this PIN code by {source}",
   "hz.cyclone": "IMD cyclone hazard grade (district)",
   "hz.cyclone_none": "Not one of IMD's 100 cyclone-prone districts",
   "grade.P1": "P1 · very highly prone",

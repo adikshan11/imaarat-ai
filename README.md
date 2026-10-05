@@ -121,6 +121,7 @@ One Vercel project: `frontend/` builds to static files, and `api/index.py` serve
 | Seismic zones | IS 1893 (Part 1):2016 zone map, data.gov.in | Government Open Data License - India |
 | Seismic zones of towns | IS 1893 (Part 1):2016 Annex E, 108 towns over 3 lakh people, applied within 10 km of each town's head post office | Zone values are facts from the standard; the standard is BIS copyright |
 | Flood history | NRSC / NDEM flood inundation 1998–2022 | CC0 as published by the aggregator; NRSC terms not verified |
+| City flood points | Greater Chennai Corporation inundation and 2015 flood points; BBMP flood-vulnerable, flood-prone and low-lying locations (OpenCity, November 2025) | Public domain, as published on OpenCity |
 | Cyclone grades | IMD RSMC New Delhi, *Cyclone hazard prone districts of India*, June 2023 | No licence stated; cited with attribution |
 
 The 2025 seismic code revision (which added Zone VI) was withdrawn in March 2026, so the 2016 zones apply.
@@ -130,7 +131,7 @@ The 2025 seismic code revision (which added Zone VI) was withdrawn in March 2026
 - Scoring weights are prototype calibrations, not filed insurance rating rules; the guidelines are prototype guidance.
 - The 300 reference properties are synthetic. The five demo properties use public names and images with assumed underwriting facts.
 - Free tiers limit throughput (Gemini Flash is roughly 10 requests per minute), and evals throttle themselves accordingly.
-- Hazard results are indicative. Near the 104 towns of the IS 1893 town list the code's own zone is used; elsewhere the zone map is coarse. Satellite flood maps miss urban waterlogging, and IMD grades whole districts.
+- Hazard results are indicative. Near the 104 towns of the IS 1893 town list the code's own zone is used; elsewhere the zone map is coarse. Satellite flood maps miss urban waterlogging; city-recorded flood points cover only Chennai and Bengaluru so far. IMD grades whole districts.
 - Handwriting accuracy has not been measured, so every value read from a paper form needs a person to check it. The free Gemini API may use uploads to improve Google's products, which is why only the property page, without personal details, is uploaded.
 - The translations are machine-made and have not been reviewed by native speakers; Santali, Kashmiri, Manipuri, Bodo and Tulu are marked as drafts. Hindi follows the wording on IRDAI's Hindi policyholder pages where a term is given there (for example बीमित राशि, बीमांकन, संकट).
 

@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.13.0] - 2026-10-06
+
+### Added
+- City-recorded flood points for Chennai (Greater Chennai Corporation inundation and 2015 flood points) and Bengaluru (BBMP flood-vulnerable, flood-prone and low-lying locations): 1,343 points across 199 PIN codes. This covers urban waterlogging that satellite flood maps miss; PIN codes outside these cities show no data rather than zero.
+- A PIN code with any city-recorded flood point is flagged for flood history.
+
 ## [2.12.0] - 2026-10-05
 
 ### Added
