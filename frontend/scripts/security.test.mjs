@@ -3,7 +3,7 @@ import test from 'node:test'
 import { createSecurityClient, approvedLogin } from '../src/api/security_client.mjs'
 
 const origin = 'https://example.test'
-const session = { owner_id: '00000000-0000-4000-8000-000000000001', role: 'member', data_policy: 'private_local', csrf_token: 'a'.repeat(64) }
+const session = { owner_id: '00000000-0000-4000-8000-000000000001', role: 'member', data_policy: 'private_local', csrf_token: 'a'.repeat(64), expires_at: Math.floor(Date.now() / 1000) + 1800 }
 
 test('session mutations bind same origin, cookie and memory-only CSRF', async () => {
   const calls = []
@@ -63,4 +63,42 @@ test('OAuth redirect is only the fixed GitHub authorization endpoint', () => {
   for (const url of ['javascript:alert(1)', 'https://github.com.evil.test/login/oauth/authorize', 'https://user@github.com/login/oauth/authorize', 'https://github.com/login/oauth/authorize#canary', 'https://github.com/other']) {
     assert.throws(() => approvedLogin(url))
   }
+})
+
+test('same-session refresh preserves an in-flight one-time token', async () => {
+  let finish
+  const pending = new Promise((resolve) => { finish = resolve })
+  const client = createSecurityClient({ origin, fetch: async (url) => url.endsWith('/auth/session') ? new Response(JSON.stringify(session)) : pending })
+  const first = await client.session()
+  const request = client.request('/auth/tokens', { method: 'POST', body: { scopes: ['interop:read'] } })
+  const checked = await client.session()
+  finish(new Response(JSON.stringify({ token: 'b'.repeat(43) })))
+  assert.equal((await request).token, 'b'.repeat(43))
+  assert.equal(first.epoch, checked.epoch)
+})
+
+test('old delayed 401 cannot erase a freshly checked session', async () => {
+  let cancel
+  let reached
+  let lost = 0
+  const waiting = new Promise((resolve) => { reached = resolve })
+  const canceled = new Promise((resolve) => { cancel = resolve })
+  const client = createSecurityClient({ origin, onSessionLost: () => { lost++ }, fetch: async (url) => url.endsWith('/auth/session') ? new Response(JSON.stringify(session)) : new Response(new ReadableStream({ cancel() { reached(); return canceled } }), { status: 401 }) })
+  await client.session()
+  const old = client.request('/connections')
+  await waiting
+  await client.session()
+  cancel()
+  await assert.rejects(old, { code: 'session_changed' })
+  assert.equal(lost, 0)
+})
+
+test('oversized requests never leave browser and rejected response is aborted', async () => {
+  let calls = 0
+  let signal
+  const client = createSecurityClient({ origin, maxRequestBytes: 32, maxResponseBytes: 32, fetch: async (url, options) => { calls++; signal = options.signal; return new Response('{}', { headers: { 'Content-Length': '100' } }) } })
+  await assert.rejects(client.request('/auth/guest', { method: 'POST', body: { data: 'x'.repeat(64) } }), { code: 'request_too_large' })
+  assert.equal(calls, 0)
+  await assert.rejects(client.session(), { code: 'response_invalid' })
+  assert.equal(signal.aborted, true)
 })
