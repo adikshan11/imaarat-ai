@@ -20,7 +20,7 @@ def apply_migrations(engine: Engine) -> list[str]:
     with engine.begin() as conn:
         conn.execute(text("SELECT pg_advisory_xact_lock(748213905)"))
         conn.execute(text("CREATE TABLE IF NOT EXISTS schema_migrations (revision TEXT PRIMARY KEY, checksum TEXT NOT NULL, applied_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP)"))
-        existing = dict(conn.execute(text("SELECT revision, checksum FROM schema_migrations")).tuples().all())
+        existing = {row.revision: row.checksum for row in conn.execute(text("SELECT revision, checksum FROM schema_migrations"))}
         for revision, checksum in existing.items():
             if revision not in revisions:
                 raise MigrationError("migration_revision_unknown")
