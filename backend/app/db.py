@@ -331,6 +331,67 @@ def fetch_submission_detail(submission_id: int) -> dict[str, Any] | None:
     return detail
 
 
+def owned_table(conn) -> Table:
+    return Table("submissions", MetaData(), autoload_with=conn)
+
+
+def owned_filter(table: Table, principal):
+    from fastapi import HTTPException
+
+    if not principal.owner_id or "assessment:read" not in principal.scopes:
+        raise HTTPException(403, "scope_required")
+    data_class = "synthetic" if principal.role == "guest" else "private"
+    return (table.c.owner_id == principal.owner_id) & (table.c.data_class == data_class) & table.c.deleted_at.is_(None)
+
+
+def save_owned_submission(principal, state: dict[str, Any]) -> dict[str, Any]:
+    from fastapi import HTTPException
+
+    if not principal.owner_id or "assessment:write" not in principal.scopes:
+        raise HTTPException(403, "scope_required")
+    payload = state.get("raw_input", {})
+    property_id = state.get("property_id", payload.get("property_id", ""))
+    with get_engine().begin() as conn:
+        table = owned_table(conn)
+        submission_id = conn.execute(insert(table).values(
+            property_id=property_id,
+            raw_input=json.dumps(payload, ensure_ascii=False, default=str),
+            decision=state.get("decision", ""),
+            risk_score=state.get("risk_score", 0),
+            owner_id=principal.owner_id,
+            data_class="synthetic" if principal.role == "guest" else "private",
+        ).returning(table.c.id)).scalar_one()
+        result = {key: value for key, value in state.items() if key not in {"owner_id", "data_class", "record_version", "deleted_at", "id"}}
+        result["id"] = submission_id
+        conn.execute(update(table).where(table.c.id == submission_id, table.c.owner_id == principal.owner_id).values(result_json=json.dumps(result, ensure_ascii=False, default=str)))
+    return result
+
+
+def owned_submission(principal, submission_id: int) -> dict[str, Any] | None:
+    with get_engine().connect() as conn:
+        table = owned_table(conn)
+        row = conn.execute(select(table).where(owned_filter(table, principal), table.c.id == submission_id)).first()
+    if row is None:
+        return None
+    result = json.loads(row.result_json)
+    result["id"] = row.id
+    return result
+
+
+def owned_history(principal, limit: int = 50, before: int | None = None) -> list[dict[str, Any]]:
+    from fastapi import HTTPException
+
+    if type(limit) is not int or not 1 <= limit <= 100 or (before is not None and (type(before) is not int or before < 1)):
+        raise HTTPException(422, "pagination_invalid")
+    with get_engine().connect() as conn:
+        table = owned_table(conn)
+        query = select(table.c.id, table.c.property_id, table.c.decision, table.c.risk_score, table.c.created_at).where(owned_filter(table, principal))
+        if before is not None:
+            query = query.where(table.c.id < before)
+        rows = conn.execute(query.order_by(table.c.id.desc()).limit(limit)).all()
+    return [dict(row._mapping) for row in rows]
+
+
 def reference_candidates(filters: dict[str, Any], exclude_id: str | None, limit: int = 50) -> list[dict[str, Any]]:
     query = select(properties)
     for column, value in filters.items():
