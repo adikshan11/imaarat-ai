@@ -126,21 +126,51 @@ export interface AnalyticsSnapshot {
 
 export interface FormatSummary {
   memos: number
-  contract_pass_rate: number
+  generation_attempts?: number
+  failed?: number
+  faithfulness_cases?: number
+  citation_cases?: number
+  contract_pass_rate: number | null
   faithfulness: number | null
   citation_precision: number | null
   avg_input_tokens: number | null
   avg_latency_ms: number | null
 }
 export interface EvalReport {
-  generated_at: string
-  model: string
-  fallback_model: string
-  judge_model: string
-  deterministic: { cases: number; accuracy: number; rows: { id: string; score: number; decision: string; correct: boolean }[] }
-  retrieval: { k: number; hit_rate: number; recall: number; mrr: number; rows: { id: string; retrieved: string[]; relevant: string[]; hit: boolean; recall: number }[] } | null
-  prompt_tokens: { toon_tokens: number; json_tokens: number; saving: number; rows: { id: string; toon: number; json: number }[] } | null
-  memos: { toon: FormatSummary; json: FormatSummary } | null
+  status?: 'not_run' | 'completed' | 'failed'
+  passed?: boolean | null
+  run_mode?: 'not_run' | 'deterministic_only' | 'live_bounded'
+  generated_at?: string | null
+  model?: string
+  fallback_model?: string
+  judge_model?: string
+  metadata?: {
+    dataset?: string
+    scope?: string
+    chunking?: string
+    corpus_sections?: number
+    corpus_characters?: number
+    corpus_tokens?: number | null
+    token_availability?: string
+    prompt_token_scope?: string
+    section_characters?: Record<string, number>
+    k?: number
+    embedding_model?: string
+    configured_vector_store?: string
+    retrieval_thresholds?: { hit_rate: number; recall: number | null }
+    retrieval_acceptance?: string
+    faithfulness_threshold?: number
+    faithfulness_denominator?: string
+    memo_denominator?: string
+    generation_budget_note?: string
+    selected_live_cases?: string[]
+    memo_generations?: number
+  }
+  sections?: Record<string, { status?: string; reason?: string; passed?: boolean }>
+  deterministic?: { cases?: number; accuracy?: number | null; passed?: boolean; rows?: { id: string; score: number; decision: string; correct: boolean }[] } | null
+  retrieval?: { k: number; cases?: number; hit_rate: number | null; recall: number | null; mrr: number | null; passed?: boolean; thresholds?: { hit_rate: number; recall: number | null }; rows?: { id: string; retrieved: string[]; relevant: string[]; hit: boolean; recall: number | null; recall_threshold?: number | null }[] } | null
+  prompt_tokens?: { toon_tokens: number; json_tokens: number; saving: number | null; rows?: { id: string; toon: number; json: number }[] } | null
+  memos?: { toon?: FormatSummary; json?: FormatSummary; passed?: boolean; generation_attempts?: number; rows?: { id: string; format: string; status: string; passed: boolean; reason: string; model?: string; generation_attempted?: boolean }[] } | null
 }
 
 export interface SubmissionInput {

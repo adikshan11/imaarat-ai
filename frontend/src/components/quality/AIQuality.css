@@ -1,0 +1,29 @@
+.quality-report {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
+.quality-status {
+  display: grid;
+  gap: 8px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.quality-report .risk-line {
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.quality-report .risk-line strong,
+.quality-report p {
+  overflow-wrap: anywhere;
+}
+
+.quality-report .table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+}

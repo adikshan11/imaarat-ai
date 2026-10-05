@@ -7,7 +7,13 @@ on:
     inputs:
       memo_cases:
         description: Generated memos per prompt format
-        default: "8"
+        type: choice
+        options: ["1", "2"]
+        default: "2"
+      live:
+        description: Enable bounded live AI only after secure credential approval
+        type: boolean
+        default: false
 
 jobs:
   evals:
@@ -19,17 +25,29 @@ jobs:
       LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
       LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
       LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
+      DEEPEVAL_TELEMETRY_OPT_OUT: "YES"
+      CONFIDENT_TRACE_FLUSH: "NO"
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt deepeval==4.2.8
-      - run: python -m evals.run_evals --memo-cases ${{ inputs.memo_cases || '8' }}
+      - run: pip install -r backend/evals/requirements.txt
+      - run: pip check
+      - id: evaluate
+        run: |
+          rm -f evals/results/latest.json evals/results/latest.md
+          python -m evals.run_evals --memo-cases "$MEMO_CASES" $LIVE_FLAG
         working-directory: backend
+        env:
+          MEMO_CASES: ${{ inputs.memo_cases || '2' }}
+          LIVE_FLAG: ${{ github.event_name == 'workflow_dispatch' && inputs.live && '--live' || '' }}
       - run: cat backend/evals/results/latest.md >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v7
+        if: always() && steps.evaluate.outcome != 'skipped' && hashFiles('backend/evals/results/latest.md') != ''
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always() && steps.evaluate.outcome != 'skipped'
         with:
           name: eval-results
           path: backend/evals/results/
+          if-no-files-found: warn
