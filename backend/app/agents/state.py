@@ -4,6 +4,7 @@ from typing import NotRequired, TypedDict
 
 
 class UWState(TypedDict):
+    ai_note: NotRequired[str | None]  # why AI stages are skipped for this run, None when admitted
     property_id: str
     raw_input: dict
     image_path: str | None

@@ -126,6 +126,8 @@ def generate_memo(state: dict) -> dict[str, Any]:
     """Generate and mechanically validate a grounded structured AI memo."""
     if not GEMINI_API_KEY:
         return _failure(state, "Unavailable", "missing API key")
+    if state.get("ai_note"):
+        return _failure(state, "Unavailable", state["ai_note"])
 
     pid = state.get("raw_input", {}).get("property_id", "unknown")
     try:

@@ -75,14 +75,14 @@ def local_search(query_vector: list[float], k: int) -> list[dict]:
 
 
 @traced("rag_retrieval", as_type="retriever")
-def retrieve(query: str, k: int = 4) -> list[dict]:
+def retrieve(query: str, k: int = 4, ai_note: str | None = None) -> list[dict]:
     """Return the guideline sections closest to the query, best first.
 
     Returns [] with a logged reason when retrieval is unavailable.
     """
     k = max(_K_MIN, min(_K_MAX, k))
-    if not GEMINI_API_KEY:
-        print("[rag_lookup] status=unavailable reason=missing_api_key")
+    if not GEMINI_API_KEY or ai_note:
+        print(f"[rag_lookup] status=unavailable reason={ai_note or 'missing_api_key'}")
         return []
     try:
         query_vector = llm.embed([query], "RETRIEVAL_QUERY")[0]

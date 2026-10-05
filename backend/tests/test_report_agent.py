@@ -26,6 +26,8 @@ def test_generate_memo_exposes_resource_exhausted_failure(monkeypatch):
     client.models.generate_content.side_effect = quota_error
     monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
     monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
+    slept = []
+    monkeypatch.setattr(llm.time, "sleep", slept.append)
 
     state = {
         "property_id": "MEMO-FAILURE-001",
@@ -42,7 +44,8 @@ def test_generate_memo_exposes_resource_exhausted_failure(monkeypatch):
     assert "RESOURCE_EXHAUSTED" in state["ai_memo_reason"]
     assert state["memo_json"] == {}
     models = [call.kwargs["model"] for call in client.models.generate_content.call_args_list]
-    assert models == [llm.config.GEMINI_MODEL_NAME, llm.config.GEMINI_FALLBACK_MODEL]
+    assert models == [llm.config.GEMINI_MODEL_NAME] * llm.config.GEMINI_ATTEMPTS
+    assert slept == [2, 4]
 
 
 def _valid_state():

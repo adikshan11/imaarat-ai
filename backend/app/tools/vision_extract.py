@@ -37,7 +37,7 @@ def _evidence_usable(extracted: dict) -> bool:
 
 
 @traced("vision", as_type="tool")
-def extract_property_features(image_path: str | None, manual_fields: dict) -> dict:
+def extract_property_features(image_path: str | None, manual_fields: dict, ai_note: str | None = None) -> dict:
     """Extract risk-relevant property features from an image and merge with manual fields."""
     prop_id = manual_fields.get("property_id", "unknown")
 
@@ -72,6 +72,8 @@ def extract_property_features(image_path: str | None, manual_fields: dict) -> di
 
     if not GEMINI_API_KEY:
         return {**manual_fields, "image_status": "Unavailable", "image_reason": "GEMINI_API_KEY is not set", "image_risk_evidence_used": False}
+    if ai_note:
+        return {**manual_fields, "image_status": "Unavailable", "image_reason": ai_note, "image_risk_evidence_used": False}
 
     prompt = (
         "You are a commercial-property inspection evidence extractor.\n\n"
