@@ -52,6 +52,13 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt pytest httpx
+      - name: Install isolated OpenBao test binary
+        run: |
+          mkdir -p "$RUNNER_TEMP/openbao-test"
+          curl --fail --silent --show-error --location https://github.com/openbao/openbao/releases/download/v2.7.1/openbao_2.7.1_linux_amd64.tar.gz --output "$RUNNER_TEMP/openbao-test/release.tar.gz"
+          echo "0e2f1ce10d124e03112b50dd2fbec6b78003783253bc3a91587938f39d1e2243  $RUNNER_TEMP/openbao-test/release.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/openbao-test/release.tar.gz" -C "$RUNNER_TEMP/openbao-test"
+          echo "BAO_TEST_BINARY=$RUNNER_TEMP/openbao-test/bao" >> "$GITHUB_ENV"
       - run: pytest -q
         working-directory: backend
 

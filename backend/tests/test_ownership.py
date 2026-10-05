@@ -1,6 +1,8 @@
 from contextlib import asynccontextmanager
 from importlib import import_module
 from importlib.util import find_spec
+import os
+from uuid import uuid4
 
 import pytest
 from fastapi import HTTPException
@@ -11,8 +13,8 @@ from sqlalchemy.pool import StaticPool
 from app import auth, db
 
 
-@pytest.fixture
-def owners(monkeypatch):
+@pytest.fixture(params=["sqlite", "postgresql"])
+def owners(monkeypatch, request):
     from app.api import main
 
     @asynccontextmanager
@@ -20,12 +22,21 @@ def owners(monkeypatch):
         yield
 
     monkeypatch.setattr(main.app.router, "lifespan_context", lifespan)
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
-    auth.metadata.create_all(engine)
-    db.metadata.create_all(engine)
-    with engine.begin() as conn:
-        for ddl in ("owner_id TEXT", "data_class TEXT DEFAULT 'quarantined'", "record_version INTEGER DEFAULT 1", "deleted_at TEXT"):
-            conn.execute(text("ALTER TABLE submissions ADD COLUMN " + ddl))
+    admin = None
+    schema = "test_" + uuid4().hex
+    if request.param == "postgresql":
+        admin = create_engine(os.environ["IDENTITY_TEST_DATABASE_URL"])
+        with admin.begin() as conn:
+            conn.execute(text(f'CREATE SCHEMA "{schema}"'))
+        engine = create_engine(os.environ["IDENTITY_TEST_DATABASE_URL"], connect_args={"options": f"-csearch_path={schema}"})
+        import_module("app.migrations").apply_migrations(engine)
+    else:
+        engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+        auth.metadata.create_all(engine)
+        db.metadata.create_all(engine)
+        with engine.begin() as conn:
+            for ddl in ("owner_id TEXT", "data_class TEXT DEFAULT 'quarantined'", "record_version INTEGER DEFAULT 1", "deleted_at TEXT"):
+                conn.execute(text("ALTER TABLE submissions ADD COLUMN " + ddl))
 
     def storage():
         return engine
@@ -39,6 +50,10 @@ def owners(monkeypatch):
     second = auth.create_member(engine, 43)
     yield engine, first, second
     engine.dispose()
+    if admin is not None:
+        with admin.begin() as conn:
+            conn.execute(text(f'DROP SCHEMA "{schema}" CASCADE'))
+        admin.dispose()
 
 
 def test_rest_isolation(owners, monkeypatch):
@@ -124,6 +139,8 @@ def test_token_api(owners, monkeypatch):
     from app.api import main
 
     engine, first, second = owners
+    if engine.dialect.name != "postgresql":
+        pytest.skip("Production token routes require the remote PostgreSQL service")
     auth.metadata.create_all(engine)
     monkeypatch.setenv("APP_ENV", "production")
     monkeypatch.setenv("APP_ORIGIN", "https://example.test")
