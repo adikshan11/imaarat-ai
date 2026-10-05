@@ -109,6 +109,16 @@ def test_token_boundaries(owners):
         policy.issue_token(engine, guest.principal, {"interop:read"})
 
 
+def test_revoked_token_issue(owners):
+    policy = import_module("app.policy")
+    engine, first, second = owners
+    auth.metadata.create_all(engine)
+    auth.revoke_session(engine, first.principal)
+    with pytest.raises(HTTPException) as error:
+        policy.issue_token(engine, first.principal, {"interop:read"})
+    assert error.value.status_code == 401
+
+
 def test_transport_denial(owners, monkeypatch):
     from app.api import main
 

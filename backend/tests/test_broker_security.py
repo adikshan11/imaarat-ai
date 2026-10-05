@@ -29,3 +29,14 @@ def test_signed_envelope():
         with pytest.raises(HTTPException):
             envelope.verify(engine, {"api": private.public_key()}, headers, method, path, payload, now=when)
     engine.dispose()
+
+
+def test_broker_http_boundary():
+    from fastapi.testclient import TestClient
+    from app.broker.main import create_app
+
+    with TestClient(create_app(), base_url="https://broker.test") as client:
+        response = client.post("/connections", json={"credential": "never-echo-this-canary"})
+        assert response.status_code == 503
+        assert "canary" not in response.text
+        assert response.headers["cache-control"] == "no-store"

@@ -109,6 +109,33 @@ def test_vault_denial(connections, monkeypatch):
     assert current["operation"] == "replace"
 
 
+def test_interrupted_cleanup(connections, monkeypatch):
+    service, first, second, engine, versions, calls = connections
+    created = service.create(first, "canary-key-do-not-leak", "gemini")
+    write = service.vault.write
+
+    def lost_response(*args):
+        write(*args)
+        raise HTTPException(503, "vault_unavailable")
+
+    monkeypatch.setattr(service.vault, "write", lost_response)
+    with pytest.raises(HTTPException):
+        service.replace(first, created["id"], created["version"], "ambiguous-new-canary")
+    current = service.list(first)[0]
+    assert current["operation"] == "replace"
+    assert service.delete(first, created["id"], current["version"])["state"] == "deleted"
+    assert versions == {}
+
+
+def test_revoked_admission(connections):
+    service, first, second, engine, versions, calls = connections
+    auth.revoke_session(engine, first)
+    with pytest.raises(HTTPException) as error:
+        service.create(first, "never-store-this-canary", "gemini")
+    assert error.value.status_code == 401
+    assert versions == {}
+
+
 def test_vault_errors():
     assert find_spec("app.broker") is not None, "Private credential broker is missing"
     module = import_module("app.broker.vault")
