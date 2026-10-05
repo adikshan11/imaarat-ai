@@ -3,7 +3,7 @@ from importlib.util import find_spec
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select
 from sqlalchemy.pool import StaticPool
@@ -83,7 +83,7 @@ def test_oauth_rotation(browser, monkeypatch):
     assert response.headers["location"] == "https://example.test/"
     assert client.cookies.get("__Host-imaarat_session") != old_token
     assert client.get("/auth/session").json()["role"] == "member"
-    with pytest.raises(Exception) as error:
+    with pytest.raises(HTTPException) as error:
         auth.resolve_session(engine, old_token)
     assert error.value.status_code == 401
     assert client.get(callback, follow_redirects=False).status_code == 400

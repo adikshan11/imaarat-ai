@@ -14,6 +14,7 @@ from contextlib import asynccontextmanager
 
 from app import __version__
 from app.api.errors import internal_error, unavailable_response
+from app.api.auth_routes import router as auth_router
 from app.config import DB_PATH, GEMINI_API_KEY, QDRANT_URL
 from app.db import fetch_history, fetch_submission_detail, init_db, is_postgres, record_review, save_submission, seed_demo_database
 from app.interop import add_a2a, mcp, mcp_app
@@ -33,6 +34,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="imaarat.ai", lifespan=lifespan)
 app.add_exception_handler(Exception, internal_error)
+app.include_router(auth_router)
 app.mount("/mcp", mcp_app())
 add_a2a(app)
 

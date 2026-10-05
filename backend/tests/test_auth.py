@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from importlib import import_module
 from importlib.util import find_spec
 import os
@@ -101,7 +100,11 @@ def test_logout_revokes(storage):
 def test_csrf_binding(storage, monkeypatch):
     auth = identity()
     monkeypatch.setenv("APP_ORIGIN", "https://example.test")
-    monkeypatch.setattr(auth, "get_engine", lambda: storage)
+
+    def engine():
+        return storage
+
+    monkeypatch.setattr(auth, "get_engine", engine)
     grant = auth.create_guest(storage)
     other = auth.create_guest(storage)
     for origin, csrf, allowed in (("https://example.test", grant.csrf_token, True), ("https://evil.test", grant.csrf_token, False), ("", grant.csrf_token, False), ("https://example.test", other.csrf_token, False)):
@@ -149,6 +152,29 @@ def test_step_up(storage):
         assert error.value.status_code == 403
 
 
+def test_oauth_logout(storage):
+    auth = identity()
+    guest = auth.create_guest(storage, now=1000)
+    flow = auth.create_oauth(storage, "https://example.test/api/auth/github/callback", guest.principal, now=1001)
+    auth.revoke_session(storage, guest.principal, now=1002)
+    with pytest.raises(HTTPException):
+        auth.consume_oauth(storage, flow.state, flow.browser_token, now=1003)
+    with pytest.raises(HTTPException):
+        auth.create_member(storage, 42, previous_session=guest.principal.session_id, now=1003)
+
+
+def test_rotation_once(storage):
+    auth = identity()
+    first = auth.create_member(storage, 42, now=1000)
+    second = auth.create_member(storage, 42, previous_session=first.principal.session_id, now=1001)
+    with pytest.raises(HTTPException):
+        auth.create_member(storage, 42, previous_session=first.principal.session_id, now=1002)
+    assert auth.resolve_session(storage, second.token, now=1003).owner_id == first.principal.owner_id
+    expired = auth.create_member(storage, 43, now=1000)
+    with pytest.raises(HTTPException):
+        auth.create_member(storage, 43, previous_session=expired.principal.session_id, now=2800)
+
+
 def test_migration_quarantines(postgres):
     migrations = import_module("app.migrations")
     with postgres.begin() as conn:
@@ -187,7 +213,11 @@ def test_owned_storage(postgres, monkeypatch):
     from app import db
 
     import_module("app.migrations").apply_migrations(postgres)
-    monkeypatch.setattr(db, "get_engine", lambda: postgres)
+
+    def engine():
+        return postgres
+
+    monkeypatch.setattr(db, "get_engine", engine)
     first = auth.create_member(postgres, 42)
     second = auth.create_member(postgres, 43)
     saved = db.save_owned_submission(first.principal, {"property_id": "sample", "raw_input": {}, "decision": "Accept", "risk_score": 5})
