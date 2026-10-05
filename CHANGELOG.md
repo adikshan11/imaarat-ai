@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.13.1] - 2026-10-06
+
+### Changed
+- The Inter font is served from imaarat.ai itself and preloaded, instead of from Google Fonts, so the first text paints without a late font swap on slow phones.
+
 ## [2.13.0] - 2026-10-06
 
 ### Added
