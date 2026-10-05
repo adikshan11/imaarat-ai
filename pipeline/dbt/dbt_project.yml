@@ -18,13 +18,16 @@ models:
 seeds:
   uw_risk_analytics:
     pincode_hazard:
+      +full_refresh: true
       +column_types:
         pincode: varchar
         district: varchar
         state: varchar
         district_lgd: integer
         seismic_zone: varchar
+        seismic_zone_map: varchar
         seismic_zone_max: varchar
+        seismic_source: varchar
         flood_area_pct: double
         cyclone_grade: varchar
         cyclone_note: varchar

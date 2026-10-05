@@ -43,6 +43,12 @@ SOURCES = {
         "origin": "NRSC / NDEM satellite-observed flood inundation 1998-2022",
         "licence": "Published by the aggregator as CC0; NRSC terms not verified",
     },
+    "towns": {
+        "file": "is1893_town_zones.csv",
+        "url": "https://archive.org/details/gov.in.is.1893.1.2016",
+        "origin": "IS 1893 (Part 1):2016 Annex E, seismic zone of towns with population over 3 lakh (Census 2011), with Amendment 1 spelling; applied within 10 km of each town's head post office",
+        "licence": "Zone values are facts from the Indian Standard; the standard itself is BIS copyright",
+    },
     "cyclone": {
         "file": "imd_cyclone_hazard.pdf",
         "url": "https://rsmcnewdelhi.imd.gov.in/uploads/climatology/hazard.pdf",
@@ -53,6 +59,8 @@ SOURCES = {
 ZONES = {"Seismic Zone-II": 2, "Seismic Zone-III": 3, "Seismic Zone-IV": 4, "Seismic Zone-V": 5}
 ROMAN = {2: "II", 3: "III", 4: "IV", 5: "V"}
 IMD_GRADE_COUNTS = {"P1": 12, "P2": 25, "P3": 48, "P4": 15}
+TOWN_RADIUS_KM = 10.0
+OFFICE_SUFFIX = re.compile(r"\s+(h\.?\s?p?\.?\s?o\.?|g\.?\s?p\.?\s?o\.?|s\.?\s?o\.?|b\.?\s?o\.?)$", re.I)
 IMD_STATES = [
     "Andaman &", "Andhra", "Pradesh (AP)", "AP", "Odisha", "Puducherry", "West Bengal", "Daman & Diu",
     "Dadra & Nagar Haveli", "Gujarat", "Lakshadweep", "Tamil Nadu", "Goa", "Karnataka", "Kerala", "Maharastra",
@@ -102,8 +110,28 @@ def cyclone_grades(pdf: Path, crosswalk: Path) -> dict[str, tuple[str, str]]:
     return grades
 
 
+def town_centres(offices: list[str], points: np.ndarray, towns: Path) -> tuple[list[tuple[str, str, float, float]], list[str]]:
+    ranked: dict[str, list[tuple[int, int]]] = {}
+    for index, office in enumerate(offices):
+        name = (office or "").strip()
+        match = OFFICE_SUFFIX.search(name)
+        rank = 0 if match and re.match(r"(?i)h|g", match.group(1)) else 1 if match and re.match(r"(?i)s", match.group(1)) else 2
+        ranked.setdefault(OFFICE_SUFFIX.sub("", name).strip().lower(), []).append((rank, index))
+    centres, skipped = [], []
+    for row in csv.DictReader(towns.open(encoding="utf-8")):
+        names = [row["post_office_name"]] if row["post_office_name"] else [part.strip(" )") for part in row["town"].split("(")]
+        candidates = sorted(item for name in names for item in ranked.get(name.lower(), []) if item[0] < 2)
+        best = [index for rank, index in candidates if rank == candidates[0][0]] if candidates else []
+        if len(best) != 1:
+            skipped.append(f"{row['town']} ({'ambiguous' if best else 'no post office match'})")
+            continue
+        point = points[best[0]]
+        centres.append((row["town"], row["zone"], shapely.get_x(point), shapely.get_y(point)))
+    return centres, skipped
+
+
 def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
-    pin_cols, pins = geometries(fetch("pincodes", raw_dir), ["Pincode"], "geometry")
+    pin_cols, pins = geometries(fetch("pincodes", raw_dir), ["Pincode", "Office_Name"], "geometry")
     dist_cols, districts = geometries(fetch("districts", raw_dir), ["dtname", "stname", "dist_lgd"], "geometry")
     zone_cols, zones = geometries(fetch("seismic", raw_dir), ["seismic_zo"], "geom")
     _, floods = geometries(fetch("flood", raw_dir), [], "geometry")
@@ -134,6 +162,17 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
     np.add.at(flooded, pin_idx, shapely.area(shapely.intersection(pins[pin_idx], floods[flood_idx])))
     flood_pct = np.clip(100 * flooded / np.where(pin_area > 0, pin_area, 1), 0, 100)
 
+    centres, skipped = town_centres(pin_cols["Office_Name"], points, HERE / "is1893_town_zones.csv")
+    lon, lat = np.radians(shapely.get_x(points)), np.radians(shapely.get_y(points))
+    town_zone = np.full(count, None, dtype=object)
+    town_name = np.full(count, None, dtype=object)
+    nearest = np.full(count, np.inf)
+    for town, zone, x, y in centres:
+        a = np.sin((lat - np.radians(y)) / 2) ** 2 + np.cos(lat) * np.cos(np.radians(y)) * np.sin((lon - np.radians(x)) / 2) ** 2
+        distance = 2 * 6371.0 * np.arcsin(np.sqrt(a))
+        closer = (distance <= TOWN_RADIUS_KM) & (distance < nearest)
+        town_zone[closer], town_name[closer], nearest[closer] = zone, town, distance[closer]
+
     records = []
     for i in range(count):
         d = district_of[i]
@@ -141,13 +180,16 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
         touched = [level for level in range(2, 6) if share[i, level] > 0.01]
         dominant = int(np.argmax(share[i])) if share[i].max() > 0 else None
         grade, grade_note = grades.get(district, (None, None)) if district else (None, None)
+        map_zone = ROMAN.get(dominant)
         records.append({
             "pincode": str(pin_cols["Pincode"][i]),
             "district": district,
             "state": dist_cols["stname"][d].title() if d >= 0 else None,
             "district_lgd": int(dist_cols["dist_lgd"][d]) if d >= 0 else None,
-            "seismic_zone": ROMAN.get(dominant),
+            "seismic_zone": town_zone[i] or map_zone,
+            "seismic_zone_map": map_zone,
             "seismic_zone_max": ROMAN.get(max(touched)) if touched else None,
+            "seismic_source": f"IS 1893 town list: {town_name[i]}" if town_zone[i] else "zone map",
             "flood_area_pct": round(float(flood_pct[i]), 1),
             "cyclone_grade": grade,
             "cyclone_note": grade_note,
@@ -157,7 +199,7 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
         writer = csv.DictWriter(handle, fieldnames=list(records[0]))
         writer.writeheader()
         writer.writerows(records)
-    fields = ["district", "state", "district_lgd", "seismic_zone", "seismic_zone_max", "flood_area_pct", "cyclone_grade", "cyclone_note"]
+    fields = ["district", "state", "district_lgd", "seismic_zone", "seismic_zone_map", "seismic_zone_max", "seismic_source", "flood_area_pct", "cyclone_grade", "cyclone_note"]
     payload = {
         "built_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "fields": fields,
@@ -167,7 +209,10 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
     out_json.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
 
     print(f"pincodes {count}, with district {int((district_of >= 0).sum())}")
-    print("dominant seismic zone", Counter(r["seismic_zone"] for r in records))
+    changed = sum(1 for r in records if r["seismic_zone"] != r["seismic_zone_map"])
+    print(f"town list: {len(centres)} towns placed, {int((town_zone != None).sum())} pincodes within {TOWN_RADIUS_KM:g} km, {changed} differ from the map")
+    print("towns skipped:", skipped)
+    print("seismic zone", Counter(r["seismic_zone"] for r in records))
     print("cyclone graded pincodes", Counter(r["cyclone_grade"] for r in records))
     print("pincodes with any flood history", sum(r["flood_area_pct"] > 0 for r in records), "with >= 10%", sum(r["flood_area_pct"] >= 10 for r in records))
 

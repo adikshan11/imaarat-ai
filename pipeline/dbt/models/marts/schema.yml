@@ -11,6 +11,13 @@ seeds:
           - accepted_values:
               arguments:
                 values: ["II", "III", "IV", "V"]
+      - name: seismic_zone_map
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["II", "III", "IV", "V"]
+      - name: seismic_source
+        data_tests: [not_null]
       - name: cyclone_grade
         data_tests:
           - accepted_values:
