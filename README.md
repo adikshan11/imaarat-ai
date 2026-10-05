@@ -121,6 +121,6 @@ The 2025 seismic code revision (which added Zone VI) was withdrawn in March 2026
 - Free tiers limit throughput (Gemini Flash is roughly 10 requests per minute), and evals throttle themselves accordingly.
 - Hazard results are indicative. Near the 104 towns of the IS 1893 town list the code's own zone is used; elsewhere the zone map is coarse. Satellite flood maps miss urban waterlogging, and IMD grades whole districts.
 - Handwriting accuracy has not been measured, so every value read from a paper form needs a person to check it. The free Gemini API may use uploads to improve Google's products, which is why only the property page, without personal details, is uploaded.
-- The translations are machine-made and have not been reviewed by native speakers; Santali, Kashmiri, Manipuri, Bodo and Tulu are marked as drafts.
+- The translations are machine-made and have not been reviewed by native speakers; Santali, Kashmiri, Manipuri, Bodo and Tulu are marked as drafts. Hindi follows the wording on IRDAI's Hindi policyholder pages where a term is given there (for example बीमित राशि, बीमांकन, संकट).
 
 Changes are listed in [CHANGELOG.md](CHANGELOG.md).

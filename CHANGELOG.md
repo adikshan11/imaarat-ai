@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.10.1] - 2026-10-05
+
+### Changed
+- Hindi uses IRDAI's own wording where its Hindi pages give a term: बीमांकन for underwriting and संकट for peril (other terms such as बीमित राशि, प्रस्तावक and दावा already matched).
+
 ## [2.10.0] - 2026-10-05
 
 ### Changed
