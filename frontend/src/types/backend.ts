@@ -34,7 +34,9 @@ export interface OfficialHazard {
   state: string | null
   district_lgd: number | null
   seismic_zone: string | null
+  seismic_zone_map: string | null
   seismic_zone_max: string | null
+  seismic_source: string | null
   flood_area_pct: number
   cyclone_grade: string | null
   cyclone_note: string | null

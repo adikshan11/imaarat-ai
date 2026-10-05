@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.10.0] - 2026-10-05
+
+### Changed
+- Seismic zones near the 104 towns of the IS 1893 (Part 1):2016 town list now come from the code itself instead of the coarse zone map, which corrects 63 PIN codes, including Shimla (Zone IV, not V). The map zone and the source are kept for every PIN code, and the hazard card says which one was used.
+- The hazard seed is always rebuilt, so a new column cannot break an existing warehouse.
+
 ## [2.9.0] - 2026-10-05
 
 ### Added

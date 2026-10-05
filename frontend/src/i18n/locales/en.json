@@ -394,6 +394,8 @@
   "hz.none": "No official hazard data for this PIN code. Check that it is a valid 6-digit Indian PIN code.",
   "hz.seismic": "Seismic zone (IS 1893:2016)",
   "hz.zone": "Zone {zone}",
+  "hz.source_town": "Seismic zone from the IS 1893 list of towns ({town}).",
+  "hz.source_map": "Seismic zone from the IS 1893 zone map; check a site survey for exact location.",
   "hz.understated": "The proposal states Zone {declared}, but this PIN code is in Zone {official}, so the score uses Zone {official}.",
   "hz.flood": "Area flooded in 1998–2022 satellite records",
   "hz.cyclone": "IMD cyclone hazard grade (district)",

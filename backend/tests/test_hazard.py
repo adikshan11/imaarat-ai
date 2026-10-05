@@ -31,9 +31,18 @@ def test_golden_locations(pincode, district, zone, grade):
     assert found["cyclone_grade"] == grade
 
 
-def test_known_map_difference_is_documented():
-    # The IS 1893 town list puts Shimla in Zone IV; the zone polygons place pincode 171001 in V.
-    assert lookup("171001")["seismic_zone"] == "V"
+def test_town_list_overrides_the_coarse_map():
+    # The IS 1893 Annex E town list puts Shimla in Zone IV; the zone polygons place pincode 171001 in V.
+    shimla = lookup("171001")
+    assert shimla["seismic_zone"] == "IV"
+    assert shimla["seismic_zone_map"] == "V"
+    assert shimla["seismic_source"] == "IS 1893 town list: Shimla"
+
+
+def test_rural_pincode_keeps_the_map_zone():
+    kendrapara = lookup("754211")
+    assert kendrapara["seismic_source"] == "zone map"
+    assert kendrapara["seismic_zone"] == kendrapara["seismic_zone_map"]
 
 
 def test_flood_share_separates_floodplain_from_dry_city():
