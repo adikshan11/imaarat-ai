@@ -78,6 +78,15 @@ jobs:
         working-directory: frontend
       - run: node --test scripts/security.test.mjs
         working-directory: frontend
+      - run: npm install --prefix "$RUNNER_TEMP/browser-tools" --no-save --package-lock=false --ignore-scripts playwright@1.63.0
+      - run: '"$RUNNER_TEMP/browser-tools/node_modules/.bin/playwright" install --with-deps chromium'
+      - run: openssl req -x509 -newkey rsa:2048 -nodes -keyout "$RUNNER_TEMP/browser-test.key" -out "$RUNNER_TEMP/browser-test.crt" -days 1 -subj "/CN=isolated-browser-test" 2>/dev/null
+      - run: node scripts/account.browser.mjs
+        working-directory: frontend
+        env:
+          PLAYWRIGHT_PATH: ${{ runner.temp }}/browser-tools
+          BROWSER_TEST_KEY: ${{ runner.temp }}/browser-test.key
+          BROWSER_TEST_CERT: ${{ runner.temp }}/browser-test.crt
 
   pipeline:
     runs-on: ubuntu-latest
