@@ -1,5 +1,7 @@
 from importlib import import_module
 from importlib.util import find_spec
+import os
+from uuid import uuid4
 
 import httpx2
 import pytest
@@ -10,13 +12,22 @@ from sqlalchemy.pool import StaticPool
 from app import auth
 
 
-@pytest.fixture
-def connections():
+@pytest.fixture(params=["sqlite", "postgresql"])
+def connections(request):
     assert find_spec("app.connections") is not None, "Vault connection lifecycle is missing"
     service = import_module("app.connections")
     vault_module = import_module("app.broker.vault")
-    engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
-    auth.metadata.create_all(engine)
+    admin = None
+    schema = "test_" + uuid4().hex
+    if request.param == "postgresql":
+        admin = create_engine(os.environ["IDENTITY_TEST_DATABASE_URL"])
+        with admin.begin() as conn:
+            conn.execute(text(f'CREATE SCHEMA "{schema}"'))
+        engine = create_engine(os.environ["IDENTITY_TEST_DATABASE_URL"], connect_args={"options": f"-csearch_path={schema}"})
+        import_module("app.migrations").apply_migrations(engine)
+    else:
+        engine = create_engine("sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool)
+        auth.metadata.create_all(engine)
     versions = {}
     calls = []
 
@@ -47,6 +58,10 @@ def connections():
     yield service.ConnectionService(engine, vault), first.principal, second.principal, engine, versions, calls
     vault.close()
     engine.dispose()
+    if admin is not None:
+        with admin.begin() as conn:
+            conn.execute(text(f'DROP SCHEMA "{schema}" CASCADE'))
+        admin.dispose()
 
 
 def test_connection_metadata(connections):
@@ -134,6 +149,32 @@ def test_revoked_admission(connections):
         service.create(first, "never-store-this-canary", "gemini")
     assert error.value.status_code == 401
     assert versions == {}
+
+
+def test_signed_broker_http(connections):
+    import json
+    from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
+    from fastapi.testclient import TestClient
+    from app.broker import envelope
+    from app.broker.main import create_app
+
+    service, first, second, engine, versions, calls = connections
+    auth.metadata.create_all(engine)
+    key = Ed25519PrivateKey.generate()
+    body = json.dumps({"provider": "gemini", "credential": "test-only-canary-credential"}).encode()
+    headers = envelope.sign(key, "api", "POST", "/connections", first.session_id, body)
+    headers["Content-Type"] = "application/json"
+    with TestClient(create_app(service, {"api": key.public_key()}), base_url="https://broker.test") as client:
+        response = client.post("/connections", content=body, headers=headers)
+        assert response.status_code == 201
+        assert "test-only-canary-credential" not in response.text
+        assert client.post("/connections", content=body, headers=headers).status_code == 401
+        assert client.get("/connections").status_code == 401
+        path = "/connections/invalid-canary-id/disable"
+        headers = envelope.sign(key, "api", "POST", path, first.session_id, b'{"version":1}')
+        response = client.post(path, content=b'{"version":1}', headers=headers)
+        assert response.status_code == 422
+        assert "invalid-canary" not in response.text
 
 
 def test_vault_errors():

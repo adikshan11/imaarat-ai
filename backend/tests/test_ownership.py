@@ -63,6 +63,14 @@ def test_rest_isolation(owners, monkeypatch):
         assert client.get("/underwrite/history?limit=101").status_code == 422
         assert client.post(f"/underwrite/history/{saved['id']}/review", json={"final_decision": "Accept", "reviewer": "operator"}).status_code == 403
 
+        def failed_pdf(detail):
+            raise ValueError("private-canary-path-do-not-disclose")
+
+        monkeypatch.setattr(main, "build_submission_pdf", failed_pdf)
+        response = client.get(f"/underwrite/history/{saved['id']}/report.pdf")
+        assert response.status_code == 503
+        assert "canary" not in response.text
+
 
 def test_interop_isolation(owners, monkeypatch):
     assert find_spec("app.policy") is not None, "Shared authorization policy is missing"

@@ -64,6 +64,7 @@ def issue_token(engine, principal, scopes: set[str], now=None, lifetime=3600):
     token = token_urlsafe(32)
     token_id = str(uuid4())
     with engine.begin() as conn:
+        auth.lock_session(conn, principal, now)
         user = conn.execute(select(auth.users).where(auth.users.c.id == principal.owner_id).with_for_update()).one_or_none()
         if user is None or user.disabled_at is not None or user.role == "guest":
             raise HTTPException(403, "member_required")

@@ -1,4 +1,3 @@
-import re
 import ssl
 from threading import Lock
 import time

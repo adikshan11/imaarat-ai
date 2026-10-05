@@ -33,6 +33,7 @@ class ConnectionService:
 
     def member(self, conn, principal):
         auth.require_recent_auth(principal)
+        auth.lock_session(conn, principal)
         if "connection:write" not in principal.scopes:
             raise HTTPException(403, "scope_required")
         user = conn.execute(select(auth.users).where(auth.users.c.id == principal.owner_id).with_for_update()).one_or_none()
@@ -70,11 +71,12 @@ class ConnectionService:
             if len(rows) >= 10:
                 raise HTTPException(429, "connection_limit")
             conn.execute(insert(connections).values(id=connection_id, owner_id=principal.owner_id, provider=provider, data_policy="synthetic", state="provisioning", operation="create"))
-        version = self.vault.write(principal.owner_id, connection_id, credential, 0)
         with self.engine.begin() as conn:
+            self.member(conn, principal)
             row = self.owned(conn, principal, connection_id)
             if row.operation != "create" or row.state != "provisioning":
                 raise HTTPException(409, "connection_operation_conflict")
+            version = self.vault.write(principal.owner_id, connection_id, credential, 0)
             conn.execute(update(connections).where(connections.c.id == connection_id).values(secret_version=version, latest_version=version, suffix=credential[-4:], state="unverified", operation=None))
             return connection_view(self.owned(conn, principal, connection_id))
 
@@ -87,11 +89,12 @@ class ConnectionService:
                 raise HTTPException(409, "connection_operation_conflict")
             latest = row.latest_version
             conn.execute(update(connections).where(connections.c.id == connection_id, connections.c.version == expected).values(operation="replace", version=expected + 1))
-        version = self.vault.write(principal.owner_id, connection_id, credential, latest)
         with self.engine.begin() as conn:
+            self.member(conn, principal)
             row = self.owned(conn, principal, connection_id, expected + 1)
-            if row.operation != "replace":
+            if row.operation != "replace" or row.state not in {"unverified", "active"}:
                 raise HTTPException(409, "connection_operation_conflict")
+            version = self.vault.write(principal.owner_id, connection_id, credential, latest)
             conn.execute(update(connections).where(connections.c.id == connection_id).values(latest_version=version, pending_version=version, pending_suffix=credential[-4:], operation=None))
             return connection_view(self.owned(conn, principal, connection_id))
 
@@ -109,12 +112,13 @@ class ConnectionService:
         with self.engine.begin() as conn:
             self.member(conn, principal)
             row = self.owned(conn, principal, connection_id, expected)
-            if row.operation not in {None, "delete"}:
-                raise HTTPException(409, "connection_operation_conflict")
             conn.execute(update(connections).where(connections.c.id == connection_id).values(state="pending_delete", operation="delete"))
-        self.vault.destroy(principal.owner_id, connection_id)
         with self.engine.begin() as conn:
-            self.owned(conn, principal, connection_id, expected)
+            self.member(conn, principal)
+            row = self.owned(conn, principal, connection_id, expected)
+            if row.operation != "delete" or row.state != "pending_delete":
+                raise HTTPException(409, "connection_operation_conflict")
+            self.vault.destroy(principal.owner_id, connection_id)
             conn.execute(update(connections).where(connections.c.id == connection_id).values(state="deleted", operation=None, suffix=None, pending_suffix=None, pending_version=None, version=expected + 1))
             return connection_view(self.owned_deleted(conn, principal, connection_id))
 

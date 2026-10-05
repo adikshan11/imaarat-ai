@@ -224,6 +224,14 @@ def revoke_session(engine: Engine, principal: Principal, now: int | None = None)
         conn.execute(update(oauth_transactions).where(oauth_transactions.c.previous_session == principal.session_id, oauth_transactions.c.consumed_at.is_(None)).values(consumed_at=now, code_verifier=""))
 
 
+def lock_session(conn, principal: Principal, now: int | None = None):
+    now = clock(now)
+    row = conn.execute(select(sessions).where(sessions.c.id == principal.session_id, sessions.c.owner_id == principal.owner_id).with_for_update()).one_or_none()
+    if row is None or row.revoked_at is not None or now >= row.expires_at or now - row.last_seen >= 1800 or row.authenticated_at != principal.authenticated_at:
+        raise HTTPException(401, "session_invalid")
+    return row
+
+
 def require_recent_auth(principal: Principal, now: int | None = None) -> None:
     now = clock(now)
     if principal.role == "guest" or principal.authenticated_at is None or not 0 <= now - principal.authenticated_at < 300:

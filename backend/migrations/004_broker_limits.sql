@@ -1,0 +1,1 @@
+CREATE INDEX broker_nonce_expiry ON broker_nonces(expires_at);

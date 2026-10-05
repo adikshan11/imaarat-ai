@@ -6,6 +6,7 @@ import os
 from typing import Any
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
@@ -37,6 +38,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="imaarat.ai", lifespan=lifespan)
 app.add_exception_handler(Exception, internal_error)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error(request: Request, error):
+    return JSONResponse({"detail": "request_input_invalid"}, status_code=422, headers={"Cache-Control": "no-store"})
+
+
 app.include_router(auth_router)
 app.include_router(connection_router)
 app.mount("/mcp", mcp_app())
@@ -483,8 +491,8 @@ def history_report(submission_id: int, request: Request) -> Response:
         raise HTTPException(status_code=404, detail="Submission not found")
     try:
         pdf = build_submission_pdf(detail)
-    except Exception as exc:
-        raise HTTPException(status_code=503, detail=f"Report generation unavailable: {type(exc).__name__}: {exc}") from exc
+    except Exception:
+        raise HTTPException(status_code=503, detail="report_unavailable") from None
     return Response(
         content=pdf,
         media_type="application/pdf",

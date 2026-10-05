@@ -4,6 +4,7 @@ from uuid import UUID
 
 from cryptography.hazmat.primitives import serialization
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, ValidationError
 
@@ -29,6 +30,10 @@ def create_app(service=None, keys=None):
     app = FastAPI(title="imaarat private credential broker", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.service = service
     app.state.keys = keys
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_error(request, error):
+        return JSONResponse({"detail": "connection_input_invalid"}, status_code=422, headers={"Cache-Control": "no-store"})
 
     @app.middleware("http")
     async def boundary(request: Request, call_next):

@@ -1,12 +1,11 @@
 import base64
-from dataclasses import replace
 from hashlib import sha256
 import json
 from secrets import token_urlsafe
 
 from cryptography.exceptions import InvalidSignature
 from fastapi import HTTPException
-from sqlalchemy import BigInteger, Column, String, Table, insert, select
+from sqlalchemy import BigInteger, Column, String, Table, delete, insert, select
 from sqlalchemy.exc import IntegrityError
 
 from app import auth
@@ -47,6 +46,7 @@ def verify(engine, keys, headers, method, path, body, now=None):
         raise HTTPException(401, "broker_auth_invalid") from None
     try:
         with engine.begin() as conn:
+            conn.execute(delete(nonces).where(nonces.c.id.in_(select(nonces.c.id).where(nonces.c.expires_at <= now).limit(100))))
             row = conn.execute(select(auth.sessions, auth.users.c.role, auth.users.c.disabled_at).join(auth.users).where(auth.sessions.c.id == payload["session_id"])).one_or_none()
             if row is None or row.revoked_at is not None or row.disabled_at is not None or now >= row.expires_at or now - row.last_seen >= 1800:
                 raise HTTPException(401, "broker_session_invalid")
@@ -54,6 +54,7 @@ def verify(engine, keys, headers, method, path, body, now=None):
             auth.require_recent_auth(principal, now)
             if "connection:write" not in principal.scopes:
                 raise HTTPException(403, "scope_required")
+            auth.reserve_identity(conn, "broker:" + principal.owner_id, now, 30)
             conn.execute(insert(nonces).values(id=payload["nonce"], expires_at=payload["expires_at"]))
         return principal
     except IntegrityError:
