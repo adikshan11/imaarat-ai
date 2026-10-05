@@ -89,7 +89,12 @@ def guest(request: Request):
 @router.get("/session")
 def session(request: Request):
     principal = auth.resolve_principal(request)
-    return JSONResponse({"owner_id": principal.owner_id, "role": principal.role, "data_policy": principal.data_policy, "csrf_token": auth.csrf_token(request.cookies["__Host-imaarat_session"])}, headers={"Cache-Control": "no-store"})
+    with get_engine().connect() as conn:
+        row = conn.execute(select(auth.sessions.c.expires_at, auth.sessions.c.last_seen).where(auth.sessions.c.id == principal.session_id, auth.sessions.c.revoked_at.is_(None))).one_or_none()
+    if row is None:
+        raise HTTPException(401, "session_invalid")
+    expires = row.expires_at if principal.role == "guest" else min(row.expires_at, row.last_seen + 1800)
+    return JSONResponse({"owner_id": principal.owner_id, "role": principal.role, "data_policy": principal.data_policy, "csrf_token": auth.csrf_token(request.cookies["__Host-imaarat_session"]), "expires_at": expires}, headers={"Cache-Control": "no-store"})
 
 
 @router.post("/logout")

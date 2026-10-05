@@ -3,6 +3,7 @@ import Card from '@/components/shared/Card'
 import Icon from '@/components/shared/Icon'
 import { readPaperForm } from '@/api/underwriting'
 import { usePreferences } from '@/context/Preferences'
+import { useSession } from '@/context/SessionContext'
 import type { FormReading } from '@/types/backend'
 
 const CONSTRUCTION = ['Frame', 'Joisted Masonry', 'Non-Combustible', 'Masonry Non-Combustible', 'Fire Resistive']
@@ -16,12 +17,15 @@ const NUMERIC = new Set(['zip', ...NUMBER_BOXES, ...MONEY_BOXES])
 const PERSONAL = ['proposer_name', 'insured_legal_name', 'contact_person', 'mobile', 'email', 'policy_period_start', 'policy_period_end']
 
 async function shrink(file: File): Promise<Blob> {
+  if (file.size > 4000000 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('image input invalid')
   const bitmap = await createImageBitmap(file)
+  if (bitmap.width * bitmap.height > 20000000) { bitmap.close(); throw new Error('image dimensions invalid') }
   const scale = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height))
   const canvas = document.createElement('canvas')
   canvas.width = Math.round(bitmap.width * scale)
   canvas.height = Math.round(bitmap.height * scale)
   canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+  bitmap.close()
   return new Promise((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('resize failed'))), 'image/jpeg', 0.85))
 }
 
@@ -96,6 +100,12 @@ function PrintableForm() {
 
 export default function PaperForm({ onUse }: { onUse: (values: Record<string, unknown>) => void }) {
   const { t } = usePreferences()
+  const { revision, identity } = useSession()
+  const epoch = useRef(revision)
+  const readingEpoch = useRef(revision)
+  epoch.current = revision
+  const requestId = useRef(0)
+  const pictureUrl = useRef<string | null>(null)
   const [consent, setConsent] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -103,32 +113,55 @@ export default function PaperForm({ onUse }: { onUse: (values: Record<string, un
   const [image, setImage] = useState<HTMLImageElement | null>(null)
   const [values, setValues] = useState<Record<string, string>>({})
   const [confirmed, setConfirmed] = useState<Record<string, boolean>>({})
+  useEffect(() => {
+    requestId.current++
+    setReading(null)
+    setImage(null)
+    setValues({})
+    setConfirmed({})
+    setError(null)
+    setBusy(false)
+    setConsent(false)
+    if (pictureUrl.current) URL.revokeObjectURL(pictureUrl.current)
+    pictureUrl.current = null
+    return () => { requestId.current++; if (pictureUrl.current) URL.revokeObjectURL(pictureUrl.current) }
+  }, [revision])
 
   const upload = async (file: File | undefined) => {
-    if (!file) return
+    if (!file || !identity || identity.role === 'guest') return
+    const current = ++requestId.current
+    const ownerEpoch = revision
     setBusy(true)
     setError(null)
     setReading(null)
     try {
       const small = await shrink(file)
+      if (current !== requestId.current || ownerEpoch !== epoch.current) return
       const picture = new Image()
-      picture.src = URL.createObjectURL(small)
+      if (pictureUrl.current) URL.revokeObjectURL(pictureUrl.current)
+      pictureUrl.current = URL.createObjectURL(small)
+      picture.src = pictureUrl.current
       await picture.decode()
+      if (current !== requestId.current || ownerEpoch !== epoch.current) return
       setImage(picture)
       const result = await readPaperForm(small)
+      if (current !== requestId.current || ownerEpoch !== epoch.current) return
+      readingEpoch.current = ownerEpoch
       setReading(result)
       setValues(Object.fromEntries(Object.entries(result.fields).map(([name, field]) => [name, field.value === null || field.value === undefined ? '' : String(field.value)])))
       setConfirmed({})
     } catch (cause) {
+      if (current !== requestId.current || ownerEpoch !== epoch.current) return
       const message = cause instanceof Error ? cause.message : ''
       setError(message.includes('switched off') ? t('paper.ai_off') : t('paper.read_failed'))
     } finally {
-      setBusy(false)
+      if (current === requestId.current && ownerEpoch === epoch.current) setBusy(false)
     }
   }
 
   const pending = reading ? Object.entries(reading.fields).filter(([name, field]) => field.needs_confirmation && !confirmed[name]).length : 0
   const use = () => {
+    if (readingEpoch.current !== revision || !identity) return
     const filled = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== ''))
     onUse(filled)
   }
@@ -153,13 +186,13 @@ export default function PaperForm({ onUse }: { onUse: (values: Record<string, un
             </label>
             <label className={consent && !busy ? 'btn btn-primary form-gap upload-button' : 'btn btn-primary form-gap upload-button is-disabled'}>
               <Icon name="camera" size={18} /> {busy ? t('paper.reading') : t('paper.upload')}
-              <input type="file" accept="image/*" capture="environment" disabled={!consent || busy} onChange={(event) => void upload(event.target.files?.[0])} />
+              <input type="file" accept="image/jpeg,image/png,image/webp" capture="environment" disabled={!consent || busy || !identity || identity.role === 'guest'} onChange={(event) => void upload(event.target.files?.[0])} />
             </label>
             {error && <div className="error-banner form-gap" role="alert">{error}</div>}
           </Card>
         </div>
 
-        {reading && <Card title={`3 · ${t('paper.step_review')}`}>
+        {reading && identity && readingEpoch.current === revision && <Card title={`3 · ${t('paper.step_review')}`}>
           <p aria-live="polite">{t('paper.review_help', { pending })}</p>
           <div className="table-wrap form-gap">
             <table className="paper-table">

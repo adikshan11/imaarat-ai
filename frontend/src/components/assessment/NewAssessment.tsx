@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { BackendSubmission, MitigationPreview, SubmissionInput } from '@/types/backend'
 import { previewUnderwriting } from '@/api/underwriting'
 import { useRiskContext } from '@/context/RiskContext'
+import { useSession } from '@/context/SessionContext'
 import Card from '@/components/shared/Card'
 import HazardCard from '@/components/assessment/HazardCard'
 import { usePreferences } from '@/context/Preferences'
@@ -161,18 +162,28 @@ const initialForm: FormState = {
 export default function NewAssessment({ onCompleted, onCancel, initial }: { onCompleted: (result: BackendSubmission) => void; onCancel: () => void; initial?: Record<string, unknown> | null }) {
   const { submit } = useRiskContext()
   const { t, label } = usePreferences()
+  const { identity, revision } = useSession()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [images, setImages] = useState<File[]>([])
   const imageInputRef = useRef<HTMLInputElement>(null)
   const previewRequestId = useRef(0)
   const previewDebounce = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const previewEpoch = useRef(revision)
   const [form, setForm] = useState<FormState>(() => ({ ...initialForm, ...Object.fromEntries(Object.entries(initial ?? {}).filter(([key]) => key in initialForm).map(([key, value]) => [key, typeof initialForm[key as keyof FormState] === 'boolean' ? value === true || value === 'true' : String(value)])) }))
   const [preview, setPreview] = useState<MitigationPreview | null>(null)
   const [previewBusy, setPreviewBusy] = useState(false)
   const [hoveredSegId, setHoveredSegId] = useState<string | null>(null)
 
   const update = (key: keyof FormState, value: string | boolean) => setForm((current) => ({ ...current, [key]: value }))
+  useEffect(() => {
+    previewRequestId.current++
+    setPreview(null)
+    setPreviewBusy(false)
+    setError(null)
+    return () => { previewRequestId.current++ }
+  }, [revision])
+
 
   const toInput = (values: FormState): SubmissionInput => {
     const derivedTiv = componentTiv(values)
@@ -246,12 +257,14 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
 
   const recalculate = async (values: FormState) => {
     const requestId = previewRequestId.current + 1
+    if (!identity) return
     previewRequestId.current = requestId
     setPreviewBusy(true)
     try {
       const nextPreview = await previewUnderwriting(toInput(values))
       if (requestId === previewRequestId.current) {
         setPreview(nextPreview)
+        previewEpoch.current = revision
       }
     } catch {
       if (requestId === previewRequestId.current) {
@@ -270,7 +283,7 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
     previewDebounce.current = setTimeout(() => void recalculate(form), 350)
     return () => { if (previewDebounce.current) clearTimeout(previewDebounce.current) }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [form])
+  }, [form, revision])
 
 
   const submitForm = async (event: React.FormEvent) => {
@@ -301,7 +314,7 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
     occupancy: '#CA8A04', protection: '#0F766E', loss: '#7C3AED',
     age: '#6B7280', mitigation: '#16A34A',
   }
-  const previewModel = preview?.prototype_mitigation_model
+  const previewModel = previewEpoch.current === revision ? preview?.prototype_mitigation_model : null
   const backendRiskProfile = previewModel?.risk_profile ?? []
   const previewProfile = previewModel?.mitigation_benefit
     ? [...backendRiskProfile, { id: 'mitigation', name: 'Mitigation benefit', score: previewModel.mitigation_benefit }]
