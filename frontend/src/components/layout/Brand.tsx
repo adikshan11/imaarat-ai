@@ -29,7 +29,8 @@ export default function Brand({ sub }: { sub: string }) {
     <div className="brand">
       <BrandMark />
       <div className="brand-text">
-        <div className="brand-title" aria-label="imaarat.ai">
+        <div className="brand-title">
+          <span className="sr-only">imaarat.ai</span>
           {NAMES.map((name, position) => (
             <span key={name.lang} dir="ltr" aria-hidden="true" className={position === index ? 'brand-word is-active' : 'brand-word'}>
               <bdi lang={name.lang}>{name.word}</bdi><span className="brand-tld">.ai</span>
