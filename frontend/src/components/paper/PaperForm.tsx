@@ -121,7 +121,7 @@ export default function PaperForm({ onUse }: { onUse: (values: Record<string, un
       setConfirmed({})
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : ''
-      setError(message.includes('switched off') ? t('paper.ai_off') : t('paper.read_failed'))
+      setError(message.includes('switched off') ? t('paper.ai_off') : message.includes('daily AI budget') ? message : t('paper.read_failed'))
     } finally {
       setBusy(false)
     }

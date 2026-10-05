@@ -21,6 +21,7 @@ from app.config import GUIDELINES_MD
 from app.db import fetch_history, fetch_submission_detail
 from app.schemas import decision_from_score, indicative_product_segment
 from app.tools.hazard_lookup import lookup as hazard_lookup, verify_location
+from app import budget
 from app.tools.rag_lookup import retrieve
 from app.tools.risk_calculator import risk_score_calculator
 
@@ -108,7 +109,7 @@ def lookup_hazard(pincode: str) -> dict[str, Any]:
 
 @mcp.tool(description="Retrieve the underwriting guideline sections (RAG over Gemini embeddings in Qdrant) most relevant to a question.")
 def search_guidelines(query: str, k: int = 3) -> list[dict[str, Any]]:
-    return retrieve(query, k=k)
+    return retrieve(query, k=k, ai_note=budget.admission_note("mcp"))
 
 
 @mcp.tool(description="Get one stored underwriting assessment by its numeric id, with decision, review status and AI rationale.")
@@ -151,12 +152,12 @@ class UnderwritingAgentExecutor(AgentExecutor):
 
             facts = dict(data_parts[0])
             facts.setdefault("property_id", f"A2A-{context.context_id[:8] if context.context_id else 'request'}")
-            state = run_graph(facts)
+            state = run_graph(facts, ai_note=budget.admission_note("a2a"))
             state["id"] = save_submission(state)["id"]
             reply = new_data_message(assessment_summary(state), context_id=context.context_id, task_id=context.task_id)
         else:
             question = context.get_user_input()
-            hits = retrieve(question, k=3)
+            hits = retrieve(question, k=3, ai_note=budget.admission_note("a2a"))
             text = "\n\n".join(f"[{hit['id']}] {hit['title']}: {hit['text']}" for hit in hits) or "No guidance retrieved (retrieval needs GEMINI_API_KEY)."
             reply = new_text_message(text, context_id=context.context_id, task_id=context.task_id)
         await event_queue.enqueue_event(reply)

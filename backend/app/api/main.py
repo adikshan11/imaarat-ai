@@ -17,6 +17,7 @@ from app.db import fetch_history, fetch_submission_detail, init_db, is_postgres,
 from app.interop import add_a2a, mcp, mcp_app
 from app.observability import ENABLED as TRACING_ENABLED, flush
 from app.schemas import decision_from_score, indicative_product_segment
+from app import budget
 from app.reports import build_submission_pdf
 from app.tools.form_reader import read_form
 from app.tools.hazard_lookup import lookup as hazard_lookup, sources as hazard_sources, verify_location
@@ -49,9 +50,12 @@ def health() -> dict[str, str]:
 
 @app.get("/status")
 def status() -> dict[str, Any]:
+    ready, reason = budget.ai_ready()
     return {
         "version": __version__,
-        "ai": bool(GEMINI_API_KEY),
+        "ai": ready,
+        "ai_reason": reason,
+        "ai_budget": budget.remaining(),
         "vector_store": "qdrant" if QDRANT_URL and GEMINI_API_KEY else "local",
         "tracing": TRACING_ENABLED,
         "persistent_storage": is_postgres(),
@@ -67,6 +71,7 @@ def property_tiv_from_components(*values: float | None, fallback: float | None) 
 
 @app.post("/underwrite/submit")
 async def submit_underwriting(
+    request: Request,
     proposer_name: str | None = Form(default=None),
     insured_legal_name: str | None = Form(default=None),
     business_name: str | None = Form(default=None),
@@ -225,7 +230,8 @@ async def submit_underwriting(
         print(f"[POST /underwrite/submit] IMAGE RECEIVED: {image.filename}, SIZE: {len(image_bytes)} bytes")
 
     from app.agents.graph import run_graph
-    result = run_graph(raw_input, image_path=image_path)
+    note = budget.admission_note(budget.client_address(request.headers, request.client.host if request.client else None))
+    result = run_graph(raw_input, image_path=image_path, ai_note=note)
     result["raw_input"] = raw_input
     result["policy_type"] = derived_policy_type
     result["total_value_at_risk_inr"] = total_value_at_risk_inr
@@ -350,14 +356,19 @@ def review_submission(submission_id: int, review: Review) -> dict[str, Any]:
 
 
 @app.post("/underwrite/read-form")
-async def read_paper_form(image: UploadFile = File(...)) -> dict[str, Any]:
-    if not GEMINI_API_KEY:
-        raise HTTPException(status_code=503, detail="AI form reading is switched off on this deployment")
+async def read_paper_form(request: Request, image: UploadFile = File(...)) -> dict[str, Any]:
+    ready, reason = budget.ai_ready()
+    if not ready:
+        raise HTTPException(status_code=503, detail=f"AI form reading is switched off on this deployment: {reason}")
     if image.content_type not in ("image/jpeg", "image/png", "image/webp"):
         raise HTTPException(status_code=415, detail="Upload a JPEG, PNG or WebP photo of page 2")
     data = await image.read()
     if len(data) > 4_000_000:
         raise HTTPException(status_code=413, detail="The photo is larger than 4 MB")
+    try:
+        budget.admit(budget.client_address(request.headers, request.client.host if request.client else None))
+    except budget.BudgetExceeded as exceeded:
+        raise HTTPException(status_code=429, detail=str(exceeded), headers={"Retry-After": str(exceeded.retry_after)}) from exceeded
     try:
         return read_form(data, image.content_type)
     except Exception as error:

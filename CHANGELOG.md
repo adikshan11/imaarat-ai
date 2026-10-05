@@ -2,6 +2,17 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.12.0] - 2026-10-05
+
+### Added
+- A daily AI budget: every assessment, form reading, A2A request and MCP search takes a slot from global and per-visitor caps, and every Gemini attempt, retries included, is reserved before it is made. Reservations are atomic, so parallel servers cannot overspend, and the day resets when Google's quotas reset.
+- An AI usage ledger and the remaining budget on the status endpoint.
+
+### Changed
+- Each AI call uses one configured model and retries only rate-limit and server errors, at most three times; the fallback to a lighter model is gone.
+- On the hosted demo, AI runs only when the budget lives in a shared Postgres database; otherwise AI stages are skipped and the result says why.
+- Every backend test now uses its own temporary database.
+
 ## [2.11.0] - 2026-10-05
 
 ### Changed

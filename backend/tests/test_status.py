@@ -1,24 +1,29 @@
 from fastapi.testclient import TestClient
 
-from app import __version__
+from app import __version__, config
 from app.api import main
 
 
 def test_status_reports_capabilities_without_secrets(monkeypatch):
     monkeypatch.setattr(main, "GEMINI_API_KEY", "")
+    monkeypatch.setattr(config, "GEMINI_API_KEY", "")
     monkeypatch.setattr(main, "QDRANT_URL", "https://example.qdrant.io")
     body = TestClient(main.app).get("/status").json()
+    budget = body.pop("ai_budget")
     assert body == {
         "version": __version__,
         "ai": False,
+        "ai_reason": "AI is not configured on this deployment",
         "vector_store": "local",
         "tracing": main.TRACING_ENABLED,
         "persistent_storage": main.is_postgres(),
     }
+    assert budget["admissions_left"] == config.AI_DAILY_ADMISSIONS and budget["calls_left"] == config.AI_DAILY_CALLS
 
 
 def test_status_reports_qdrant_when_ai_is_configured(monkeypatch):
     monkeypatch.setattr(main, "GEMINI_API_KEY", "set")
+    monkeypatch.setattr(config, "GEMINI_API_KEY", "set")
     monkeypatch.setattr(main, "QDRANT_URL", "https://example.qdrant.io")
     body = TestClient(main.app).get("/status").json()
     assert body["ai"] is True

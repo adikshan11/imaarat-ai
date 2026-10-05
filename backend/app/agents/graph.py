@@ -25,7 +25,7 @@ def intake_node(state: UWState) -> dict:
 
 
 def extract_features_node(state: UWState) -> dict:
-    return {"extracted_features": verify_location(extract_property_features(state.get("image_path"), state["raw_input"]))}
+    return {"extracted_features": verify_location(extract_property_features(state.get("image_path"), state["raw_input"], state.get("ai_note")))}
 
 
 def retrieval_query(raw: dict) -> str:
@@ -43,7 +43,7 @@ def retrieval_query(raw: dict) -> str:
 
 
 def rag_guidelines_node(state: UWState) -> dict:
-    hits = retrieve(retrieval_query(state["raw_input"]), k=4)
+    hits = retrieve(retrieval_query(state["raw_input"]), k=4, ai_note=state.get("ai_note"))
     return {"guideline_hits": hits, "guideline_chunks": [format_hit(hit) for hit in hits]}
 
 
@@ -160,8 +160,9 @@ def graph():
     return _compiled[url]
 
 
-def initial_state(raw_input: dict, image_path: str | None) -> UWState:
+def initial_state(raw_input: dict, image_path: str | None, ai_note: str | None = None) -> UWState:
     return {
+        "ai_note": ai_note,
         "property_id": str(raw_input.get("property_id", "")),
         "raw_input": raw_input,
         "image_path": image_path,
@@ -180,11 +181,11 @@ def initial_state(raw_input: dict, image_path: str | None) -> UWState:
 
 
 @traced("underwrite", as_type="chain")
-def run_graph(raw_input: dict, image_path: str | None = None, thread_id: str | None = None) -> UWState:
+def run_graph(raw_input: dict, image_path: str | None = None, thread_id: str | None = None, ai_note: str | None = None) -> UWState:
     """Run the pipeline; a referral returns with review_status 'pending_review' and its thread_id."""
     thread_id = thread_id or f"uw-{uuid4().hex}"
     config = {"configurable": {"thread_id": thread_id}}
-    result = graph().invoke(initial_state(raw_input, image_path), config=config)
+    result = graph().invoke(initial_state(raw_input, image_path, ai_note), config=config)
     state = {key: value for key, value in result.items() if key != "__interrupt__"}
     state["thread_id"] = thread_id
     state["trace_url"] = publish_trace()

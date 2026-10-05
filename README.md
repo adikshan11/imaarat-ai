@@ -64,6 +64,17 @@ flowchart LR
 - **DeepEval** for LLM-judged metrics: actively maintained and pytest-style.
 - **Not used:** n8n and Langflow are visual builders that hide the engineering. OpenClaw is a personal-assistant agent, not an application framework. LlamaIndex adds little for a 12-section corpus that Qdrant plus a few lines of code handle.
 
+## AI budget
+
+Every AI call is paid for from a daily budget before it is made, so a public demo cannot exhaust the Gemini quota or run up a bill.
+
+- **Admission:** each assessment, paper-form reading, A2A request or MCP guideline search takes one slot from a global daily cap (`AI_DAILY_ADMISSIONS`, default 40) and from a per-visitor cap (`AI_CLIENT_DAILY_ADMISSIONS`, default 5), both or neither. Visitors are counted by a daily-rotating hash of their address, never the address itself.
+- **Calls:** every Gemini attempt (generation, vision, embedding, token counting), including each retry, takes one call from `AI_DAILY_CALLS` (default 200). Output is capped at `AI_STAGE_OUTPUT_TOKENS` (default 2048) per call.
+- **Atomic:** a reservation is a single `UPDATE … SET used = used + n WHERE used + n <= cap`, so concurrent servers can never overspend; CI proves it with 20 parallel requests against a cap of 5 on real Postgres.
+- **One model, honest failure:** a call uses only the configured model and retries only 429/500/503 errors, at most three attempts. There is no fallback model.
+- **Fail closed:** on Vercel the AI runs only when the budget lives in Postgres (`DATABASE_URL`), because per-instance SQLite counters are not a global limit. When the budget is spent, AI stages are skipped and the result says why and when the budget resets.
+- **Resets** at midnight Pacific time, when Google's daily quotas reset. `/api/status` shows what is left; the `ai_usage` table records each call's stage, model, tokens, latency and outcome.
+
 ## Data engineering
 
 ```
