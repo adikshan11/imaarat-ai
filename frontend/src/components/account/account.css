@@ -1,0 +1,9 @@
+.account-shell { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; padding: 1rem 0; }
+.account-shell button { min-height: 44px; padding: .6rem 1rem; border: 1px solid currentColor; border-radius: .6rem; background: transparent; color: inherit; cursor: pointer; }
+.account-shell button:disabled { opacity: .6; cursor: not-allowed; }
+.account-shell button:focus-visible, .account-shell input:focus-visible, .account-shell select:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
+.account-panel { width: 100%; border: 1px solid currentColor; border-radius: 1rem; padding: 1.25rem; }
+.account-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin: .75rem 0; }
+.account-controls form, .account-controls > div { display: grid; gap: .75rem; margin: 1rem 0; }
+.account-controls input, .account-controls select { min-height: 44px; width: 100%; max-width: 100%; padding: .7rem; border: 1px solid currentColor; border-radius: .5rem; background: transparent; color: inherit; }
+.account-controls li { padding: .75rem 0; overflow-wrap: anywhere; }

@@ -1,5 +1,6 @@
 import { usePreferences } from '@/context/Preferences'
 import { useRiskContext } from '@/context/RiskContext'
+import AccountPanel from '@/components/account/AccountPanel'
 
 export default function StatusBanner() {
   const { t, language } = usePreferences()
@@ -11,5 +12,5 @@ export default function StatusBanner() {
     language.code !== 'en' ? t('lang.machine') : null,
   ].filter(Boolean)
 
-  return <div className="status-banner" role="note">{notes.join(' ')}</div>
+  return <><div className="status-banner" role="note">{notes.join(' ')}</div><AccountPanel /></>
 }

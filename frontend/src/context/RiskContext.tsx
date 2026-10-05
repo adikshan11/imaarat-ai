@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { fetchHistory, fetchStatus, fetchSubmissionDetail, submitUnderwriting } from '@/api/underwriting'
 import type { BackendHistoryRow, BackendSubmission, DeploymentStatus, SubmissionInput } from '@/types/backend'
+import { useSession } from './SessionContext'
 
 interface RiskContextState {
   submissions: BackendHistoryRow[]
@@ -18,6 +19,7 @@ interface RiskContextState {
 const RiskContext = createContext<RiskContextState | undefined>(undefined)
 
 export function RiskProvider({ children }: { children: ReactNode }) {
+  const { identity, revision } = useSession()
   const [submissions, setSubmissions] = useState<BackendHistoryRow[]>([])
   const [selectedSubmission, setSelectedSubmission] = useState<BackendSubmission | null>(null)
   const [loading, setLoading] = useState(true)
@@ -25,6 +27,7 @@ export function RiskProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<DeploymentStatus | null>(null)
 
   const refresh = async () => {
+    if (!identity) { setLoading(false); return }
     setLoading(true)
     try {
       setSubmissions(await fetchHistory())
@@ -37,7 +40,13 @@ export function RiskProvider({ children }: { children: ReactNode }) {
   }
 
   useEffect(() => {
-    void refresh()
+    setSubmissions([])
+    setSelectedSubmission(null)
+    setError(null)
+    if (identity) void refresh()
+    else setLoading(false)
+  }, [revision])
+  useEffect(() => {
     fetchStatus().then(setStatus).catch(() => setStatus(null))
   }, [])
 

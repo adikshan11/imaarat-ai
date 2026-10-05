@@ -10,6 +10,7 @@ import Integrations from '@/components/integrations/Integrations'
 import PaperForm from '@/components/paper/PaperForm'
 import { RiskProvider, useRiskContext } from '@/context/RiskContext'
 import { PreferencesProvider, usePreferences } from '@/context/Preferences'
+import { SessionProvider } from '@/context/SessionContext'
 import type { BackendSubmission } from '@/types/backend'
 
 type View = 'dashboard' | 'new' | 'paper' | 'result' | 'quality' | 'integrations'
@@ -65,5 +66,5 @@ function Application() {
 }
 
 export default function App() {
-  return <PreferencesProvider><RiskProvider><Application /></RiskProvider></PreferencesProvider>
+  return <PreferencesProvider><SessionProvider><RiskProvider><Application /></RiskProvider></SessionProvider></PreferencesProvider>
 }
