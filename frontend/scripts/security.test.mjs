@@ -102,3 +102,32 @@ test('oversized requests never leave browser and rejected response is aborted', 
   await assert.rejects(client.session(), { code: 'response_invalid' })
   assert.equal(signal.aborted, true)
 })
+
+test('local expiry invalidates pending owned responses without a server roundtrip', async () => {
+  let finish
+  let lost = 0
+  const delayed = new Promise((resolve) => { finish = resolve })
+  const client = createSecurityClient({ origin, onSessionLost: () => { lost++ }, fetch: async (url) => url.endsWith('/auth/session') ? new Response(JSON.stringify(session)) : delayed })
+  await client.session()
+  const pending = client.request('/connections')
+  client.expire()
+  finish(new Response('[]'))
+  await assert.rejects(pending, { code: 'session_changed' })
+  await assert.rejects(client.request('/connections', { method: 'POST', body: {} }), { code: 'authentication_required' })
+  assert.equal(lost, 1)
+})
+
+test('multipart file, count and text ceilings apply before transport', async () => {
+  let calls = 0
+  const client = createSecurityClient({ origin, fetch: async () => { calls++; return new Response(JSON.stringify(session)) } })
+  await client.session()
+  const before = calls
+  const large = new FormData()
+  large.set('image', new Blob([new Uint8Array(4000001)], { type: 'image/jpeg' }), 'page.jpg')
+  const many = new FormData()
+  for (let index = 0; index < 101; index++) many.set(String(index), 'field')
+  const text = new FormData()
+  text.set('field', 'x'.repeat(4097))
+  for (const body of [large, many, text]) await assert.rejects(client.request('/underwrite/submit', { method: 'POST', body }), { code: 'request_too_large' })
+  assert.equal(calls, before)
+})
