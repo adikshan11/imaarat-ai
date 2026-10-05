@@ -401,9 +401,12 @@ def evals() -> dict[str, Any]:
     from app.config import BASE_DIR
 
     report = BASE_DIR / "evals" / "results" / "latest.json"
+    from app.evaluation import empty_report
+
     if not report.exists():
-        raise HTTPException(status_code=404, detail="No evaluation report yet; run python -m evals.run_evals")
-    return json.loads(report.read_text(encoding="utf-8"))
+        return empty_report()
+    data = json.loads(report.read_text(encoding="utf-8"))
+    return data if isinstance(data, dict) else empty_report()
 
 
 @app.get("/underwrite/history")

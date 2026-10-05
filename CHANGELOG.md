@@ -2,6 +2,13 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.8.0] - 2026-10-05
+
+### Changed
+- Evaluation reports state exactly what they measure and what they do not: each section carries its own status, the dataset is labelled handcrafted synthetic, and a missing report shows "not run" instead of an error.
+- Live AI evaluation runs only when started deliberately, with at most four memo generations and no fallback model, so a result always comes from the stated model.
+- All actions in the evaluation workflow are pinned to exact commits.
+
 ## [2.7.0] - 2026-10-04
 
 ### Changed
