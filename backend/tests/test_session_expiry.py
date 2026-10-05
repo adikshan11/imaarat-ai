@@ -11,11 +11,16 @@ def test_session_deadline(tmp_path, monkeypatch):
     auth.metadata.create_all(engine)
     monkeypatch.setenv("APP_ENV", "test")
     monkeypatch.setenv("APP_ORIGIN", "https://example.test")
-    monkeypatch.setattr(auth_routes, "get_engine", lambda: engine)
-    from app import db
-    monkeypatch.setattr(db, "get_engine", lambda: engine)
+    def database():
+        return engine
+
+    def now(value):
+        return 1100 if value is None else value
+
+    monkeypatch.setattr(auth_routes, "get_engine", database)
+    monkeypatch.setattr(auth, "get_engine", database)
     grant = auth.create_member(engine, 456, now=1000)
-    monkeypatch.setattr(auth, "clock", lambda now: 1100 if now is None else now)
+    monkeypatch.setattr(auth, "clock", now)
     app = FastAPI()
     app.include_router(auth_routes.router)
     client = TestClient(app, base_url="https://example.test")
