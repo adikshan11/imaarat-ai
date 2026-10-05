@@ -267,6 +267,19 @@ def test_admission_freshness(connections, monkeypatch):
     assert versions == {}
 
 
+def test_vault_response_bound():
+    module = import_module("app.broker.vault")
+
+    def oversized(request):
+        return httpx2.Response(200, json={"data": "x" * 65537})
+
+    vault = module.VaultClient("https://bao.test", "test-role", "test-secret-id", transport=httpx2.MockTransport(oversized))
+    with pytest.raises(HTTPException) as error:
+        vault.response("GET", "/v1/imaarat/metadata/test")
+    assert error.value.status_code == 503
+    vault.close()
+
+
 def test_vault_errors():
     assert find_spec("app.broker") is not None, "Private credential broker is missing"
     module = import_module("app.broker.vault")
