@@ -6,6 +6,9 @@
   --surface: rgba(255, 255, 255, 0.78);
   --surface-strong: rgba(255, 255, 255, 0.86);
   --surface-muted: rgba(255, 255, 255, 0.5);
+  --nav-glass: rgba(240, 248, 244, 0.55);
+  --nav-rim: rgba(13, 72, 56, 0.12);
+  --nav-active: rgba(13, 72, 56, 0.1);
   --border: rgba(15, 23, 42, 0.08);
   --border-strong: rgba(15, 23, 42, 0.18);
   --text: #0f172a;
@@ -53,6 +56,9 @@
   --surface: rgba(26, 40, 35, 0.94);
   --surface-strong: #1f302a;
   --surface-muted: rgba(255, 255, 255, 0.035);
+  --nav-glass: rgba(18, 36, 29, 0.52);
+  --nav-rim: rgba(221, 255, 239, 0.12);
+  --nav-active: rgba(110, 231, 183, 0.12);
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.2);
   --text: #e3ebe8;
@@ -94,6 +100,9 @@
     --surface: rgba(26, 40, 35, 0.94);
     --surface-strong: #1f302a;
     --surface-muted: rgba(255, 255, 255, 0.035);
+    --nav-glass: rgba(18, 36, 29, 0.52);
+    --nav-rim: rgba(221, 255, 239, 0.12);
+    --nav-active: rgba(110, 231, 183, 0.12);
     --border: rgba(255, 255, 255, 0.08);
     --border-strong: rgba(255, 255, 255, 0.2);
     --text: #e3ebe8;

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import Card from '@/components/shared/Card'
+import SelectField from '@/components/shared/SelectField'
 import PortfolioAnalytics from '@/components/dashboard/PortfolioAnalytics'
 import { useRiskContext } from '@/context/RiskContext'
 import { usePreferences } from '@/context/Preferences'
@@ -111,8 +112,8 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
       <Card title={t('card.recent')}>
         <div className="table-toolbar">
           <label className="table-search"><span>{t('table.search')}</span><input placeholder={t('table.search_ph')} value={query} onChange={(event) => setQuery(event.target.value)} /></label>
-          <label className="table-filter"><span>{t('table.filter')}</span><select value={decision} onChange={(event) => setDecision(event.target.value)}><option value="All">{t('table.all')}</option>{DECISIONS.map((name) => <option key={name} value={name}>{label('decision', name)}</option>)}</select></label>
-          <label className="table-filter"><span>{t('table.sort')}</span><select value={sortKey} onChange={(event) => setSortKey(event.target.value as typeof sortKey)}>{(['created', 'property', 'location', 'score', 'value'] as const).map((key) => <option key={key} value={key}>{t(`sort.${key}`)}</option>)}</select></label>
+          <SelectField className="table-filter" label={t('table.filter')} value={decision} onChange={setDecision} options={[{ value: 'All', label: t('table.all') }, ...DECISIONS.map((name) => ({ value: name, label: label('decision', name) }))]} />
+          <SelectField className="table-filter" label={t('table.sort')} value={sortKey} onChange={(value) => setSortKey(value as typeof sortKey)} options={(['created', 'property', 'location', 'score', 'value'] as const).map((key) => ({ value: key, label: t(`sort.${key}`) }))} />
           <button className="btn btn-secondary table-sort-button" type="button" onClick={() => setSortDirection((current) => current === 'desc' ? 'asc' : 'desc')} aria-label={t('table.toggle_sort')}>{sortDirection === 'desc' ? '↓' : '↑'}</button>
         </div>
         <div className="table-wrap">

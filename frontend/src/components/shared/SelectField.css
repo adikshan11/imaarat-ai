@@ -1,0 +1,110 @@
+.select-field .select-trigger,
+.select-field .select-native {
+  width: 100%;
+  min-height: 44px;
+  height: auto;
+  margin-top: 6px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: var(--surface-strong);
+  color: var(--text);
+  font: 400 16px/1.45 var(--sans);
+  text-align: start;
+}
+
+.select-field .select-trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  padding-inline-end: 42px;
+  cursor: pointer;
+}
+
+.select-field .select-native {
+  appearance: auto;
+  padding: 10px 12px;
+}
+
+.select-field .select-trigger:focus-visible,
+.select-field .select-native:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-color: var(--brand);
+}
+
+.select-field .select-trigger .select-value {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: normal;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+.select-chevron {
+  position: absolute;
+  inset-inline-end: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.select-menu {
+  position: fixed;
+  z-index: 1000;
+  padding: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 0.16);
+  font: 400 16px/1.45 var(--sans);
+  text-align: start;
+}
+
+.select-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+}
+
+.select-option .select-option-text {
+  flex: 1;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.select-option:hover,
+.select-option.is-active {
+  background: var(--nav-active);
+  outline: 1px solid var(--brand);
+  outline-offset: -1px;
+}
+
+.select-option[aria-selected="true"] {
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.select-check { flex: 0 0 18px; }
+
+@media (forced-colors: active) {
+  .select-field .select-native {
+    border-color: ButtonText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}
