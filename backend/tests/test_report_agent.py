@@ -49,6 +49,22 @@ def test_generate_memo_exposes_resource_exhausted_failure(monkeypatch):
     assert slept == [2, 4]
 
 
+def test_daily_quota_is_not_retried_and_says_so(monkeypatch):
+    quota_error = ClientError(429, {"error": {"code": 429, "status": "RESOURCE_EXHAUSTED", "message": "You exceeded your current quota",
+                                              "details": [{"violations": [{"quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier"}]}]}})
+    client = Mock()
+    client.models.generate_content.side_effect = quota_error
+    monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
+    slept = []
+    monkeypatch.setattr(llm.time, "sleep", slept.append)
+    state = {"property_id": "QUOTA-001", "raw_input": {"city": "Pune"}, "risk_score": 0, "risk_flags": [], "decision": "Accept", "rationale": "x"}
+
+    assert report_agent.generate_memo(state) == {}
+    assert client.models.generate_content.call_count == 1 and slept == []
+    assert state["ai_memo_reason"].startswith("This demo has used today's free AI allowance")
+
+
 def _valid_state():
     return {"raw_input": {"property_id": "TIDEL", "roof_age_years": None}, "decision": "Accept", "risk_score": 5, "risk_flags": ["high_tiv_concentration"]}
 

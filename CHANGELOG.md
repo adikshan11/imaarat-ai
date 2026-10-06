@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.23.1] - 2026-10-06
+
+### Fixed
+- When the demo has used Google's free daily AI allowance, the result now says so instead of claiming the model is busy, and the app no longer retries a call that cannot succeed until the allowance resets. Retries for short busy spells and per-minute limits are unchanged.
+
 ## [2.23.0] - 2026-10-06
 
 ### Added
