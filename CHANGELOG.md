@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.19.1] - 2026-10-06
+
+### Fixed
+- Guideline search no longer re-embeds the 12 guideline sections on every server start. The vectors are embedded once per guideline version, stored in the app database and cached in memory, so a fresh server reads them instead of spending about 2 seconds and 2 Gemini calls; editing the guidelines triggers one new embedding automatically.
+
 ## [2.19.0] - 2026-10-06
 
 ### Added
