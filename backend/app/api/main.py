@@ -244,7 +244,7 @@ async def submit_underwriting(
     result["positive_factors"] = model.get("positive_factors", [])
     result["risk_profile"] = model.get("risk_profile", [])
     result["ai_memo_status"] = result.get("ai_memo_status") or ("Available" if result.get("memo_json") else "Unavailable")
-    result["ai_memo_reason"] = result.get("memo_error") if result["ai_memo_status"] != "Available" else ""
+    result["ai_memo_reason"] = (result.get("ai_memo_reason") or result.get("memo_error")) if result["ai_memo_status"] != "Available" else ""
     result["memo_json"] = result.get("memo_json", {})
     saved = await run_in_threadpool(save_submission, result)
     result["id"] = saved.get("id")
