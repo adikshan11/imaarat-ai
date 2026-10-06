@@ -5,6 +5,7 @@ import math
 from typing import Any
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
@@ -230,8 +231,8 @@ async def submit_underwriting(
         print(f"[POST /underwrite/submit] IMAGE RECEIVED: {image.filename}, SIZE: {len(image_bytes)} bytes")
 
     from app.agents.graph import run_graph
-    note = budget.admission_note(budget.client_address(request.headers, request.client.host if request.client else None))
-    result = run_graph(raw_input, image_path=image_path, ai_note=note)
+    note = await run_in_threadpool(budget.admission_note, budget.client_address(request.headers, request.client.host if request.client else None))
+    result = await run_in_threadpool(run_graph, raw_input, image_path=image_path, ai_note=note)
     result["raw_input"] = raw_input
     result["policy_type"] = derived_policy_type
     result["total_value_at_risk_inr"] = total_value_at_risk_inr
@@ -245,7 +246,7 @@ async def submit_underwriting(
     result["ai_memo_status"] = result.get("ai_memo_status") or ("Available" if result.get("memo_json") else "Unavailable")
     result["ai_memo_reason"] = result.get("memo_error") if result["ai_memo_status"] != "Available" else ""
     result["memo_json"] = result.get("memo_json", {})
-    saved = save_submission(result)
+    saved = await run_in_threadpool(save_submission, result)
     result["id"] = saved.get("id")
     flush()
     return result
@@ -366,11 +367,11 @@ async def read_paper_form(request: Request, image: UploadFile = File(...)) -> di
     if len(data) > 4_000_000:
         raise HTTPException(status_code=413, detail="The photo is larger than 4 MB")
     try:
-        budget.admit(budget.client_address(request.headers, request.client.host if request.client else None))
+        await run_in_threadpool(budget.admit, budget.client_address(request.headers, request.client.host if request.client else None))
     except budget.BudgetExceeded as exceeded:
         raise HTTPException(status_code=429, detail=str(exceeded), headers={"Retry-After": str(exceeded.retry_after)}) from exceeded
     try:
-        return read_form(data, image.content_type)
+        return await run_in_threadpool(read_form, data, image.content_type)
     except Exception as error:
         raise HTTPException(status_code=502, detail=f"The form could not be read: {type(error).__name__}") from error
 
