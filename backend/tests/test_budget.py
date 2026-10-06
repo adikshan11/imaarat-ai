@@ -1,4 +1,5 @@
 import os
+import time
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 
@@ -160,3 +161,33 @@ def test_postgres_never_admits_beyond_the_cap_under_concurrency(monkeypatch):
         admitted = sum(pool.map(attempt, range(20)))
     assert admitted == 5
     assert budget.remaining()["admissions_left"] == 0
+
+
+def test_no_attempt_starts_without_time_left_in_the_request(store, monkeypatch):
+    calls = []
+    token = llm.deadline.set(time.perf_counter() + 5)
+    try:
+        with pytest.raises(TimeoutError):
+            llm.budgeted("memo", calls.append, item=1)
+    finally:
+        llm.deadline.reset(token)
+    assert calls == []
+    assert budget.remaining()["calls_left"] == 4
+
+
+def test_retries_stop_when_the_next_attempt_would_overrun(store, monkeypatch):
+    slept = []
+    monkeypatch.setattr(llm.time, "sleep", slept.append)
+    calls = []
+
+    def busy(model):
+        calls.append(model)
+        raise ApiError(503)
+
+    token = llm.deadline.set(time.perf_counter() + llm.config.GEMINI_TIMEOUT_MS / 1000 + 1)
+    try:
+        with pytest.raises(ApiError):
+            llm.budgeted("memo", busy, model="gemini-test")
+    finally:
+        llm.deadline.reset(token)
+    assert calls == ["gemini-test"] and slept == []
