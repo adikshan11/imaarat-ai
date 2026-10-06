@@ -43,18 +43,18 @@ function Crop({ image, box }: { image: HTMLImageElement | null; box: number[] | 
   return box ? <canvas ref={canvas} className="paper-crop" /> : <span className="muted-text">—</span>
 }
 
-function Box({ label, english, cells = 1, tall = false }: { label: string; english?: string; cells?: number; tall?: boolean }) {
+function Box({ label, english, field, cells = 1, tall = false }: { label: string; english?: string; field?: string; cells?: number; tall?: boolean }) {
   return (
-    <div className="pf-field">
+    <div className="pf-field" data-field={field}>
       <div className="pf-label">{label}{english && english !== label ? <span className="pf-english"> · {english}</span> : null}</div>
       {cells > 1 ? <div className="pf-cells" dir="ltr">{Array.from({ length: cells }, (_, index) => <span key={index} />)}</div> : <div className={tall ? 'pf-box pf-box-tall' : 'pf-box'} />}
     </div>
   )
 }
 
-function Ticks({ label, english, options }: { label: string; english?: string; options: string[] }) {
+function Ticks({ label, english, field, options }: { label: string; english?: string; field?: string; options: string[] }) {
   return (
-    <div className="pf-field">
+    <div className="pf-field" data-field={field}>
       <div className="pf-label">{label}{english && english !== label ? <span className="pf-english"> · {english}</span> : null}</div>
       <div className="pf-ticks">{options.map((option) => <span key={option}><i />{option}</span>)}</div>
     </div>
@@ -63,7 +63,7 @@ function Ticks({ label, english, options }: { label: string; english?: string; o
 
 function PrintableForm() {
   const { t, label, english, language } = usePreferences()
-  const both = (key: string) => ({ label: t(key), english: language.code === 'en' ? undefined : english(key) })
+  const both = (key: string) => ({ label: t(key), english: language.code === 'en' ? undefined : english(key), field: key.replace(/^f\./, '') })
   const yesNo = [t('img.used'), t('img.not_used')]
   return (
     <div className="print-area" aria-hidden="true">
