@@ -5,7 +5,7 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 ## [2.17.0] - 2026-10-06
 
 ### Added
-- Operational telemetry in the app database: every API request (route template, status, latency, cold start, error type), every assessment as a trace, and every workflow step and Gemini call as a timed span. No inputs, PIN codes, addresses or error messages are stored, rows older than 14 days are pruned, and a telemetry failure never fails a request.
+- Operational telemetry in the app database: every API request (route template, status, latency, cold start, error type), every assessment as a trace, and every workflow step and Gemini call as a timed span. No inputs, PIN codes, addresses or error messages are stored, rows older than 14 days are pruned, and a telemetry failure never fails a request. Records are queued in memory and written in batches every 2 seconds, so the request path never waits on the database; the last 2 seconds can be lost if a server instance shuts down.
 - An aggregated summary endpoint for the coming status page: traffic and errors over time, latency percentiles per route, AI calls, tokens and latency per stage, memo outcomes, and the step-by-step timing of recent assessments.
 
 ## [2.16.0] - 2026-10-06

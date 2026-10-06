@@ -10,6 +10,8 @@ from contextvars import ContextVar
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from operator import itemgetter
+from queue import Empty, SimpleQueue
+from threading import Lock, Thread
 from typing import Any, Callable
 
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, Table, delete, select
@@ -17,10 +19,15 @@ from sqlalchemy import Boolean, Column, DateTime, Integer, String, Table, delete
 from app.db import get_engine, metadata
 
 RETENTION_DAYS = 14
+FLUSH_SECONDS = 2
 process_started = time.time()
 first_request = {"pending": True}
 current_spans: ContextVar[list[dict[str, Any]] | None] = ContextVar("current_spans", default=None)
 _ready_engines: set[str] = set()
+pending: SimpleQueue = SimpleQueue()
+writer = {"started": False}
+writer_lock = Lock()
+flush_lock = Lock()
 
 requests = Table(
     "ops_requests",
@@ -96,16 +103,11 @@ def timed(name: str) -> Callable:
 def record_request(route: str, method: str, status: int, latency_ms: int, error_type: str | None) -> None:
     cold_start = first_request["pending"]
     first_request["pending"] = False
-    try:
-        with engine().begin() as connection:
-            connection.execute(requests.insert().values(
-                created_at=datetime.now(timezone.utc), route=route[:120], method=method, status=status,
-                latency_ms=latency_ms, cold_start=cold_start, region=os.getenv("VERCEL_REGION"), error_type=error_type,
-            ))
-            if random.random() < 0.01:
-                prune(connection)
-    except Exception as error:
-        print(f"[telemetry] request not recorded: {type(error).__name__}")
+    pending.put(("request", {
+        "created_at": datetime.now(timezone.utc), "route": route[:120], "method": method, "status": status,
+        "latency_ms": latency_ms, "cold_start": cold_start, "region": os.getenv("VERCEL_REGION"), "error_type": error_type,
+    }, None))
+    start_writer()
 
 
 def record_trace(trace_id: str, collected: list[dict[str, Any]], memo_status: str | None, decision: str | None) -> None:
@@ -113,16 +115,54 @@ def record_trace(trace_id: str, collected: list[dict[str, Any]], memo_status: st
         return
     origin = min(span["started"] for span in collected)
     total_ms = round((max(span["ended"] for span in collected) - origin) * 1000)
-    try:
-        with engine().begin() as connection:
-            connection.execute(traces.insert().values(trace_id=trace_id, created_at=datetime.now(timezone.utc), total_ms=total_ms, memo_status=memo_status, decision=decision))
-            connection.execute(spans.insert(), [
-                {"trace_id": trace_id, "name": span["name"], "start_ms": round((span["started"] - origin) * 1000),
-                 "duration_ms": round((span["ended"] - span["started"]) * 1000), "status": span["status"]}
-                for span in collected
-            ])
-    except Exception as error:
-        print(f"[telemetry] trace not recorded: {type(error).__name__}")
+    trace_row = {"trace_id": trace_id, "created_at": datetime.now(timezone.utc), "total_ms": total_ms, "memo_status": memo_status, "decision": decision}
+    span_rows = [
+        {"trace_id": trace_id, "name": span["name"], "start_ms": round((span["started"] - origin) * 1000),
+         "duration_ms": round((span["ended"] - span["started"]) * 1000), "status": span["status"]}
+        for span in collected
+    ]
+    pending.put(("trace", trace_row, span_rows))
+    start_writer()
+
+
+def start_writer() -> None:
+    if writer["started"]:
+        return
+    with writer_lock:
+        if not writer["started"]:
+            Thread(target=write_forever, name="telemetry-writer", daemon=True).start()
+            writer["started"] = True
+
+
+def write_forever() -> None:
+    while True:
+        time.sleep(FLUSH_SECONDS)
+        flush()
+
+
+def flush() -> None:
+    with flush_lock:
+        items = []
+        while True:
+            try:
+                items.append(pending.get_nowait())
+            except Empty:
+                break
+        if not items:
+            return
+        try:
+            with engine().begin() as connection:
+                request_rows = [row for kind, row, _ in items if kind == "request"]
+                if request_rows:
+                    connection.execute(requests.insert(), request_rows)
+                for kind, row, span_rows in items:
+                    if kind == "trace":
+                        connection.execute(traces.insert().values(**row))
+                        connection.execute(spans.insert(), span_rows)
+                if random.random() < 0.05:
+                    prune(connection)
+        except Exception as error:
+            print(f"[telemetry] {len(items)} records not written: {type(error).__name__}")
 
 
 def prune(connection: Any) -> None:
@@ -152,6 +192,7 @@ def bucket(moment: datetime, hours: int) -> str:
 def summary(hours: int) -> dict[str, Any]:
     from app import budget
 
+    flush()
     since = datetime.now(timezone.utc) - timedelta(hours=hours)
     with engine().connect() as connection:
         request_rows = connection.execute(

@@ -50,7 +50,7 @@ async def record_requests(request: Request, call_next: Any) -> Any:
     finally:
         route = getattr(request.scope.get("route"), "path", None) or "unmatched"
         if route not in ("/health", "/ops/summary"):
-            await run_in_threadpool(telemetry.record_request, route, request.method, status, round((time.perf_counter() - started) * 1000), error_type)
+            telemetry.record_request(route, request.method, status, round((time.perf_counter() - started) * 1000), error_type)
 app.mount("/mcp", mcp_app())
 add_a2a(app)
 

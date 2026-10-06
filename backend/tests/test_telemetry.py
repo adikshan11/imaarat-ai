@@ -11,6 +11,7 @@ def test_requests_are_logged_by_route_template_without_inputs():
     client.get("/hazard/600001")
     client.get("/hazard/999999")
     client.get("/health")
+    telemetry.flush()
     with telemetry.engine().connect() as connection:
         rows = connection.execute(select(telemetry.requests.c.route, telemetry.requests.c.status)).all()
     assert sorted(rows) == [("/hazard/{pincode}", 200), ("/hazard/{pincode}", 404)]
@@ -37,3 +38,5 @@ def test_a_broken_telemetry_store_never_fails_the_request(monkeypatch):
 
     monkeypatch.setattr(telemetry, "engine", broken)
     assert TestClient(main.app).get("/hazard/600001").status_code == 200
+    telemetry.flush()
+    assert telemetry.pending.empty()
