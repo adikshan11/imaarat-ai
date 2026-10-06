@@ -1,3 +1,3 @@
 """Imaarat underwriting package."""
 
-__version__ = "2.23.0"
+__version__ = "2.23.1"
