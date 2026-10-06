@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Card from '@/components/shared/Card'
+import { AiProgress } from '@/components/shared/Loader'
 import Icon from '@/components/shared/Icon'
 import { readPaperForm } from '@/api/underwriting'
 import { usePreferences } from '@/context/Preferences'
@@ -146,6 +147,7 @@ export default function PaperForm({ onUse }: { onUse: (values: Record<string, un
               <Icon name="camera" size={18} /> {busy ? t('paper.reading') : t('paper.upload')}
               <input type="file" accept="image/*" capture="environment" disabled={!consent || busy} onChange={(event) => void upload(event.target.files?.[0])} />
             </label>
+            {busy && <AiProgress title={t('load.read_title')} hint={t('load.read_hint')} steps={[t('load.step_read'), t('load.step_check')]} />}
             {error && <div className="error-banner form-gap" role="alert">{error}</div>}
           </Card>
         </div>
