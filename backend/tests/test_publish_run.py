@@ -31,3 +31,12 @@ def test_ci_runs_are_published_and_shown_newest_first(tmp_path, monkeypatch):
     assert runs["load"][0]["summary"] == {"users": 200, "duration": "", "requests": 100, "failures": 1, "rps": 20.2, "p50_ms": 5, "p95_ms": 15, "p99_ms": 40, "submit_p95_ms": 80}
     assert runs["lighthouse"][0]["summary"]["mobile"] == {"performance": 79, "accessibility": 100, "lcp_ms": 2300, "tbt_ms": 680, "cls": 0.047}
     assert runs["evals"][0]["summary"]["retrieval_recall"] == 0.25
+
+
+def test_app_and_landing_audits_are_kept_apart(tmp_path):
+    app = {**lighthouse("mobile", 0.88), "requestedUrl": "https://imaarat-ai.vercel.app/app/"}
+    landing = {**lighthouse("mobile", 1), "requestedUrl": "https://imaarat-ai.vercel.app/"}
+    for name, report in (("app.json", app), ("landing.json", landing)):
+        (tmp_path / name).write_text(json.dumps(report), encoding="utf-8")
+    summary = publish_run.lighthouse_summary([str(tmp_path / "app.json"), str(tmp_path / "landing.json")])
+    assert summary["app mobile"]["performance"] == 88 and summary["mobile"]["performance"] == 100

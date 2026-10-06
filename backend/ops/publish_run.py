@@ -31,7 +31,8 @@ def lighthouse_summary(paths: list[str]) -> dict:
     for path in paths:
         report = json.loads(Path(path).read_text(encoding="utf-8"))
         audits = report["audits"]
-        devices[report["configSettings"]["formFactor"]] = {
+        page = "app " if "/app/" in report.get("requestedUrl", "") else ""
+        devices[page + report["configSettings"]["formFactor"]] = {
             "performance": round(report["categories"]["performance"]["score"] * 100),
             "accessibility": round(report["categories"]["accessibility"]["score"] * 100),
             "lcp_ms": round(audits["largest-contentful-paint"]["numericValue"]),

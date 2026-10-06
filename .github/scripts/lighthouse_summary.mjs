@@ -6,7 +6,7 @@ const rows = process.argv.slice(2).map((path) => {
   const scores = Object.fromEntries(Object.entries(report.categories).map(([key, category]) => [key, Math.round(category.score * 100)]))
   const values = Object.fromEntries(metrics.map((key) => [key, report.audits[key]?.displayValue ?? 'n/a']))
   const opportunities = Object.values(report.audits).filter((audit) => audit.details?.type === 'opportunity' && (audit.details.overallSavingsMs ?? 0) > 100).map((audit) => `${audit.title} (${Math.round(audit.details.overallSavingsMs)} ms)`)
-  return { formFactor: report.configSettings.formFactor, scores, values, opportunities, fetchTime: report.fetchTime }
+  return { formFactor: (report.requestedUrl?.includes('/app/') ? 'app ' : '') + report.configSettings.formFactor, scores, values, opportunities, fetchTime: report.fetchTime }
 })
 console.log(`## Lighthouse ${rows[0]?.fetchTime ?? ''}\n`)
 console.log('| Device | Performance | Accessibility | Best practices | SEO | ' + metrics.join(' | ') + ' |')
