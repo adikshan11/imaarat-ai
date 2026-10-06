@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.20.0] - 2026-10-06
+
+### Added
+- The status page shows the last load tests, Lighthouse audits and evaluations from the main branch, each linked to its GitHub Actions run. The workflows publish a one-row summary of every main-branch run to the app database; pull-request runs are not published.
+
 ## [2.19.1] - 2026-10-06
 
 ### Fixed

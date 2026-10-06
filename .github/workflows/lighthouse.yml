@@ -38,6 +38,19 @@ jobs:
           $LH "$AUDIT_URL" $FLAGS --form-factor=mobile --screenEmulation.mobile --output-path=reports/mobile
           $LH "$AUDIT_URL" $FLAGS --preset=desktop --output-path=reports/desktop
       - run: node .github/scripts/lighthouse_summary.mjs reports/mobile.report.json reports/desktop.report.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        if: github.ref == 'refs/heads/main'
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Publish to status page
+        if: github.ref == 'refs/heads/main'
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          pip install -r ../requirements.txt
+          python -m ops.publish_run lighthouse ../reports/mobile.report.json ../reports/desktop.report.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:

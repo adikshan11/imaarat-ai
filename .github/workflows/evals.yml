@@ -45,6 +45,12 @@ jobs:
           LIVE_FLAG: ${{ github.event_name == 'workflow_dispatch' && inputs.live && '--live' || '' }}
       - run: cat backend/evals/results/latest.md >> "$GITHUB_STEP_SUMMARY"
         if: always() && steps.evaluate.outcome != 'skipped' && hashFiles('backend/evals/results/latest.md') != ''
+      - name: Publish to status page
+        if: always() && github.ref == 'refs/heads/main' && hashFiles('backend/evals/results/latest.json') != ''
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python -m ops.publish_run evals evals/results/latest.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always() && steps.evaluate.outcome != 'skipped'
         with:

@@ -17,6 +17,10 @@ function share(part: number, whole: number) {
   return whole ? `${Math.round((part / whole) * 1000) / 10}%` : '—'
 }
 
+function when(value: string) {
+  return new Date(value).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+}
+
 function bucketLabel(bucket: string, hours: number) {
   return hours <= 48 ? `${bucket.slice(11, 16)} UTC` : bucket.slice(5)
 }
@@ -151,6 +155,25 @@ export default function StatusPage() {
               <Waterfall spans={trace.spans} total={trace.total_ms} />
             </details>
           ))}
+        </Card>
+
+        <Card title="Quality and testing (CI)">
+          <p className="card-footnote">Each row is one run on the main branch, written by the workflow itself. Load tests run the API on a CI machine with AI off; Lighthouse audits the live site; evaluations score the rules, guideline search and AI memos.</p>
+          <h3 className="ops-subhead">Load test</h3>
+          {summary.ci_runs.load?.length ? <div className="table-wrap"><table className="table-wide">
+            <thead><tr><th>Run</th><th>Users</th><th>Req/s</th><th>p50</th><th>p95</th><th>p99</th><th>Submit p95</th><th>Failures</th></tr></thead>
+            <tbody>{summary.ci_runs.load.map((run) => <tr key={run.run_url}><td><a href={run.run_url} target="_blank" rel="noopener noreferrer">{when(run.created_at)}</a></td><td>{run.summary.users}</td><td>{run.summary.rps}</td><td>{ms(run.summary.p50_ms)}</td><td>{ms(run.summary.p95_ms)}</td><td>{ms(run.summary.p99_ms)}</td><td>{ms(run.summary.submit_p95_ms)}</td><td>{run.summary.failures} / {run.summary.requests.toLocaleString('en-IN')}</td></tr>)}</tbody>
+          </table></div> : <p className="muted-text">No load test published from main yet.</p>}
+          <h3 className="ops-subhead">Lighthouse</h3>
+          {summary.ci_runs.lighthouse?.length ? <div className="table-wrap"><table className="table-wide">
+            <thead><tr><th>Run</th><th>Device</th><th>Performance</th><th>LCP</th><th>Blocking time</th><th>Layout shift</th><th>Accessibility</th></tr></thead>
+            <tbody>{summary.ci_runs.lighthouse.flatMap((run) => Object.entries(run.summary).map(([device, result]) => <tr key={`${run.run_url}-${device}`}><td><a href={run.run_url} target="_blank" rel="noopener noreferrer">{when(run.created_at)}</a></td><td>{device}</td><td>{result.performance}</td><td>{ms(result.lcp_ms)}</td><td>{ms(result.tbt_ms)}</td><td>{result.cls}</td><td>{result.accessibility}</td></tr>))}</tbody>
+          </table></div> : <p className="muted-text">No Lighthouse audit published from main yet.</p>}
+          <h3 className="ops-subhead">Evaluations</h3>
+          {summary.ci_runs.evals?.length ? <div className="table-wrap"><table className="table-wide">
+            <thead><tr><th>Run</th><th>Mode</th><th>Result</th><th>Rules agreement</th><th>Guideline search recall</th><th>TOON token saving</th></tr></thead>
+            <tbody>{summary.ci_runs.evals.map((run) => <tr key={run.run_url}><td><a href={run.run_url} target="_blank" rel="noopener noreferrer">{when(run.created_at)}</a></td><td>{run.summary.mode}</td><td>{run.summary.passed ? 'passed' : 'not passed'}</td><td>{share(run.summary.rules_agreement, 1)} of {run.summary.rules_cases}</td><td>{run.summary.retrieval_recall === null ? '—' : `${share(run.summary.retrieval_recall, 1)} (${run.summary.retrieval_cases} cases)`}</td><td>{run.summary.toon_token_saving === null ? '—' : share(run.summary.toon_token_saving, 1)}</td></tr>)}</tbody>
+          </table></div> : <p className="muted-text">No evaluation published from main yet.</p>}
         </Card>
 
         <p className="card-footnote">Generated {new Date(summary.generated_at).toLocaleString('en-IN')} · refreshes every 30 seconds while this tab is open.</p>

@@ -131,8 +131,15 @@ export interface PortfolioSummary {
 
 export interface OpsSpan { name: string; start_ms: number; duration_ms: number; status: string }
 
+export interface CiRun<T> { created_at: string; git_sha: string; run_url: string; summary: T }
+
 export interface OpsSummary {
   window_hours: number
+  ci_runs: {
+    load?: Array<CiRun<{ users: number; duration: string; requests: number; failures: number; rps: number; p50_ms: number; p95_ms: number; p99_ms: number; submit_p95_ms: number }>>
+    lighthouse?: Array<CiRun<Record<string, { performance: number; accessibility: number; lcp_ms: number; tbt_ms: number; cls: number }>>>
+    evals?: Array<CiRun<{ mode: string; passed: boolean | null; rules_agreement: number; rules_cases: number; retrieval_hit_rate: number | null; retrieval_recall: number | null; retrieval_cases: number | null; toon_token_saving: number | null; sections: Record<string, string> }>>
+  }
   generated_at: string
   process_uptime_s: number
   requests: {
