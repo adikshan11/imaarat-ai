@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.15.2] - 2026-10-06
+
+### Changed
+- The API now runs in Singapore, next to its Postgres database and closer to Indian users, instead of Vercel's default Washington, D.C. region.
+
 ## [2.15.1] - 2026-10-06
 
 ### Fixed
