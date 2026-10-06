@@ -1,15 +1,21 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { fetchHistory, fetchStatus, fetchSubmissionDetail, submitUnderwriting } from '@/api/underwriting'
-import type { BackendHistoryRow, BackendSubmission, DeploymentStatus, SubmissionInput } from '@/types/backend'
+import { fetchHistoryPage, fetchPortfolio, fetchStatus, fetchSubmissionDetail, submitUnderwriting } from '@/api/underwriting'
+import type { BackendHistoryRow, BackendSubmission, DeploymentStatus, HistoryQuery, PortfolioSummary, SubmissionInput } from '@/types/backend'
+
+const PAGE_SIZE = 20
 
 interface RiskContextState {
-  submissions: BackendHistoryRow[]
+  portfolio: PortfolioSummary | null
+  rows: BackendHistoryRow[]
+  total: number
+  query: HistoryQuery
+  setQuery: (update: Partial<HistoryQuery>) => void
   selectedSubmission: BackendSubmission | null
   loading: boolean
   error: string | null
   status: DeploymentStatus | null
-  refresh: () => Promise<void>
+  refresh: () => void
   submit: (input: SubmissionInput, images: File[]) => Promise<BackendSubmission>
   loadDetail: (submissionId: number) => Promise<BackendSubmission>
   applyReview: (updated: BackendSubmission) => void
@@ -18,33 +24,45 @@ interface RiskContextState {
 const RiskContext = createContext<RiskContextState | undefined>(undefined)
 
 export function RiskProvider({ children }: { children: ReactNode }) {
-  const [submissions, setSubmissions] = useState<BackendHistoryRow[]>([])
+  const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null)
+  const [rows, setRows] = useState<BackendHistoryRow[]>([])
+  const [total, setTotal] = useState(0)
+  const [query, setQueryState] = useState<HistoryQuery>({ limit: PAGE_SIZE, offset: 0, decision: 'All', q: '', sort: 'created', direction: 'desc' })
+  const [version, setVersion] = useState(0)
   const [selectedSubmission, setSelectedSubmission] = useState<BackendSubmission | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<DeploymentStatus | null>(null)
 
-  const refresh = async () => {
-    setLoading(true)
-    try {
-      setSubmissions(await fetchHistory())
-      setError(null)
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Unable to load underwriting history')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const setQuery = useCallback((update: Partial<HistoryQuery>) => setQueryState((current) => ({ ...current, offset: 0, ...update })), [])
+  const refresh = useCallback(() => setVersion((current) => current + 1), [])
 
   useEffect(() => {
-    void refresh()
     fetchStatus().then(setStatus).catch(() => setStatus(null))
   }, [])
 
+  useEffect(() => {
+    fetchPortfolio().then(setPortfolio).catch((cause) => setError(cause instanceof Error ? cause.message : 'Unable to load the portfolio'))
+  }, [version])
+
+  useEffect(() => {
+    let current = true
+    fetchHistoryPage(query)
+      .then((page) => {
+        if (!current) return
+        setRows(page.rows)
+        setTotal(page.total)
+        setError(null)
+      })
+      .catch((cause) => { if (current) setError(cause instanceof Error ? cause.message : 'Unable to load underwriting history') })
+      .finally(() => { if (current) setLoading(false) })
+    return () => { current = false }
+  }, [query, version])
+
   const submit = async (input: SubmissionInput, images: File[]) => {
     const result = await submitUnderwriting(input, images)
-    setSubmissions((current) => [result, ...current])
     setSelectedSubmission(result)
+    refresh()
     return result
   }
 
@@ -56,12 +74,17 @@ export function RiskProvider({ children }: { children: ReactNode }) {
 
   const applyReview = (updated: BackendSubmission) => {
     setSelectedSubmission(updated)
-    setSubmissions((current) => current.map((item) => (item.id === updated.id ? { ...item, review_status: updated.review_status, final_decision: updated.final_decision } : item)))
+    setRows((current) => current.map((item) => (item.id === updated.id ? { ...item, review_status: updated.review_status, final_decision: updated.final_decision } : item)))
+    refresh()
   }
 
   return (
     <RiskContext.Provider value={{
-      submissions,
+      portfolio,
+      rows,
+      total,
+      query,
+      setQuery,
       selectedSubmission,
       loading,
       error,

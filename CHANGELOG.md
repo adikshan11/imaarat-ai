@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.16.0] - 2026-10-06
+
+### Changed
+- The portfolio dashboard gets its totals from a new server summary and loads the submissions table one page at a time, with search, decision filter and sorting done on the server. Before, every visit downloaded and decoded every assessment ever made, which the 200-user load test showed as the slowest request.
+
 ## [2.15.3] - 2026-10-06
 
 ### Fixed

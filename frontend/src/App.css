@@ -269,6 +269,7 @@ input::placeholder { color: var(--text-soft); }
 .confidence-low { background: var(--decline-bg); color: var(--decline-fg); }
 .paper-issue { color: var(--decline-fg); font-weight: 700; }
 .print-area { display: none; }
+.table-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 14px; }
 
 @media print {
   @page { size: A4; margin: 12mm; }

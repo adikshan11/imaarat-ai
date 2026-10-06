@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import json
 import math
-from typing import Any
+from typing import Any, Literal
 
-from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,7 +14,7 @@ from contextlib import asynccontextmanager
 
 from app import __version__
 from app.config import DB_PATH, GEMINI_API_KEY, QDRANT_URL
-from app.db import fetch_history, fetch_submission_detail, init_db, is_postgres, record_review, save_submission, seed_demo_database
+from app.db import fetch_submission_detail, history_page, init_db, is_postgres, portfolio_summary, record_review, save_submission, seed_demo_database
 from app.interop import add_a2a, mcp, mcp_app
 from app.observability import ENABLED as TRACING_ENABLED, flush
 from app.schemas import decision_from_score, indicative_product_segment
@@ -42,6 +42,7 @@ app.add_middleware(
     allow_origin_regex=r"^http://(localhost|127\.0\.0\.1):(3000|5173)$",
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Total-Count"],
 )
 
 @app.get("/health")
@@ -422,8 +423,23 @@ def evals() -> dict[str, Any]:
 
 
 @app.get("/underwrite/history")
-def history() -> list[dict[str, Any]]:
-    return fetch_history()
+def history(
+    response: Response,
+    limit: int = Query(default=20, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    decision: str | None = None,
+    q: str | None = Query(default=None, max_length=100),
+    sort: Literal["created", "property", "location", "score", "value"] = "created",
+    direction: Literal["asc", "desc"] = "desc",
+) -> list[dict[str, Any]]:
+    rows, total = history_page(limit, offset, decision, q, sort, direction)
+    response.headers["X-Total-Count"] = str(total)
+    return rows
+
+
+@app.get("/underwrite/portfolio")
+def portfolio() -> dict[str, Any]:
+    return portfolio_summary()
 
 
 @app.get("/underwrite/history/{submission_id}")

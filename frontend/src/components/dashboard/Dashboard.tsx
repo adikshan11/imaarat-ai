@@ -1,66 +1,28 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Card from '@/components/shared/Card'
 import SelectField from '@/components/shared/SelectField'
 import PortfolioAnalytics from '@/components/dashboard/PortfolioAnalytics'
 import { useRiskContext } from '@/context/RiskContext'
 import { usePreferences } from '@/context/Preferences'
 import { inrShort } from '@/lib/format'
-import type { BackendHistoryRow } from '@/types/backend'
+import type { BackendHistoryRow, HistoryQuery } from '@/types/backend'
 
 const DECISIONS = ['Accept', 'Refer', 'Decline (mitigation possible)', 'Auto-Decline']
+const BANDS: Array<[string, string]> = [['Accept', '0–30'], ['Refer', '31–60'], ['Decline (mitigation possible)', '61–84'], ['Auto-Decline', '85–100']]
 
 export default function Dashboard({ onNew, onView }: { onNew: () => void; onView: (item: BackendHistoryRow) => void }) {
-  const { submissions, loading, error, refresh } = useRiskContext()
+  const { portfolio, rows, total, query, setQuery, loading, error, refresh } = useRiskContext()
   const { t, label } = usePreferences()
-  const [query, setQuery] = useState('')
-  const [decision, setDecision] = useState('All')
-  const [sortKey, setSortKey] = useState<'created' | 'property' | 'location' | 'score' | 'value'>('created')
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  const [search, setSearch] = useState(query.q)
 
-  const filtered = useMemo(() => submissions.filter((item) => {
-    const haystack = `${item.property_id} ${item.raw_input?.address ?? ''} ${item.raw_input?.city ?? ''}`.toLowerCase()
-    return haystack.includes(query.toLowerCase()) && (decision === 'All' || item.decision === decision)
-  }).sort((left, right) => {
-    const direction = sortDirection === 'asc' ? 1 : -1
-    const leftLocation = `${left.raw_input?.city ?? ''} ${left.raw_input?.state ?? ''}`
-    const rightLocation = `${right.raw_input?.city ?? ''} ${right.raw_input?.state ?? ''}`
-    const leftValue = Number(left.total_value_at_risk_inr ?? left.raw_input?.tiv ?? 0)
-    const rightValue = Number(right.total_value_at_risk_inr ?? right.raw_input?.tiv ?? 0)
-    switch (sortKey) {
-      case 'property':
-        return left.property_id.localeCompare(right.property_id) * direction
-      case 'location':
-        return leftLocation.localeCompare(rightLocation) * direction
-      case 'score':
-        return (left.risk_score - right.risk_score) * direction
-      case 'value':
-        return (leftValue - rightValue) * direction
-      default:
-        return (new Date(left.created_at ?? 0).getTime() - new Date(right.created_at ?? 0).getTime()) * direction
-    }
-  }), [submissions, query, decision, sortKey, sortDirection])
+  useEffect(() => {
+    if (search === query.q) return
+    const timer = window.setTimeout(() => setQuery({ q: search }), 300)
+    return () => window.clearTimeout(timer)
+  }, [search, query.q, setQuery])
 
-  const counts = submissions.reduce((acc, item) => {
-    acc[item.decision] = (acc[item.decision] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
-  const average = submissions.length ? Math.round(submissions.reduce((sum, item) => sum + item.risk_score, 0) / submissions.length) : 0
-  const pendingReview = submissions.filter((item) => item.review_status === 'pending_review').length
-  const totalValue = submissions.reduce((sum, item) => sum + Number(item.total_value_at_risk_inr ?? item.raw_input?.tiv ?? 0), 0)
-  const withSprinklers = submissions.filter((item) => String(item.raw_input?.sprinkler_system).toUpperCase() === 'Y').length
-  const withFireAlarm = submissions.filter((item) => item.raw_input?.fire_alarm === true).length
-  const withFloodProtection = submissions.filter((item) => item.raw_input?.flood_protection === true).length
-  const mitigationContribution = submissions.reduce((sum, item) => sum + Number(item.prototype_mitigation_model?.mitigation_benefit ?? 0), 0)
-  const topDrivers = Object.entries(submissions.reduce((acc, item) => {
-    item.risk_flags.forEach((flag) => { acc[flag] = (acc[flag] || 0) + 1 })
-    return acc
-  }, {} as Record<string, number>)).sort(([, left], [, right]) => right - left).slice(0, 5)
-  const bands: Array<[string, string, number]> = [
-    ['Accept', '0–30', submissions.filter((item) => item.risk_score <= 30).length],
-    ['Refer', '31–60', submissions.filter((item) => item.risk_score >= 31 && item.risk_score <= 60).length],
-    ['Decline (mitigation possible)', '61–84', submissions.filter((item) => item.risk_score >= 61 && item.risk_score <= 84).length],
-    ['Auto-Decline', '85–100', submissions.filter((item) => item.risk_score >= 85).length],
-  ]
+  const from = total ? query.offset + 1 : 0
+  const to = Math.min(query.offset + query.limit, total)
 
   return <div>
     <div className="page-subtitle">{t('dash.eyebrow')}</div>
@@ -72,27 +34,27 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
       <button className="btn btn-primary" onClick={onNew}>{t('dash.new')}</button>
     </div>
 
-    {error && <div className="error-banner">{error} <button className="btn btn-secondary" onClick={() => void refresh()}>{t('dash.retry')}</button></div>}
+    {error && <div className="error-banner">{error} <button className="btn btn-secondary" onClick={refresh}>{t('dash.retry')}</button></div>}
     {loading ? <Card><p>{t('dash.loading')}</p></Card> : <>
       <div className="kpi-row">
-        <div className="kpi"><div className="kpi-label">{t('kpi.submissions')}</div><div className="kpi-value">{submissions.length}</div></div>
-        <div className="kpi"><div className="kpi-label">{t('kpi.avg_score')}</div><div className="kpi-value"><bdi dir="ltr">{t('score.of', { score: average })}</bdi></div><div className="kpi-hint">{t('score.hint')}</div></div>
-        <div className="kpi"><div className="kpi-label">{t('kpi.pending')}</div><div className="kpi-value">{pendingReview}</div></div>
-        <div className="kpi"><div className="kpi-label">{t('kpi.sum_insured')}</div><div className="kpi-value"><bdi dir="ltr">{inrShort(totalValue)}</bdi></div></div>
+        <div className="kpi"><div className="kpi-label">{t('kpi.submissions')}</div><div className="kpi-value">{portfolio?.submissions ?? 0}</div></div>
+        <div className="kpi"><div className="kpi-label">{t('kpi.avg_score')}</div><div className="kpi-value"><bdi dir="ltr">{t('score.of', { score: portfolio?.average_score ?? 0 })}</bdi></div><div className="kpi-hint">{t('score.hint')}</div></div>
+        <div className="kpi"><div className="kpi-label">{t('kpi.pending')}</div><div className="kpi-value">{portfolio?.pending_review ?? 0}</div></div>
+        <div className="kpi"><div className="kpi-label">{t('kpi.sum_insured')}</div><div className="kpi-value"><bdi dir="ltr">{inrShort(portfolio?.total_value_inr ?? 0)}</bdi></div></div>
       </div>
 
       <div className="dashboard-grid">
         <Card title={t('card.mitigation')}>
           <div className="risk-stack">
-            <div className="risk-line"><span>{t('mit.sprinklers')}</span><strong>{withSprinklers}</strong></div>
-            <div className="risk-line"><span>{t('mit.fire_alarm')}</span><strong>{withFireAlarm}</strong></div>
-            <div className="risk-line"><span>{t('mit.flood')}</span><strong>{withFloodProtection}</strong></div>
-            <div className="risk-line"><span>{t('mit.benefit')}</span><strong>{mitigationContribution}</strong></div>
+            <div className="risk-line"><span>{t('mit.sprinklers')}</span><strong>{portfolio?.with_sprinklers ?? 0}</strong></div>
+            <div className="risk-line"><span>{t('mit.fire_alarm')}</span><strong>{portfolio?.with_fire_alarm ?? 0}</strong></div>
+            <div className="risk-line"><span>{t('mit.flood')}</span><strong>{portfolio?.with_flood_protection ?? 0}</strong></div>
+            <div className="risk-line"><span>{t('mit.benefit')}</span><strong>{portfolio?.mitigation_benefit ?? 0}</strong></div>
           </div>
         </Card>
         <Card title={t('card.drivers')}>
           <div className="risk-stack">
-            {topDrivers.length ? topDrivers.map(([name, count]) => <div className="risk-line" key={name}><span>{label('flag', name)}</span><strong>{count}</strong></div>) : <p>{t('drivers.none')}</p>}
+            {portfolio?.top_drivers.length ? portfolio.top_drivers.map(([name, count]) => <div className="risk-line" key={name}><span>{label('flag', name)}</span><strong>{count}</strong></div>) : <p>{t('drivers.none')}</p>}
           </div>
           <p className="card-footnote">{t('drivers.note')}</p>
         </Card>
@@ -100,10 +62,10 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
 
       <div className="dashboard-grid">
         <Card title={t('card.decisions')}>
-          <div className="risk-stack">{DECISIONS.map((name) => <div className="risk-line" key={name}><span>{label('decision', name)}</span><strong>{counts[name] || 0}</strong></div>)}</div>
+          <div className="risk-stack">{DECISIONS.map((name) => <div className="risk-line" key={name}><span>{label('decision', name)}</span><strong>{portfolio?.decisions[name] ?? 0}</strong></div>)}</div>
         </Card>
         <Card title={t('card.bands')}>
-          <div className="risk-stack">{bands.map(([name, range, value]) => <div className="risk-line" key={name}><span>{range} · {label('decision', name)}</span><strong>{value}</strong></div>)}</div>
+          <div className="risk-stack">{BANDS.map(([name, range]) => <div className="risk-line" key={name}><span>{range} · {label('decision', name)}</span><strong>{portfolio?.bands[name] ?? 0}</strong></div>)}</div>
         </Card>
       </div>
 
@@ -111,15 +73,15 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
 
       <Card title={t('card.recent')}>
         <div className="table-toolbar">
-          <label className="table-search"><span>{t('table.search')}</span><input placeholder={t('table.search_ph')} value={query} onChange={(event) => setQuery(event.target.value)} /></label>
-          <SelectField className="table-filter" label={t('table.filter')} value={decision} onChange={setDecision} options={[{ value: 'All', label: t('table.all') }, ...DECISIONS.map((name) => ({ value: name, label: label('decision', name) }))]} />
-          <SelectField className="table-filter" label={t('table.sort')} value={sortKey} onChange={(value) => setSortKey(value as typeof sortKey)} options={(['created', 'property', 'location', 'score', 'value'] as const).map((key) => ({ value: key, label: t(`sort.${key}`) }))} />
-          <button className="btn btn-secondary table-sort-button" type="button" onClick={() => setSortDirection((current) => current === 'desc' ? 'asc' : 'desc')} aria-label={t('table.toggle_sort')}>{sortDirection === 'desc' ? '↓' : '↑'}</button>
+          <label className="table-search"><span>{t('table.search')}</span><input placeholder={t('table.search_ph')} value={search} onChange={(event) => setSearch(event.target.value)} /></label>
+          <SelectField className="table-filter" label={t('table.filter')} value={query.decision} onChange={(value) => setQuery({ decision: value })} options={[{ value: 'All', label: t('table.all') }, ...DECISIONS.map((name) => ({ value: name, label: label('decision', name) }))]} />
+          <SelectField className="table-filter" label={t('table.sort')} value={query.sort} onChange={(value) => setQuery({ sort: value as HistoryQuery['sort'] })} options={(['created', 'property', 'location', 'score', 'value'] as const).map((key) => ({ value: key, label: t(`sort.${key}`) }))} />
+          <button className="btn btn-secondary table-sort-button" type="button" onClick={() => setQuery({ direction: query.direction === 'desc' ? 'asc' : 'desc' })} aria-label={t('table.toggle_sort')}>{query.direction === 'desc' ? '↓' : '↑'}</button>
         </div>
         <div className="table-wrap">
           <table className="table-wide">
             <thead><tr><th>{t('col.property')}</th><th>{t('col.location')}</th><th>{t('col.score')}</th><th>{t('col.indicative')}</th><th>{t('col.decision')}</th><th>{t('col.flags')}</th><th><span className="sr-only">{t('table.view')}</span></th></tr></thead>
-            <tbody>{filtered.map((item) => <tr key={`${item.id}-${item.property_id}`}>
+            <tbody>{rows.map((item) => <tr key={`${item.id}-${item.property_id}`}>
               <td><span className="truncate-cell" title={item.property_id}>{item.property_id}</span></td>
               <td>{String(item.raw_input?.city ?? '')}, {String(item.raw_input?.state ?? '')}</td>
               <td><strong>{item.risk_score}</strong></td>
@@ -130,7 +92,12 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
             </tr>)}</tbody>
           </table>
         </div>
-        {filtered.length === 0 && <p className="empty-state">{t(submissions.length ? 'table.no_match' : 'table.empty')}</p>}
+        {rows.length === 0 && <p className="empty-state">{t(portfolio?.submissions ? 'table.no_match' : 'table.empty')}</p>}
+        {total > query.limit && <div className="table-pager">
+          <span className="muted-text">{t('table.range', { from, to, total })}</span>
+          <button className="btn btn-secondary" type="button" disabled={query.offset === 0} onClick={() => setQuery({ offset: Math.max(0, query.offset - query.limit) })}>{t('table.prev')}</button>
+          <button className="btn btn-secondary" type="button" disabled={to >= total} onClick={() => setQuery({ offset: query.offset + query.limit })}>{t('table.next')}</button>
+        </div>}
       </Card>
     </>}
   </div>
