@@ -6,6 +6,7 @@ import csv
 import json
 import os
 import shutil
+from operator import itemgetter
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -259,31 +260,105 @@ def record_review(submission_id: int, final_decision: str, reviewer: str, note: 
         )
 
 
+def history_row(row: Any) -> dict[str, Any]:
+    raw_input = _loads(row.raw_input, {})
+    return {
+        "id": row.id,
+        "property_id": row.property_id,
+        "raw_input": raw_input,
+        "decision": row.decision,
+        "risk_score": row.risk_score,
+        "risk_flags": _flags(row.risk_flags),
+        "risk_breakdown": _loads(row.risk_breakdown, {}),
+        "prototype_mitigation_model": _loads(row.prototype_mitigation_model, {}),
+        "memo_json": _loads(row.memo_json, {}),
+        "record_type": row.record_type,
+        "review_status": row.review_status,
+        "final_decision": row.final_decision or row.decision,
+        "total_value_at_risk_inr": raw_input.get("total_value_at_risk_inr", raw_input.get("tiv")),
+        "created_at": str(row.created_at),
+    }
+
+
 def fetch_history() -> list[dict[str, Any]]:
     with get_engine().connect() as conn:
         rows = conn.execute(select(submissions).order_by(submissions.c.id.desc())).all()
-    results = []
+    return [history_row(row) for row in rows]
+
+
+def insured_value(raw_input: dict[str, Any]) -> float:
+    try:
+        return float(raw_input.get("total_value_at_risk_inr", raw_input.get("tiv")) or 0)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def sort_value(row: Any, raw_input: dict[str, Any], sort: str) -> Any:
+    if sort == "property":
+        return row.property_id
+    if sort == "location":
+        return f"{raw_input.get('city', '')} {raw_input.get('state', '')}"
+    if sort == "score":
+        return row.risk_score or 0
+    if sort == "value":
+        return insured_value(raw_input)
+    return row.id
+
+
+def history_page(limit: int, offset: int, decision: str | None, query: str | None, sort: str, direction: str) -> tuple[list[dict[str, Any]], int]:
+    lean = select(submissions.c.id, submissions.c.property_id, submissions.c.decision, submissions.c.risk_score, submissions.c.raw_input)
+    if decision:
+        lean = lean.where(submissions.c.decision == decision)
+    with get_engine().connect() as conn:
+        rows = [(row, _loads(row.raw_input, {})) for row in conn.execute(lean).all()]
+    if query:
+        needle = query.lower()
+        rows = [(row, raw) for row, raw in rows if needle in f"{row.property_id} {raw.get('address', '')} {raw.get('city', '')}".lower()]
+    ranked = sorted(((sort_value(row, raw, sort), row.id) for row, raw in rows), reverse=direction != "asc")
+    ids = [submission_id for _, submission_id in ranked[offset:offset + limit]]
+    if not ids:
+        return [], len(rows)
+    with get_engine().connect() as conn:
+        full = {row.id: history_row(row) for row in conn.execute(select(submissions).where(submissions.c.id.in_(ids))).all()}
+    return [full[submission_id] for submission_id in ids], len(rows)
+
+
+def portfolio_summary() -> dict[str, Any]:
+    lean = select(submissions.c.decision, submissions.c.risk_score, submissions.c.review_status, submissions.c.risk_flags, submissions.c.raw_input, submissions.c.prototype_mitigation_model)
+    with get_engine().connect() as conn:
+        rows = conn.execute(lean).all()
+    decisions: dict[str, int] = {}
+    drivers: dict[str, int] = {}
+    bands = {"Accept": 0, "Refer": 0, "Decline (mitigation possible)": 0, "Auto-Decline": 0}
+    totals = {"value": 0.0, "sprinklers": 0, "fire_alarm": 0, "flood_protection": 0, "mitigation": 0.0, "pending": 0, "score": 0}
     for row in rows:
         raw_input = _loads(row.raw_input, {})
-        results.append(
-            {
-                "id": row.id,
-                "property_id": row.property_id,
-                "raw_input": raw_input,
-                "decision": row.decision,
-                "risk_score": row.risk_score,
-                "risk_flags": _flags(row.risk_flags),
-                "risk_breakdown": _loads(row.risk_breakdown, {}),
-                "prototype_mitigation_model": _loads(row.prototype_mitigation_model, {}),
-                "memo_json": _loads(row.memo_json, {}),
-                "record_type": row.record_type,
-                "review_status": row.review_status,
-                "final_decision": row.final_decision or row.decision,
-                "total_value_at_risk_inr": raw_input.get("total_value_at_risk_inr", raw_input.get("tiv")),
-                "created_at": str(row.created_at),
-            }
-        )
-    return results
+        score = row.risk_score or 0
+        decisions[row.decision] = decisions.get(row.decision, 0) + 1
+        for flag in _flags(row.risk_flags):
+            drivers[flag] = drivers.get(flag, 0) + 1
+        band = "Accept" if score <= 30 else "Refer" if score <= 60 else "Decline (mitigation possible)" if score <= 84 else "Auto-Decline"
+        bands[band] += 1
+        totals["score"] += score
+        totals["pending"] += row.review_status == "pending_review"
+        totals["value"] += insured_value(raw_input)
+        totals["sprinklers"] += str(raw_input.get("sprinkler_system")).upper() == "Y"
+        totals["fire_alarm"] += raw_input.get("fire_alarm") is True
+        totals["flood_protection"] += raw_input.get("flood_protection") is True
+        totals["mitigation"] += float(_loads(row.prototype_mitigation_model, {}).get("mitigation_benefit") or 0)
+    return {
+        "submissions": len(rows),
+        "average_score": round(totals["score"] / len(rows)) if rows else 0,
+        "pending_review": totals["pending"],
+        "total_value_inr": totals["value"],
+        "with_sprinklers": totals["sprinklers"],
+        "with_fire_alarm": totals["fire_alarm"],
+        "with_flood_protection": totals["flood_protection"],
+        "mitigation_benefit": totals["mitigation"],
+        "decisions": decisions,
+        "bands": bands,
+        "top_drivers": sorted(drivers.items(), key=itemgetter(1), reverse=True)[:5],
+    }
 
 
 def fetch_submission_detail(submission_id: int) -> dict[str, Any] | None:

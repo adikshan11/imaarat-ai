@@ -1,4 +1,4 @@
-import type { AnalyticsSnapshot, BackendHistoryRow, BackendSubmission, DeploymentStatus, EvalReport, FormReading, MitigationPreview, ReviewInput, SubmissionInput } from '@/types/backend'
+import type { AnalyticsSnapshot, BackendHistoryRow, BackendSubmission, DeploymentStatus, EvalReport, FormReading, HistoryQuery, MitigationPreview, PortfolioSummary, ReviewInput, SubmissionInput } from '@/types/backend'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 
@@ -11,8 +11,17 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return body as T
 }
 
-export async function fetchHistory(): Promise<BackendHistoryRow[]> {
-  return parseResponse<BackendHistoryRow[]>(await fetch(`${API_BASE_URL}/underwrite/history`))
+export async function fetchHistoryPage(query: HistoryQuery): Promise<{ rows: BackendHistoryRow[]; total: number }> {
+  const params = new URLSearchParams({ limit: String(query.limit), offset: String(query.offset), sort: query.sort, direction: query.direction })
+  if (query.decision !== 'All') params.set('decision', query.decision)
+  if (query.q) params.set('q', query.q)
+  const response = await fetch(`${API_BASE_URL}/underwrite/history?${params}`)
+  const rows = await parseResponse<BackendHistoryRow[]>(response)
+  return { rows, total: Number(response.headers.get('X-Total-Count') ?? rows.length) }
+}
+
+export async function fetchPortfolio(): Promise<PortfolioSummary> {
+  return parseResponse<PortfolioSummary>(await fetch(`${API_BASE_URL}/underwrite/portfolio`))
 }
 
 export async function fetchSubmissionDetail(submissionId: number): Promise<BackendSubmission> {

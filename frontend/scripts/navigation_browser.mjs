@@ -20,10 +20,12 @@ export async function verifyCompletion(page) {
           window.navigationMock.started = true
           await new Promise(resolve => { window.navigationMock.release = resolve })
           window.navigationMock.started = false
+          window.navigationMock.saved = true
           return Response.json(result)
         }
         if (path.endsWith('/history/901')) return Response.json(history)
-        if (path.endsWith('/history')) return Response.json([])
+        if (path.endsWith('/history')) return Response.json(window.navigationMock.saved ? [result] : [])
+        if (path.endsWith('/portfolio')) return Response.json({ submissions: 0, average_score: 0, pending_review: 0, total_value_inr: 0, with_sprinklers: 0, with_fire_alarm: 0, with_flood_protection: 0, mitigation_benefit: 0, decisions: {}, bands: {}, top_drivers: [] })
         if (path.endsWith('/preview')) return Response.json({})
         return original(input, options)
       }

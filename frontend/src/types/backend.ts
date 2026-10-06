@@ -106,6 +106,29 @@ export type BackendHistoryRow = Pick<
   | 'created_at'
 >
 
+export interface HistoryQuery {
+  limit: number
+  offset: number
+  decision: string
+  q: string
+  sort: 'created' | 'property' | 'location' | 'score' | 'value'
+  direction: 'asc' | 'desc'
+}
+
+export interface PortfolioSummary {
+  submissions: number
+  average_score: number
+  pending_review: number
+  total_value_inr: number
+  with_sprinklers: number
+  with_fire_alarm: number
+  with_flood_protection: number
+  mitigation_benefit: number
+  decisions: Record<string, number>
+  bands: Record<string, number>
+  top_drivers: Array<[string, number]>
+}
+
 export interface DeploymentStatus { version: string; ai: boolean; vector_store: string; tracing: boolean; persistent_storage: boolean }
 
 export interface FieldReading {

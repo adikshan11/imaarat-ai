@@ -57,7 +57,11 @@ class Underwriter(HttpUser):
 
     @task(2)
     def history(self):
-        self.client.get("/underwrite/history")
+        self.client.get("/underwrite/history", params={"limit": 20, "sort": random.choice(["created", "score", "value"])}, name="/underwrite/history")
+
+    @task(2)
+    def portfolio(self):
+        self.client.get("/underwrite/portfolio")
 
     @task(2)
     def status(self):
