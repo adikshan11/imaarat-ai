@@ -11,6 +11,7 @@ from langgraph.types import Command, interrupt
 from app.agents.state import UWState
 from app.db import database_url, is_postgres
 from app.observability import publish_trace, traced
+from app.telemetry import current_spans, record_trace, timed
 from app.schemas import decision_from_score
 from app.tools.comparables import comparable_lookup
 from app.tools.rag_lookup import format_hit, retrieve
@@ -21,10 +22,12 @@ from app.tools.vision_extract import extract_property_features
 REVIEW_DECISIONS = ("Accept", "Refer", "Decline (mitigation possible)", "Auto-Decline")
 
 
+@timed("intake")
 def intake_node(state: UWState) -> dict:
     return {"property_id": str(state["raw_input"].get("property_id", ""))}
 
 
+@timed("photo review")
 def extract_features_node(state: UWState) -> dict:
     return {"extracted_features": verify_location(extract_property_features(state.get("image_path"), state["raw_input"], state.get("ai_note")))}
 
@@ -43,11 +46,13 @@ def retrieval_query(raw: dict) -> str:
     return ", ".join(part for part in parts if part)
 
 
+@timed("guideline search")
 def rag_guidelines_node(state: UWState) -> dict:
     hits = retrieve(retrieval_query(state["raw_input"]), k=4, ai_note=state.get("ai_note"))
     return {"guideline_hits": hits, "guideline_chunks": [format_hit(hit) for hit in hits]}
 
 
+@timed("risk rules")
 def score_risk_node(state: UWState) -> dict:
     score_data = risk_score_calculator(state.get("extracted_features") or state["raw_input"])
     return {
@@ -58,15 +63,18 @@ def score_risk_node(state: UWState) -> dict:
     }
 
 
+@timed("comparables")
 def fetch_comparables_node(state: UWState) -> dict:
     return {"comparables": comparable_lookup(state.get("extracted_features") or state["raw_input"], k=5)}
 
 
+@timed("decision")
 def decide_node(state: UWState) -> dict:
     # Deterministic authority: Python rules set the decision; AI only explains.
     return {"decision": decision_from_score(state["risk_score"])}
 
 
+@timed("AI memo")
 def generate_report_node(state: UWState) -> dict:
     from app.agents.report_agent import generate_memo
 
@@ -82,6 +90,7 @@ def generate_report_node(state: UWState) -> dict:
     }
 
 
+@timed("review gate")
 def human_review_node(state: UWState) -> dict:
     """Referrals pause here until an underwriter approves or overrides the deterministic decision."""
     if state["decision"] != "Refer":
@@ -189,7 +198,13 @@ def run_graph(raw_input: dict, image_path: str | None = None, thread_id: str | N
     """Run the pipeline; a referral returns with review_status 'pending_review' and its thread_id."""
     thread_id = thread_id or f"uw-{uuid4().hex}"
     config = {"configurable": {"thread_id": thread_id}}
-    result = graph().invoke(initial_state(raw_input, image_path, ai_note), config=config)
+    collected: list[dict[str, Any]] = []
+    token = current_spans.set(collected)
+    try:
+        result = graph().invoke(initial_state(raw_input, image_path, ai_note), config=config)
+    finally:
+        current_spans.reset(token)
+    record_trace(thread_id, collected, result.get("ai_memo_status"), result.get("decision"))
     state = {key: value for key, value in result.items() if key != "__interrupt__"}
     state["thread_id"] = thread_id
     state["trace_url"] = publish_trace()

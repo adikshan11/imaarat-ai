@@ -11,7 +11,7 @@ from google import genai
 from google.genai import types
 from pydantic import BaseModel
 
-from app import budget, config
+from app import budget, config, telemetry
 from app.observability import record_generation
 
 RETRYABLE = {429, 500, 503}
@@ -44,10 +44,12 @@ def budgeted(stage: str, call: Any, **arguments: Any) -> tuple[Any, int, int]:
         except Exception as error:
             code = getattr(error, "code", None)
             budget.finish_call(call_id, "failed", latency_ms=round((time.perf_counter() - started) * 1000))
+            telemetry.add_span(f"Gemini {stage}", started, time.perf_counter(), f"error {code}" if code else "error")
             if code not in RETRYABLE or attempt == config.GEMINI_ATTEMPTS:
                 raise
             time.sleep(2 ** attempt)
             continue
+        telemetry.add_span(f"Gemini {stage}", started, time.perf_counter(), "ok")
         return response, call_id, round((time.perf_counter() - started) * 1000)
 
 
