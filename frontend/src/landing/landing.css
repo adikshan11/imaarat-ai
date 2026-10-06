@@ -1,0 +1,43 @@
+@import "tailwindcss" source(".");
+
+@font-face {
+  font-family: Inter;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-5.3.0-latin.woff2') format('woff2');
+}
+
+@theme {
+  --font-sans: Inter, ui-sans-serif, system-ui, 'Segoe UI', Roboto, sans-serif;
+  --color-forest-950: #062a20;
+  --color-forest-900: #0d4838;
+  --color-forest-800: #135a46;
+  --color-forest-700: #1b6e56;
+  --color-mint-300: #8fd9b6;
+  --color-mint-100: #dff5ea;
+  --color-mint-50: #f1faf5;
+  --color-sand-50: #faf8f3;
+  --color-ink: #10231c;
+  --color-muted: #4b5f57;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-sand-50 text-ink font-sans antialiased;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-mint-300);
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
