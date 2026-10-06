@@ -68,6 +68,12 @@ def token_count(usage: Any, field: str) -> int | None:
     return value if isinstance(value, int) else None
 
 
+def billed_output(usage: Any) -> int | None:
+    answer = token_count(usage, "candidates_token_count")
+    thoughts = token_count(usage, "thoughts_token_count") or 0
+    return None if answer is None else answer + thoughts
+
+
 def generate(name: str, contents: Any, schema: type[BaseModel] | None = None, system: str | None = None) -> dict[str, Any]:
     """Call the configured Gemini model once (with budgeted retries) and return text, tokens and latency."""
     model = config.GEMINI_MODEL_NAME
@@ -77,6 +83,7 @@ def generate(name: str, contents: Any, schema: type[BaseModel] | None = None, sy
         max_output_tokens=config.AI_STAGE_OUTPUT_TOKENS,
         response_mime_type="application/json" if schema else None,
         response_schema=schema,
+        thinking_config=types.ThinkingConfig(thinking_level=config.STAGE_THINKING[name]) if name in config.STAGE_THINKING else None,
     )
     gemini = client()
     response, call_id, latency_ms = budgeted(name, gemini.models.generate_content, model=model, contents=contents, config=generation_config)
@@ -85,7 +92,8 @@ def generate(name: str, contents: Any, schema: type[BaseModel] | None = None, sy
         "text": getattr(response, "text", None) or "",
         "model": model,
         "input_tokens": token_count(usage, "prompt_token_count"),
-        "output_tokens": token_count(usage, "candidates_token_count"),
+        "output_tokens": billed_output(usage),
+        "thought_tokens": token_count(usage, "thoughts_token_count"),
         "latency_ms": latency_ms,
     }
     budget.finish_call(call_id, "succeeded", model, result["input_tokens"], result["output_tokens"], latency_ms)

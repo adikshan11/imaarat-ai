@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.21.0] - 2026-10-06
+
+### Changed
+- Paper-form reading and property-photo review now ask Gemini for low thinking, which Google recommends for extraction tasks and which cuts latency and billed output; the AI memo keeps the model's default thinking until an evaluation shows low thinking keeps its quality.
+- The AI usage ledger now counts thinking tokens as output, because Google bills them as output, so token and cost figures are no longer understated.
+
 ## [2.20.0] - 2026-10-06
 
 ### Added
