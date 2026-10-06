@@ -2,6 +2,13 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.24.0] - 2026-10-07
+
+### Changed
+- The AI budget now matches Google's free-tier limits for gemini-3.8-flash, read from AI Studio: at most 20 text or image generations a day and 5 a minute, with every retry counted. Embeddings and token counts keep their own larger limits. When the minute limit is reached, the result says to try again in a minute; when the daily limit is reached, it says the free allowance is used. Daily assessments drop to 15 (3 per visitor) and each call is tried at most twice, so assessments leave room for retries and photo or form reading.
+- The evaluation scores AI risk summaries in TOON only, the format the app uses, which halves its Gemini calls. The token comparison with JSON stays.
+- The form benchmark reads one form per language with Gemini (7 forms, 13 seconds apart) so it fits the free tier.
+
 ## [2.23.1] - 2026-10-06
 
 ### Fixed

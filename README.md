@@ -68,10 +68,10 @@ flowchart LR
 
 Every AI call is paid for from a daily budget before it is made, so a public demo cannot exhaust the Gemini quota or run up a bill.
 
-- **Admission:** each assessment, paper-form reading, A2A request or MCP guideline search takes one slot from a global daily cap (`AI_DAILY_ADMISSIONS`, default 40) and from a per-visitor cap (`AI_CLIENT_DAILY_ADMISSIONS`, default 5), both or neither. Visitors are counted by a daily-rotating hash of their address, never the address itself.
-- **Calls:** every Gemini attempt (generation, vision, embedding, token counting), including each retry, takes one call from `AI_DAILY_CALLS` (default 200). Output is capped at `AI_STAGE_OUTPUT_TOKENS` (default 2048) per call.
+- **Admission:** each assessment, paper-form reading, A2A request or MCP guideline search takes one slot from a global daily cap (`AI_DAILY_ADMISSIONS`, default 15) and from a per-visitor cap (`AI_CLIENT_DAILY_ADMISSIONS`, default 3), both or neither. Visitors are counted by a daily-rotating hash of their address, never the address itself.
+- **Calls:** every Gemini attempt (generation, vision, embedding, token counting), including each retry, takes one call from `AI_DAILY_CALLS` (default 200). Text and image generations also count against Google's free-tier limits for gemini-3.8-flash: `AI_DAILY_GENERATIONS` (default 20) and `AI_MINUTE_GENERATIONS` (default 5). Embeddings and token counts have their own, larger Google limits and skip these two. Output is capped at `AI_STAGE_OUTPUT_TOKENS` (default 2048) per call.
 - **Atomic:** a reservation is a single `UPDATE … SET used = used + n WHERE used + n <= cap`, so concurrent servers can never overspend; CI proves it with 20 parallel requests against a cap of 5 on real Postgres.
-- **One model, honest failure:** a call uses only the configured model and retries only 429/500/503 errors, at most three attempts. There is no fallback model.
+- **One model, honest failure:** a call uses only the configured model and retries only 429/500/503 errors, at most two attempts, and never retries a daily-quota 429. There is no fallback model.
 - **Fail closed:** on Vercel the AI runs only when the budget lives in Postgres (`DATABASE_URL`), because per-instance SQLite counters are not a global limit. When the budget is spent, AI stages are skipped and the result says why and when the budget resets.
 - **Resets** at midnight Pacific time, when Google's daily quotas reset. `/api/status` shows what is left; the `ai_usage` table records each call's stage, model, tokens, latency and outcome.
 

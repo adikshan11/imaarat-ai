@@ -16,6 +16,7 @@ from app import config
 from app.db import get_engine, is_postgres, metadata
 
 PACIFIC = ZoneInfo("America/Los_Angeles")
+UNCAPPED_STAGES = {"embed", "count_tokens"}
 _ready_engines: set[str] = set()
 
 counters = Table(
@@ -43,7 +44,7 @@ usage = Table(
 
 class BudgetExceeded(Exception):
     def __init__(self, scope: str, retry_after: int):
-        super().__init__(f"daily AI budget reached for {scope}")
+        super().__init__(f"AI budget reached for {scope}")
         self.scope = scope
         self.retry_after = retry_after
 
@@ -53,6 +54,8 @@ def limits() -> dict[str, int]:
         "admissions": config.AI_DAILY_ADMISSIONS,
         "client_admissions": config.AI_CLIENT_DAILY_ADMISSIONS,
         "calls": config.AI_DAILY_CALLS,
+        "generations": config.AI_DAILY_GENERATIONS,
+        "minute_generations": config.AI_MINUTE_GENERATIONS,
     }
 
 
@@ -129,12 +132,18 @@ def admit(address: str | None, now: datetime | None = None) -> None:
 
 
 def reserve_call(stage: str, now: datetime | None = None) -> int:
-    day = budget_day(now)
+    current = now or datetime.now(timezone.utc)
+    day = budget_day(current)
     with engine().begin() as connection:
+        if stage not in UNCAPPED_STAGES:
+            if not _reserve(connection, day, f"minute:{current.astimezone(timezone.utc):%H:%M}", 1, limits()["minute_generations"]):
+                raise BudgetExceeded("this minute", 60 - current.second)
+            if not _reserve(connection, day, "generations", 1, limits()["generations"]):
+                raise BudgetExceeded("AI generations", seconds_until_reset(current))
         if not _reserve(connection, day, "calls", 1, limits()["calls"]):
-            raise BudgetExceeded("AI calls", seconds_until_reset(now))
+            raise BudgetExceeded("AI calls", seconds_until_reset(current))
         return connection.execute(
-            usage.insert().values(day=day, stage=stage, status="reserved", created_at=now or datetime.now(timezone.utc))
+            usage.insert().values(day=day, stage=stage, status="reserved", created_at=current)
         ).inserted_primary_key[0]
 
 
@@ -150,7 +159,7 @@ def finish_call(call_id: int, status: str, model: str | None = None, input_token
 def remaining(now: datetime | None = None) -> dict[str, Any]:
     day = budget_day(now)
     with engine().connect() as connection:
-        used = dict(connection.execute(select(counters.c.scope, counters.c.used).where(counters.c.day == day, counters.c.scope.in_(["admissions", "calls"]))).all())
+        used = dict(connection.execute(select(counters.c.scope, counters.c.used).where(counters.c.day == day, counters.c.scope.in_(["admissions", "calls", "generations"]))).all())
         tokens = connection.execute(
             select(func.coalesce(func.sum(usage.c.input_tokens), 0), func.coalesce(func.sum(usage.c.output_tokens), 0)).where(usage.c.day == day)
         ).one()
@@ -160,6 +169,7 @@ def remaining(now: datetime | None = None) -> dict[str, Any]:
         "resets_in_seconds": seconds_until_reset(now),
         "admissions_left": max(0, caps["admissions"] - used.get("admissions", 0)),
         "calls_left": max(0, caps["calls"] - used.get("calls", 0)),
+        "generations_left": max(0, caps["generations"] - used.get("generations", 0)),
         "per_visitor_admissions": caps["client_admissions"],
         "tokens_today": {"input": int(tokens[0]), "output": int(tokens[1])},
         "shared_store": shared_store(),
