@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.26.1] - 2026-10-07
+
+### Changed
+- The weekly Lighthouse audit now checks the app at /app/ as well as the landing page, on mobile and desktop, and the status page lists the app's results separately.
+
 ## [2.26.0] - 2026-10-07
 
 ### Added
