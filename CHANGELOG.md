@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.17.0] - 2026-10-06
+
+### Added
+- Operational telemetry in the app database: every API request (route template, status, latency, cold start, error type), every assessment as a trace, and every workflow step and Gemini call as a timed span. No inputs, PIN codes, addresses or error messages are stored, rows older than 14 days are pruned, and a telemetry failure never fails a request.
+- An aggregated summary endpoint for the coming status page: traffic and errors over time, latency percentiles per route, AI calls, tokens and latency per stage, memo outcomes, and the step-by-step timing of recent assessments.
+
 ## [2.16.0] - 2026-10-06
 
 ### Changed

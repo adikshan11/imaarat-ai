@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import time
 from typing import Any, Literal
 
 from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile
@@ -18,7 +19,7 @@ from app.db import fetch_submission_detail, history_page, init_db, is_postgres, 
 from app.interop import add_a2a, mcp, mcp_app
 from app.observability import ENABLED as TRACING_ENABLED, flush
 from app.schemas import decision_from_score, indicative_product_segment
-from app import budget
+from app import budget, telemetry
 from app.reports import build_submission_pdf
 from app.tools.form_reader import read_form
 from app.tools.hazard_lookup import lookup as hazard_lookup, sources as hazard_sources, verify_location
@@ -33,6 +34,23 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="imaarat.ai", lifespan=lifespan)
+
+
+@app.middleware("http")
+async def record_requests(request: Request, call_next: Any) -> Any:
+    started = time.perf_counter()
+    status, error_type = 500, None
+    try:
+        response = await call_next(request)
+        status = response.status_code
+        return response
+    except Exception as error:
+        error_type = type(error).__name__
+        raise
+    finally:
+        route = getattr(request.scope.get("route"), "path", None) or "unmatched"
+        if route not in ("/health", "/ops/summary"):
+            await run_in_threadpool(telemetry.record_request, route, request.method, status, round((time.perf_counter() - started) * 1000), error_type)
 app.mount("/mcp", mcp_app())
 add_a2a(app)
 
@@ -435,6 +453,11 @@ def history(
     rows, total = history_page(limit, offset, decision, q, sort, direction)
     response.headers["X-Total-Count"] = str(total)
     return rows
+
+
+@app.get("/ops/summary")
+def ops_summary(hours: int = Query(default=24, ge=1, le=336)) -> dict[str, Any]:
+    return telemetry.summary(hours)
 
 
 @app.get("/underwrite/portfolio")
