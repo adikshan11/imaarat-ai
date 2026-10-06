@@ -438,6 +438,7 @@
   "paper.model_note": "Read by {model}. Handwriting accuracy has not been measured yet, so every value needs a human check.",
   "paper.prefilled": "These values came from a paper form. Check every field, then assess.",
   "nav.how": "How it works",
+  "nav.status": "Status",
   "how.eyebrow": "How it works",
   "how.title": "From property details to a review-ready assessment",
   "how.lead": "Understand the risks, see the evidence and know what needs a closer look. AI helps read and explain information when enabled; the assessment follows fixed rules, not AI judgment.",

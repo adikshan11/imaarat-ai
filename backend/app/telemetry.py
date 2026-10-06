@@ -189,6 +189,16 @@ def bucket(moment: datetime, hours: int) -> str:
     return moment.strftime("%Y-%m-%d")
 
 
+def buckets(since: datetime, hours: int) -> list[str]:
+    step = timedelta(hours=1) if hours <= 48 else timedelta(days=1)
+    moment = since.replace(minute=0, second=0, microsecond=0) if hours <= 48 else since.replace(hour=0, minute=0, second=0, microsecond=0)
+    keys = []
+    while moment <= datetime.now(timezone.utc):
+        keys.append(bucket(moment, hours))
+        moment += step
+    return keys
+
+
 def summary(hours: int) -> dict[str, Any]:
     from app import budget
 
@@ -258,7 +268,7 @@ def summary(hours: int) -> dict[str, Any]:
             "server_errors": sum(row.status >= 500 for row in request_rows),
             "client_errors": sum(400 <= row.status < 500 for row in request_rows),
             "cold_starts": sum(bool(row.cold_start) for row in request_rows),
-            "timeline": [{"bucket": key, **value} for key, value in sorted(timeline.items())],
+            "timeline": [{"bucket": key, **timeline.get(key, {"requests": 0, "client_errors": 0, "server_errors": 0})} for key in buckets(since, hours)],
             "routes": sorted(({
                 "route": route,
                 "count": len(rows),
@@ -272,7 +282,7 @@ def summary(hours: int) -> dict[str, Any]:
         "ai": {
             "budget": budget.remaining(),
             "stages": {name: {**{key: value for key, value in stage.items() if key != "latencies"}, "p50_ms": percentile(stage["latencies"], 0.5), "p95_ms": percentile(stage["latencies"], 0.95)} for name, stage in stages.items()},
-            "timeline": [{"bucket": key, **value} for key, value in sorted(ai_timeline.items())],
+            "timeline": [{"bucket": key, **ai_timeline.get(key, {"calls": 0, "failed": 0, "tokens": 0})} for key in buckets(since, hours)],
             "memo_outcomes": memo_outcomes,
         },
         "assessments": {
