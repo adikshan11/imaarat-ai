@@ -24,9 +24,9 @@ def report_metadata() -> dict:
         "faithfulness_threshold": 0.7,
         "faithfulness_denominator": "Completed judge scores on contract-valid memos; exclude failed executions, include below-threshold scores",
         "max_memo_cases": 2,
-        "max_memo_generations": 4,
+        "max_memo_generations": 2,
         "memo_denominator": "Planned case-format slots include preparation and judge setup failures; generation attempts count calls begun, including failed generation calls.",
-        "generation_budget_note": "At most four memo generation requests, with generation retries and fallback disabled for this bounded run. Embedding, token counting and judge subcalls are additional requests.",
+        "generation_budget_note": "At most two memo generation requests, in TOON (the production prompt format), with generation retries and fallback disabled for this bounded run. Embedding, token counting and judge subcalls are additional requests.",
     }
 
 

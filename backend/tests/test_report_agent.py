@@ -46,7 +46,7 @@ def test_generate_memo_exposes_resource_exhausted_failure(monkeypatch):
     assert state["memo_json"] == {}
     models = [call.kwargs["model"] for call in client.models.generate_content.call_args_list]
     assert models == [llm.config.GEMINI_MODEL_NAME] * llm.config.GEMINI_ATTEMPTS
-    assert slept == [2, 4]
+    assert slept == [2 ** attempt for attempt in range(1, llm.config.GEMINI_ATTEMPTS)]
 
 
 def test_daily_quota_is_not_retried_and_says_so(monkeypatch):
@@ -63,6 +63,18 @@ def test_daily_quota_is_not_retried_and_says_so(monkeypatch):
     assert report_agent.generate_memo(state) == {}
     assert client.models.generate_content.call_count == 1 and slept == []
     assert state["ai_memo_reason"].startswith("This demo has used today's free AI allowance")
+
+
+def test_minute_limit_says_try_again_in_a_minute(monkeypatch):
+    def full(stage):
+        raise report_agent.budget.BudgetExceeded("this minute", 30)
+    monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(llm.budget, "reserve_call", full)
+    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: Mock())
+    state = {"property_id": "MINUTE-001", "raw_input": {"city": "Pune"}, "risk_score": 0, "risk_flags": [], "decision": "Accept", "rationale": "x"}
+
+    assert report_agent.generate_memo(state) == {}
+    assert state["ai_memo_reason"].startswith("This demo's AI is at its per-minute limit")
 
 
 def _valid_state():

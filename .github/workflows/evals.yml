@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       memo_cases:
-        description: Generated memos per prompt format
+        description: AI risk summaries to generate and judge (TOON prompts)
         type: choice
         options: ["1", "2"]
         default: "2"

@@ -100,7 +100,7 @@ def read_qwen(image: bytes, lang: str) -> dict:
 
 
 READERS = {"gemini": read_gemini, "sarvam": read_sarvam, "qwen": read_qwen}
-SPACING = {"gemini": 4, "sarvam": 7, "qwen": 2}
+SPACING = {"gemini": 13, "sarvam": 7, "qwen": 2}
 
 
 def main() -> int:
@@ -112,6 +112,8 @@ def main() -> int:
     tokens_before = budget.remaining()["tokens_today"]
     for provider in providers:
         for case in cases:
+            if provider == "gemini" and not os.getenv("GEMINI_ALL_FORMS") and not case["id"].endswith("-1"):
+                continue
             truth = checked(case["values"])
             started = time.perf_counter()
             try:
@@ -160,7 +162,8 @@ def summarise(rows: list[dict], providers: list[str], extra: dict) -> dict:
 def markdown(summary: dict, rows: list[dict]) -> str:
     providers = list(summary["providers"])
     lines = [f"## Form reading: {summary['forms']} rendered forms x {summary['fields_per_form']} fields", "",
-             "Synthetic handwriting fonts on the app's own printed form, photo-like blur and tilt. Fonts flatter every reader; real handwriting will score lower.", "",
+             "Synthetic handwriting fonts on the app's own printed form, photo-like blur and tilt. Fonts flatter every reader; real handwriting will score lower.",
+             "Gemini reads one form per language (7 forms) to stay within its free tier of 20 requests a day, unless GEMINI_ALL_FORMS is set.", "",
              "| Metric | " + " | ".join(providers) + " |", "|---|" + "---:|" * len(providers)]
     metric_rows = [("Field accuracy", "field_accuracy"), ("Filled but wrong", "filled_but_wrong"), ("Forms fully correct", "forms_fully_correct"),
                    ("Failed forms", "failed_forms"), ("Latency p50 ms", "latency_p50_ms"), ("Latency p95 ms", "latency_p95_ms")]

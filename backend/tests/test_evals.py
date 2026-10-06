@@ -120,7 +120,7 @@ def test_no_key_live(monkeypatch, tmp_path):
     assert report["sections"]["memos"]["reason"] == "missing_api_key"
 
 
-def test_four_generations(monkeypatch):
+def test_toon_generations(monkeypatch):
     monkeypatch.setattr(runner, "faithfulness_judge", lambda: object())
     monkeypatch.setattr(runner, "memo_state", lambda case: {})
     monkeypatch.setattr(runner, "pause", lambda: None)
@@ -134,7 +134,7 @@ def test_four_generations(monkeypatch):
     monkeypatch.setattr(runner, "judge", lambda *args: {"faithfulness": 0.8, "reason": "grounded"})
     previous = config.GEMINI_FALLBACK_MODEL
     report = runner.memos(golden_cases()[:2])
-    assert calls == ["toon", "json", "toon", "json"]
+    assert calls == ["toon", "toon"]
     assert report["passed"] is True
     assert report["toon"]["faithfulness_cases"] == 2
     assert config.GEMINI_FALLBACK_MODEL == previous
@@ -150,7 +150,7 @@ def test_failed_denominator(monkeypatch):
     calls = []
     def measure(*args):
         calls.append(True)
-        if len(calls) > 2:
+        if len(calls) > 1:
             raise RuntimeError("judge unavailable")
         return {"faithfulness": 0.4, "reason": "unsupported"}
     monkeypatch.setattr(runner, "generate_memo", generate)
@@ -200,7 +200,7 @@ def test_retrieval_minimum(monkeypatch):
     assert [row["recall_threshold"] for row in report["rows"]] == [1.0, 0.5]
 
 
-@pytest.mark.parametrize("stage,attempts", [("preparation", 2), ("generation", 4), ("judge", 4), ("judge_setup", 0)])
+@pytest.mark.parametrize("stage,attempts", [("preparation", 1), ("generation", 2), ("judge", 2), ("judge_setup", 0)])
 def test_partial_memos(monkeypatch, tmp_path, stage, attempts):
     monkeypatch.setattr(config, "GEMINI_API_KEY", "offline-test")
     monkeypatch.setattr(runner, "RESULTS", tmp_path)
@@ -238,11 +238,11 @@ def test_partial_memos(monkeypatch, tmp_path, stage, attempts):
     assert report["metadata"]["memo_generations"] == attempts
     assert len(calls) == attempts
     assert report["memos"]["generation_attempts"] == attempts
-    assert len(report["memos"]["rows"]) == 4
+    assert len(report["memos"]["rows"]) == 2
     assert report["memos"]["toon"]["memos"] == 2
     assert report["memos"]["toon"]["faithfulness_cases"] == (0 if stage == "judge_setup" else 1)
     if stage != "judge_setup":
-        assert all(row["passed"] for row in report["memos"]["rows"][:2])
+        assert all(row["passed"] for row in report["memos"]["rows"][:1])
     assert report["memos"]["rows"][-1]["reason"] == f"{stage}_failed: RuntimeError"
     assert "private provider" not in json.dumps(report)
     assert config.PROMPT_FORMAT == previous

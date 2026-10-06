@@ -89,13 +89,33 @@ def test_retries_reserve_budget_and_never_switch_model(store, monkeypatch):
 
     def flaky(model):
         calls.append(model)
-        if len(calls) < 3:
+        if len(calls) < 2:
             raise ApiError(429)
         return "ok"
 
     response, _, _ = llm.budgeted("memo", flaky, model="gemini-test")
-    assert response == "ok" and calls == ["gemini-test"] * 3 and slept == [2, 4]
-    assert budget.remaining()["calls_left"] == 1
+    assert response == "ok" and calls == ["gemini-test"] * 2 and slept == [2]
+    assert budget.remaining()["calls_left"] == 2
+    assert budget.remaining()["generations_left"] == config.AI_DAILY_GENERATIONS - 2
+
+
+def test_generations_follow_google_minute_and_day_limits(store, monkeypatch):
+    monkeypatch.setattr(config, "AI_DAILY_CALLS", 100)
+    monkeypatch.setattr(config, "AI_DAILY_GENERATIONS", 3)
+    monkeypatch.setattr(config, "AI_MINUTE_GENERATIONS", 2)
+    minute = datetime(2026, 10, 7, 10, 0, 15, tzinfo=timezone.utc)
+    budget.reserve_call("memo", minute)
+    budget.reserve_call("vision", minute)
+    with pytest.raises(budget.BudgetExceeded) as busy:
+        budget.reserve_call("memo", minute)
+    assert busy.value.scope == "this minute" and busy.value.retry_after == 45
+    for _ in range(5):
+        budget.reserve_call("embed", minute)
+    budget.reserve_call("memo", datetime(2026, 10, 7, 10, 1, 0, tzinfo=timezone.utc))
+    with pytest.raises(budget.BudgetExceeded) as daily:
+        budget.reserve_call("memo", datetime(2026, 10, 7, 10, 2, 0, tzinfo=timezone.utc))
+    assert daily.value.scope == "AI generations"
+    assert budget.remaining(minute)["generations_left"] == 0
 
 
 def test_client_errors_are_not_retried(store):

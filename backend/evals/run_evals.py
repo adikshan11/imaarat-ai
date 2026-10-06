@@ -136,7 +136,7 @@ def generate_once(state: dict) -> dict:
 
 
 def memos(cases: list[dict]) -> dict:
-    """Compare at most two synthetic cases in both formats, retaining failures."""
+    """Score at most two synthetic cases in the production prompt format, retaining failures."""
     if not 1 <= len(cases) <= 2:
         raise ValueError("Expected one or two memo cases")
     rows = []
@@ -156,7 +156,7 @@ def memos(cases: list[dict]) -> dict:
                     pause()
                 except Exception as error:
                     preparation_reason = f"preparation_failed: {type(error).__name__}"
-            for fmt in ("toon", "json"):
+            for fmt in ("toon",):
                 config.PROMPT_FORMAT = fmt
                 row = {"id": case["id"], "format": fmt, "status": "failed", "passed_contract": False, "passed": False, "generation_attempted": False, "reason": "memo_unavailable"}
                 if preparation_reason is not None:
@@ -208,7 +208,7 @@ def memos(cases: list[dict]) -> dict:
             "avg_latency_ms": mean(row["latency_ms"] for row in completed if row.get("latency_ms") is not None),
         }
 
-    return {"toon": summary("toon"), "json": summary("json"), "generation_attempts": generation_attempts, "passed": bool(rows) and all(row["passed"] for row in rows), "rows": rows}
+    return {"toon": summary("toon"), "generation_attempts": generation_attempts, "passed": bool(rows) and all(row["passed"] for row in rows), "rows": rows}
 
 
 def prompt_tokens(cases: list[dict]) -> dict:
@@ -232,7 +232,7 @@ def markdown(report: dict) -> str:
     lines = [f"# Evaluation results ({report['generated_at']})", "", f"Mode: {report['run_mode']}; status: {report['status']}; AI passed: {report['passed']}", "", f"Configured model: {report['model']}; judge: {report['judge_model']}", ""]
     det = report["deterministic"]
     lines += ["## Deterministic decisions", f"{det['cases']} handcrafted synthetic cases: rule agreement {shown(det['accuracy'], '.0%')}. Not LLM accuracy; not real-property validation.", ""]
-    for name, section in (("retrieval", "## Retrieval (RAG)"), ("prompt_tokens", "## TOON vs JSON: prompt tokens"), ("memos", "## Memos: TOON vs JSON")):
+    for name, section in (("retrieval", "## Retrieval (RAG)"), ("prompt_tokens", "## TOON vs JSON: prompt tokens"), ("memos", "## AI risk summaries (TOON prompts)")):
         lines.append(section)
         data = report.get(name)
         state = report["sections"][name]
@@ -247,11 +247,11 @@ def markdown(report: dict) -> str:
             lines += [f"TOON {data['toon_tokens']:,} vs JSON {data['json_tokens']:,} tokens across {len(data['rows'])} prompts; relative token difference: {shown(data['saving'], '.0%')}", ""]
         else:
             lines += ["| Format | Memos | Contract pass | Faithfulness | Citation precision | Avg input tokens | Avg latency (ms) |", "|---|---|---|---|---|---|---|"]
-            for fmt in ("toon", "json"):
+            for fmt in ("toon",):
                 s = data[fmt]
                 lines.append(f"| {fmt.upper()} | {s['memos']} | {s['contract_pass_rate']:.0%} | {shown(s['faithfulness'], '.2f')} | {shown(s['citation_precision'], '.0%')} | {shown(s['avg_input_tokens'], ',.0f')} | {shown(s['avg_latency_ms'], ',.0f')} |")
             lines.append("")
-            for fmt in ("toon", "json"):
+            for fmt in ("toon",):
                 s = data[fmt]
                 lines.append(f"{fmt}: judge denominator {s['faithfulness_cases']}/{s['memos']} planned case-format slots; generation attempts {s['generation_attempts']}; failed executions {s['failed']}.")
             for row in data["rows"]:

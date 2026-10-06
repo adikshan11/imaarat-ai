@@ -393,6 +393,8 @@ async def read_paper_form(request: Request, image: UploadFile = File(...)) -> di
         raise HTTPException(status_code=429, detail=str(exceeded), headers={"Retry-After": str(exceeded.retry_after)}) from exceeded
     try:
         return await run_in_threadpool(read_form, data, image.content_type)
+    except budget.BudgetExceeded as exceeded:
+        raise HTTPException(status_code=429, detail=str(exceeded), headers={"Retry-After": str(exceeded.retry_after)}) from exceeded
     except Exception as error:
         raise HTTPException(status_code=502, detail=f"The form could not be read: {type(error).__name__}") from error
 
