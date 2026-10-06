@@ -20,7 +20,7 @@ guideline_index = Table(
     "guideline_index",
     metadata,
     Column("version", String(16), primary_key=True),
-    Column("items", Text, nullable=False),
+    Column("vectors", Text, nullable=False),
 )
 
 
@@ -80,7 +80,7 @@ def index_items() -> list[dict]:
     engine = get_engine()
     metadata.create_all(engine, tables=[guideline_index])
     with engine.connect() as connection:
-        stored = connection.execute(select(guideline_index.c.items).where(guideline_index.c.version == version)).scalar()
+        stored = connection.execute(select(guideline_index.c.vectors).where(guideline_index.c.version == version)).scalar()
     if stored:
         items = json.loads(stored)
     else:
@@ -88,7 +88,7 @@ def index_items() -> list[dict]:
         items = [{**section, "vector": vector} for section, vector in zip(sections, vectors)]
         try:
             with engine.begin() as connection:
-                connection.execute(guideline_index.insert().values(version=version, items=json.dumps(items)))
+                connection.execute(guideline_index.insert().values(version=version, vectors=json.dumps(items)))
         except IntegrityError:
             print(f"[rag_lookup] index version {version} was stored by another instance first")
         print(f"[rag_lookup] embedded {len(sections)} guideline sections (version {version})")
