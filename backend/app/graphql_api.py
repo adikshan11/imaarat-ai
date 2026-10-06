@@ -3,6 +3,7 @@
 from enum import Enum
 
 import strawberry
+from strawberry.extensions import MaxAliasesLimiter, MaxTokensLimiter, QueryDepthLimiter
 from starlette.concurrency import run_in_threadpool
 from strawberry.fastapi import GraphQLRouter
 from strawberry.scalars import JSON
@@ -100,5 +101,9 @@ class Query:
         return await run_in_threadpool(fetch_submission_detail, id)
 
 
-schema = strawberry.Schema(query=Query, config=StrawberryConfig(auto_camel_case=False))
+schema = strawberry.Schema(
+    query=Query,
+    config=StrawberryConfig(auto_camel_case=False),
+    extensions=[QueryDepthLimiter(max_depth=4), MaxAliasesLimiter(max_alias_count=2), MaxTokensLimiter(max_token_count=1000)],
+)
 graphql_router = GraphQLRouter(schema)

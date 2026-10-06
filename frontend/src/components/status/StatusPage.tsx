@@ -13,6 +13,10 @@ function ms(value: number | null | undefined) {
   return value >= 1000 ? `${(value / 1000).toFixed(1)} s` : `${value} ms`
 }
 
+function mb(bytes: number) {
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+}
+
 function share(part: number, whole: number) {
   return whole ? `${Math.round((part / whole) * 1000) / 10}%` : '—'
 }
@@ -117,8 +121,9 @@ export default function StatusPage() {
           <div className="kpi"><div className="kpi-label">Version</div><div className="kpi-value">{status?.version ?? '—'}</div><div className="kpi-hint">AI {status?.ai ? 'on' : 'off'} · Langfuse tracing {status?.tracing ? 'on' : 'off'}</div></div>
           <div className="kpi"><div className="kpi-label">Requests</div><div className="kpi-value">{requests.total.toLocaleString('en-IN')}</div><div className="kpi-hint">{share(requests.server_errors, requests.total)} server errors · {requests.cold_starts} cold starts</div></div>
           <div className="kpi"><div className="kpi-label">Assessment time</div><div className="kpi-value">{ms(summary.assessments.p50_ms)}</div><div className="kpi-hint">p50 · p95 {ms(summary.assessments.p95_ms)} · {summary.assessments.total} runs</div></div>
-          <div className="kpi"><div className="kpi-label">AI memo available</div><div className="kpi-value">{share(ai.memo_outcomes.Available ?? 0, memoTotal)}</div><div className="kpi-hint">{ai.budget.admissions_left} AI assessments left today</div></div>
+          <div className="kpi"><div className="kpi-label">AI memo available</div><div className="kpi-value">{share(ai.memo_outcomes.Available ?? 0, memoTotal)}</div><div className="kpi-hint">{ai.budget.admissions_left} AI assessments · {ai.budget.generations_left ?? '—'} Gemini generations left today</div></div>
         </div>
+        {summary.storage && <p className="card-footnote">Database: {mb(summary.storage.database_bytes)} of {mb(summary.storage.limit_bytes)} on Neon's free plan ({share(summary.storage.database_bytes, summary.storage.limit_bytes)}). Largest tables: {summary.storage.tables.slice(0, 4).map((item) => `${item.table} ${mb(item.bytes)}`).join(', ')}.</p>}
 
         <Card title="Traffic">
           <Bars hours={hours} summary={`${requests.total} requests, ${requests.client_errors} client errors, ${requests.server_errors} server errors`} series={[{ name: 'OK', tone: 'ok' }, { name: '4xx', tone: 'warn' }, { name: '5xx', tone: 'error' }]}
