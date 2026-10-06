@@ -11,21 +11,33 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return body as T
 }
 
-export async function fetchHistoryPage(query: HistoryQuery): Promise<{ rows: BackendHistoryRow[]; total: number }> {
-  const params = new URLSearchParams({ limit: String(query.limit), offset: String(query.offset), sort: query.sort, direction: query.direction })
-  if (query.decision !== 'All') params.set('decision', query.decision)
-  if (query.q) params.set('q', query.q)
-  const response = await fetch(`${API_BASE_URL}/underwrite/history?${params}`)
-  const rows = await parseResponse<BackendHistoryRow[]>(response)
-  return { rows, total: Number(response.headers.get('X-Total-Count') ?? rows.length) }
-}
-
 export async function fetchOpsSummary(hours: number): Promise<OpsSummary> {
   return parseResponse<OpsSummary>(await fetch(`${API_BASE_URL}/ops/summary?hours=${hours}`))
 }
 
-export async function fetchPortfolio(): Promise<PortfolioSummary> {
-  return parseResponse<PortfolioSummary>(await fetch(`${API_BASE_URL}/underwrite/portfolio`))
+const HISTORY_FIELDS = 'total rows { id property_id decision final_decision risk_score review_status risk_flags total_value_at_risk_inr created_at raw_input prototype_mitigation_model }'
+const PORTFOLIO_FIELDS = 'submissions average_score pending_review total_value_inr with_sprinklers with_fire_alarm with_flood_protection mitigation_benefit decisions bands top_drivers'
+
+async function graphql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
+  const body = await parseResponse<{ data?: T; errors?: Array<{ message: string }> }>(await fetch(`${API_BASE_URL}/graphql`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables }),
+  }))
+  if (body.errors?.length || !body.data) throw new Error(body.errors?.[0]?.message ?? 'GraphQL request failed')
+  return body.data
+}
+
+const historyVariables = (query: HistoryQuery) => ({ limit: query.limit, offset: query.offset, decision: query.decision === 'All' ? null : query.decision, q: query.q || null, sort: query.sort.toUpperCase(), direction: query.direction.toUpperCase() })
+const HISTORY_ARGS = '$limit: Int!, $offset: Int!, $decision: String, $q: String, $sort: SortKey!, $direction: Direction!'
+const HISTORY_CALL = 'history(limit: $limit, offset: $offset, decision: $decision, q: $q, sort: $sort, direction: $direction)'
+
+export async function fetchDashboard(query: HistoryQuery): Promise<{ portfolio: PortfolioSummary; history: { rows: BackendHistoryRow[]; total: number } }> {
+  return graphql(`query Dashboard(${HISTORY_ARGS}) { portfolio { ${PORTFOLIO_FIELDS} } ${HISTORY_CALL} { ${HISTORY_FIELDS} } }`, historyVariables(query))
+}
+
+export async function fetchHistoryPage(query: HistoryQuery): Promise<{ rows: BackendHistoryRow[]; total: number }> {
+  return (await graphql<{ history: { rows: BackendHistoryRow[]; total: number } }>(`query Page(${HISTORY_ARGS}) { ${HISTORY_CALL} { ${HISTORY_FIELDS} } }`, historyVariables(query))).history
 }
 
 export async function fetchSubmissionDetail(submissionId: number): Promise<BackendSubmission> {

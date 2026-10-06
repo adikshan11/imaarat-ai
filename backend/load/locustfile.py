@@ -64,5 +64,12 @@ class Underwriter(HttpUser):
         self.client.get("/underwrite/portfolio")
 
     @task(2)
+    def dashboard_graphql(self):
+        query = "{ portfolio { submissions average_score } history(limit: 20, sort: SCORE) { total rows { id property_id risk_score } } }"
+        with self.client.post("/graphql", json={"query": query}, name="/graphql dashboard", catch_response=True) as response:
+            if response.status_code == 200 and "errors" in response.json():
+                response.failure(str(response.json()["errors"])[:200])
+
+    @task(2)
     def status(self):
         self.client.get("/status")

@@ -20,6 +20,7 @@ from app.interop import add_a2a, mcp, mcp_app
 from app.observability import ENABLED as TRACING_ENABLED, flush
 from app.schemas import decision_from_score, indicative_product_segment
 from app import budget, telemetry
+from app.graphql_api import graphql_router
 from app.reports import build_submission_pdf
 from app.tools.form_reader import read_form
 from app.tools.hazard_lookup import lookup as hazard_lookup, sources as hazard_sources, verify_location
@@ -52,6 +53,7 @@ async def record_requests(request: Request, call_next: Any) -> Any:
         if route not in ("/health", "/ops/summary"):
             telemetry.record_request(route, request.method, status, round((time.perf_counter() - started) * 1000), error_type)
 app.mount("/mcp", mcp_app())
+app.include_router(graphql_router, prefix="/graphql")
 add_a2a(app)
 
 app.add_middleware(

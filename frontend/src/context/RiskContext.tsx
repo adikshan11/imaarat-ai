@@ -1,6 +1,6 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import { fetchHistoryPage, fetchPortfolio, fetchStatus, fetchSubmissionDetail, submitUnderwriting } from '@/api/underwriting'
+import { fetchDashboard, fetchHistoryPage, fetchStatus, fetchSubmissionDetail, submitUnderwriting } from '@/api/underwriting'
 import type { BackendHistoryRow, BackendSubmission, DeploymentStatus, HistoryQuery, PortfolioSummary, SubmissionInput } from '@/types/backend'
 
 const PAGE_SIZE = 20
@@ -29,6 +29,7 @@ export function RiskProvider({ children }: { children: ReactNode }) {
   const [total, setTotal] = useState(0)
   const [query, setQueryState] = useState<HistoryQuery>({ limit: PAGE_SIZE, offset: 0, decision: 'All', q: '', sort: 'created', direction: 'desc' })
   const [version, setVersion] = useState(0)
+  const loadedVersion = useRef(-1)
   const [selectedSubmission, setSelectedSubmission] = useState<BackendSubmission | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -42,14 +43,18 @@ export function RiskProvider({ children }: { children: ReactNode }) {
   }, [])
 
   useEffect(() => {
-    fetchPortfolio().then(setPortfolio).catch((cause) => setError(cause instanceof Error ? cause.message : 'Unable to load the portfolio'))
-  }, [version])
-
-  useEffect(() => {
     let current = true
-    fetchHistoryPage(query)
+    const withTotals = loadedVersion.current !== version
+    const request = withTotals
+      ? fetchDashboard(query).then(({ portfolio: totals, history }) => {
+        if (current) setPortfolio(totals)
+        return history
+      })
+      : fetchHistoryPage(query)
+    request
       .then((page) => {
         if (!current) return
+        loadedVersion.current = version
         setRows(page.rows)
         setTotal(page.total)
         setError(null)
