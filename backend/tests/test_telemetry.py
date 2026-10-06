@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from app import telemetry
+from app import db, telemetry
 from app.agents.graph import run_graph
 from app.api import main
 
@@ -19,7 +19,9 @@ def test_requests_are_logged_by_route_template_without_inputs():
     assert "600001" not in str(client.get("/ops/summary").json())
 
 
-def test_an_assessment_records_a_trace_with_its_steps():
+def test_an_assessment_records_a_trace_with_its_steps(tmp_path, monkeypatch):
+    monkeypatch.setattr(db, "PROPERTIES_CSV", tmp_path / "missing.csv")
+    db.init_db()
     run_graph({"property_id": "T-1", "construction_type": "Frame", "occupancy_type": "Office", "cat_zone": "None", "tiv": 1000000})
     recent = TestClient(main.app).get("/ops/summary").json()["assessments"]["recent"]
     names = [span["name"] for span in recent[0]["spans"]]
