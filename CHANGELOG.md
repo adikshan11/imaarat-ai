@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.22.2] - 2026-10-06
+
+### Fixed
+- Ticked options on the paper form are no longer thrown away. The form printed options as "Frame (timber)", "Wind / cyclone" or in the chosen language, while the reader accepted only the bare English names, so even a correct reading of construction type, main hazard or a yes/no box could be rejected. The form now prints the English option name next to each local option, the reader is told to answer with those names, and the checks accept the printed wording by matching the longest option name. Found by the form-reading benchmark, where choice fields scored 32 to 37 percent.
+
 ## [2.22.1] - 2026-10-06
 
 ### Changed

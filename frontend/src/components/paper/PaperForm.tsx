@@ -52,11 +52,11 @@ function Box({ label, english, field, cells = 1, tall = false }: { label: string
   )
 }
 
-function Ticks({ label, english, field, options }: { label: string; english?: string; field?: string; options: string[] }) {
+function Ticks({ label, english, field, options }: { label: string; english?: string; field?: string; options: Array<[string, string]> }) {
   return (
     <div className="pf-field" data-field={field}>
       <div className="pf-label">{label}{english && english !== label ? <span className="pf-english"> · {english}</span> : null}</div>
-      <div className="pf-ticks">{options.map((option) => <span key={option}><i />{option}</span>)}</div>
+      <div className="pf-ticks">{options.map(([text, name]) => <span key={name}><i />{text}{english && name.toLowerCase() !== text.toLowerCase() ? <span className="pf-english"> · {name}</span> : null}</span>)}</div>
     </div>
   )
 }
@@ -64,7 +64,7 @@ function Ticks({ label, english, field, options }: { label: string; english?: st
 function PrintableForm() {
   const { t, label, english, language } = usePreferences()
   const both = (key: string) => ({ label: t(key), english: language.code === 'en' ? undefined : english(key), field: key.replace(/^f\./, '') })
-  const yesNo = [t('img.used'), t('img.not_used')]
+  const yesNo: Array<[string, string]> = [[t('img.used'), 'Yes'], [t('img.not_used'), 'No']]
   return (
     <div className="print-area" aria-hidden="true">
       <section className="pf-page">
@@ -74,10 +74,10 @@ function PrintableForm() {
         <Box {...both('f.zip')} cells={6} />
         <Box {...both('f.address')} />
         <div className="pf-row">{TEXT_BOXES.slice(1).map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>
-        <Ticks {...both('f.construction_type')} options={CONSTRUCTION.map((item) => label('opt.con', item))} />
+        <Ticks {...both('f.construction_type')} options={CONSTRUCTION.map((item) => [label('opt.con', item), item])} />
         <div className="pf-row">{NUMBER_BOXES.map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>
-        <Ticks {...both('f.cat_zone')} options={HAZARDS.map((item) => label('opt.cat', item))} />
-        <Ticks {...both('f.seismic_zone')} options={ZONES} />
+        <Ticks {...both('f.cat_zone')} options={HAZARDS.map((item) => [label('opt.cat', item), item])} />
+        <Ticks {...both('f.seismic_zone')} options={ZONES.map((zone) => [zone, zone])} />
         <div className="pf-row">{TICKS.map((key) => <Ticks key={key} {...both(`f.${key}`)} options={yesNo} />)}</div>
         <div className="pf-row pf-row-2">{MONEY_BOXES.map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>
         <p className="pf-small">{t('paper.digits_hint')}</p>
