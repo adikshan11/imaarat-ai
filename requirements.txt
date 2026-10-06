@@ -16,3 +16,4 @@ a2a-sdk==1.2.1
 pypdf==5.4.0
 pillow==12.0.0
 reportlab==4.4.4
+strawberry-graphql==0.331.6

@@ -25,6 +25,12 @@ export async function verifyCompletion(page) {
         }
         if (path.endsWith('/history/901')) return Response.json(history)
         if (path.endsWith('/history')) return Response.json(window.navigationMock.saved ? [result] : [])
+        if (path.endsWith('/graphql')) {
+          const rows = window.navigationMock.saved ? [{ ...result, raw_input: {}, risk_flags: [], prototype_mitigation_model: {} }] : []
+          const query = JSON.parse(options?.body ?? '{}').query ?? ''
+          const portfolio = { submissions: rows.length, average_score: 0, pending_review: 0, total_value_inr: 0, with_sprinklers: 0, with_fire_alarm: 0, with_flood_protection: 0, mitigation_benefit: 0, decisions: {}, bands: {}, top_drivers: [] }
+          return Response.json({ data: { ...(query.includes('portfolio') ? { portfolio } : {}), history: { total: rows.length, rows } } })
+        }
         if (path.endsWith('/portfolio')) return Response.json({ submissions: 0, average_score: 0, pending_review: 0, total_value_inr: 0, with_sprinklers: 0, with_fire_alarm: 0, with_flood_protection: 0, mitigation_benefit: 0, decisions: {}, bands: {}, top_drivers: [] })
         if (path.endsWith('/preview')) return Response.json({})
         return original(input, options)

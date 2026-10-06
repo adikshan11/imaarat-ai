@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.23.0] - 2026-10-06
+
+### Added
+- A read-only GraphQL API at /graphql (Strawberry) with status, PIN-code hazards, portfolio totals, a searchable and sortable page of assessments, and one assessment's full result. Resolvers are asynchronous and run database work off the request loop. Writes such as submitting an assessment or uploading a photo stay on REST.
+- The dashboard loads its totals and first page in one GraphQL request instead of two REST calls, and the load test now exercises that query.
+
 ## [2.22.2] - 2026-10-06
 
 ### Fixed
