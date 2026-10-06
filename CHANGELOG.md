@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.21.1] - 2026-10-06
+
+### Fixed
+- Switching language is now a single, clean change: the new translations and the script font are fetched first and applied in the same frame, instead of the text redrawing in a fallback font and then reflowing (Telugu, Tamil, Hindi and Malayalam went from 3 or 4 visible states to 2). A slow network shows the new language after at most 1.5 seconds.
+- Sidebar menu items keep the same 48-pixel height in every language; long labels wrap to at most two lines inside it instead of making that item taller.
+
 ## [2.21.0] - 2026-10-06
 
 ### Changed
