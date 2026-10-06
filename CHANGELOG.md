@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.15.0] - 2026-10-06
+
+### Added
+- A load test that runs the API against Postgres with simulated underwriters looking up PIN-code hazards, previewing, submitting and browsing history, and reports throughput and response times per endpoint. It runs on demand and on changes to the test itself.
+
 ## [2.14.1] - 2026-10-06
 
 ### Changed
