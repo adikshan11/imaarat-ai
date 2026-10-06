@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import random
 import statistics
@@ -14,7 +15,7 @@ from queue import Empty, SimpleQueue
 from threading import Lock, Thread
 from typing import Any, Callable
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, Table, delete, select
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Table, Text, delete, select
 
 from app.db import get_engine, metadata
 
@@ -65,11 +66,22 @@ spans = Table(
     Column("status", String(20), nullable=False),
 )
 
+runs = Table(
+    "ops_runs",
+    metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("kind", String(20), nullable=False, index=True),
+    Column("created_at", DateTime(timezone=True), nullable=False),
+    Column("git_sha", String(12)),
+    Column("run_url", String(200)),
+    Column("summary", Text, nullable=False),
+)
+
 
 def engine() -> Any:
     current = get_engine()
     if str(current.url) not in _ready_engines:
-        metadata.create_all(current, tables=[requests, traces, spans])
+        metadata.create_all(current, tables=[requests, traces, spans, runs])
         _ready_engines.add(str(current.url))
     return current
 
@@ -213,6 +225,7 @@ def summary(hours: int) -> dict[str, Any]:
             select(traces.c.trace_id, traces.c.created_at, traces.c.total_ms, traces.c.memo_status, traces.c.decision)
             .where(traces.c.created_at >= since).order_by(traces.c.id.desc())
         ).all()
+        run_rows = connection.execute(select(runs.c.kind, runs.c.created_at, runs.c.git_sha, runs.c.run_url, runs.c.summary).order_by(runs.c.id.desc()).limit(60)).all()
         recent = [row.trace_id for row in trace_rows[:8]]
         span_rows = connection.execute(
             select(spans.c.trace_id, spans.c.name, spans.c.start_ms, spans.c.duration_ms, spans.c.status).where(spans.c.trace_id.in_(recent)).order_by(spans.c.id)
@@ -259,8 +272,15 @@ def summary(hours: int) -> dict[str, Any]:
     for row in span_rows:
         waterfall.setdefault(row.trace_id, []).append({"name": row.name, "start_ms": row.start_ms, "duration_ms": row.duration_ms, "status": row.status})
 
+    ci_runs: dict[str, list[dict[str, Any]]] = {}
+    for row in run_rows:
+        history = ci_runs.setdefault(row.kind, [])
+        if len(history) < 10:
+            history.append({"created_at": row.created_at.isoformat() if hasattr(row.created_at, "isoformat") else str(row.created_at), "git_sha": row.git_sha, "run_url": row.run_url, "summary": json.loads(row.summary)})
+
     return {
         "window_hours": hours,
+        "ci_runs": ci_runs,
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "process_uptime_s": round(time.time() - process_started),
         "requests": {

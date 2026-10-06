@@ -66,6 +66,12 @@ jobs:
         run: |
           echo "### $USERS users, $DURATION, AI off, Postgres 17" >> "$GITHUB_STEP_SUMMARY"
           python backend/load/summary.py load_stats.csv >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish to status page
+        if: github.ref == 'refs/heads/main' && steps.load.outcome != 'skipped'
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python -m ops.publish_run load ../load_stats.csv
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:

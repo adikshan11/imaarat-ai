@@ -56,6 +56,11 @@ rect.ops-warn,
 rect.ops-error,
 .ops-legend .ops-error { fill: var(--decline-fg); background: var(--decline-fg); }
 
+.ops-subhead {
+  margin: 18px 0 8px;
+  font-size: 15px;
+}
+
 .ops-trace {
   border-top: 1px solid var(--border);
   padding: 10px 0;
