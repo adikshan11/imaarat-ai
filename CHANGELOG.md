@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.18.0] - 2026-10-06
+
+### Added
+- A public Status & quality page: version and AI state, request volume with 4xx and 5xx errors over time, latency percentiles per route, Gemini calls, failures, latency and tokens per stage, AI memo availability, and a step-by-step timing waterfall for recent assessments. It shows aggregated numbers only, refreshes every 30 seconds while open, covers the last 24 hours or 7 days, and is reachable from the sidebar and from a footer link on every screen size.
+
 ## [2.17.0] - 2026-10-06
 
 ### Added

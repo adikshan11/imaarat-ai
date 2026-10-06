@@ -129,6 +129,35 @@ export interface PortfolioSummary {
   top_drivers: Array<[string, number]>
 }
 
+export interface OpsSpan { name: string; start_ms: number; duration_ms: number; status: string }
+
+export interface OpsSummary {
+  window_hours: number
+  generated_at: string
+  process_uptime_s: number
+  requests: {
+    total: number
+    server_errors: number
+    client_errors: number
+    cold_starts: number
+    timeline: Array<{ bucket: string; requests: number; client_errors: number; server_errors: number }>
+    routes: Array<{ route: string; count: number; error_rate: number; p50_ms: number | null; p95_ms: number | null; p99_ms: number | null }>
+    error_types: Record<string, number>
+  }
+  ai: {
+    budget: { admissions_left: number; calls_left: number; per_visitor_admissions: number; resets_in_seconds: number; tokens_today: { input: number; output: number } }
+    stages: Record<string, { calls: number; succeeded: number; failed: number; input_tokens: number; output_tokens: number; p50_ms: number | null; p95_ms: number | null }>
+    timeline: Array<{ bucket: string; calls: number; failed: number; tokens: number }>
+    memo_outcomes: Record<string, number>
+  }
+  assessments: {
+    total: number
+    p50_ms: number | null
+    p95_ms: number | null
+    recent: Array<{ created_at: string; total_ms: number; memo_status: string | null; decision: string | null; spans: OpsSpan[] }>
+  }
+}
+
 export interface DeploymentStatus { version: string; ai: boolean; vector_store: string; tracing: boolean; persistent_storage: boolean }
 
 export interface FieldReading {

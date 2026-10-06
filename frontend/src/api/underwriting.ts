@@ -1,4 +1,4 @@
-import type { AnalyticsSnapshot, BackendHistoryRow, BackendSubmission, DeploymentStatus, EvalReport, FormReading, HistoryQuery, MitigationPreview, PortfolioSummary, ReviewInput, SubmissionInput } from '@/types/backend'
+import type { AnalyticsSnapshot, BackendHistoryRow, BackendSubmission, DeploymentStatus, EvalReport, FormReading, HistoryQuery, MitigationPreview, OpsSummary, PortfolioSummary, ReviewInput, SubmissionInput } from '@/types/backend'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 
@@ -18,6 +18,10 @@ export async function fetchHistoryPage(query: HistoryQuery): Promise<{ rows: Bac
   const response = await fetch(`${API_BASE_URL}/underwrite/history?${params}`)
   const rows = await parseResponse<BackendHistoryRow[]>(response)
   return { rows, total: Number(response.headers.get('X-Total-Count') ?? rows.length) }
+}
+
+export async function fetchOpsSummary(hours: number): Promise<OpsSummary> {
+  return parseResponse<OpsSummary>(await fetch(`${API_BASE_URL}/ops/summary?hours=${hours}`))
 }
 
 export async function fetchPortfolio(): Promise<PortfolioSummary> {

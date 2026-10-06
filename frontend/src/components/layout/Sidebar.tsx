@@ -35,11 +35,13 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
     { view: 'new', icon: 'plus', text: t('nav.new') },
     { view: 'paper', icon: 'file', text: t('nav.paper') },
     { view: 'how', icon: 'info', text: t('nav.how') },
+    { view: 'status', icon: 'monitor', text: t('nav.status') },
     ...(dev ? [
       { view: 'quality', icon: 'gauge', text: t('nav.quality') },
       { view: 'integrations', icon: 'plug', text: t('nav.integrations') },
     ] : []),
   ]
+  const tabs = items.filter((item) => item.view !== 'status')
   const buttons = () => Array.from(track.current?.querySelectorAll<HTMLButtonElement>('.tab-item') ?? [])
   const reveal = (button?: HTMLButtonElement) => {
     const node = tabbar.current
@@ -88,7 +90,7 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
     const index = navPoint(event.clientX, choices.map((button) => button.getBoundingClientRect()))
     if (current.moved && !cancelled && event.clientY >= bounds.top - 24 && event.clientY <= bounds.bottom + 24 && index >= 0) {
       place(choices[index])
-      onNavigate(items[index].view)
+      onNavigate(tabs[index].view)
     } else place(choices.find((button) => button.dataset.view === activeView))
   }
   const move = (event: PointerEvent<HTMLElement>) => {
@@ -110,14 +112,14 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
     const row = track.current?.getBoundingClientRect()
     if (row) place(choices[index], event.clientX - row.left)
   }
-  const link = (item: typeof items[number], className: string) => {
+  const link = (item: typeof items[number], className: string, list: typeof items) => {
     const caption = className === 'tab-item' && ['dashboard', 'new', 'paper', 'how'].includes(item.view) ? t(`nav.mobile.${item.view}`) : item.text
     return (
     <button key={item.view} data-view={item.view} className={`${className} ${activeView === item.view ? 'active' : ''}`} onClick={(event) => {
       if (className === 'tab-item' && blockClick.current && event.detail !== 0) return
       onNavigate(item.view)
     }} onFocus={(event) => { if (className === 'tab-item') reveal(event.currentTarget) }} onKeyDown={(event) => {
-      const index = navKey(event.key, items.indexOf(item), items.length, Boolean(language.rtl))
+      const index = navKey(event.key, list.indexOf(item), list.length, Boolean(language.rtl))
       if (index === null) return
       event.preventDefault()
       const parent = event.currentTarget.parentElement
@@ -134,7 +136,7 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
       <aside className="sidebar">
         <div className="sidebar-inner">
           <Brand sub={t('brand.sub')} />
-          <nav className="nav" aria-label={t('nav.section')}>{items.map((item) => link(item, 'nav-item'))}</nav>
+          <nav className="nav" aria-label={t('nav.section')}>{items.map((item) => link(item, 'nav-item', items))}</nav>
           <div className="sidebar-footer">
             <Controls />
             <div className="sidebar-tagline">{t(dev ? 'footer.dev' : 'footer.underwriter')}</div>
@@ -153,7 +155,7 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
       }} onPointerMove={move} onPointerUp={(event) => stop(event)} onPointerCancel={(event) => stop(event, true)} onLostPointerCapture={(event) => { if (event.target === event.currentTarget) stop(event, true) }}>
         <div ref={track} className="tab-track">
           <span ref={indicator} className="tab-indicator" aria-hidden="true" />
-          {items.map((item) => link(item, 'tab-item'))}
+          {tabs.map((item) => link(item, 'tab-item', tabs))}
         </div>
       </nav>
     </>

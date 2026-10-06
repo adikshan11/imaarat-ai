@@ -1,0 +1,121 @@
+.ops-page {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
+.ops-window {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ops-chart {
+  margin: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.ops-chart svg {
+  width: 100%;
+  height: 140px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ops-chart-peak,
+.ops-chart figcaption {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.ops-chart figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ops-legend {
+  display: inline-flex;
+  gap: 12px;
+}
+
+.ops-legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 4px;
+  border-radius: 2px;
+  vertical-align: -1px;
+}
+
+rect.ops-ok,
+.ops-legend .ops-ok { fill: var(--brand); background: var(--brand); }
+rect.ops-warn,
+.ops-legend .ops-warn { fill: var(--refer-fg); background: var(--refer-fg); }
+rect.ops-error,
+.ops-legend .ops-error { fill: var(--decline-fg); background: var(--decline-fg); }
+
+.ops-trace {
+  border-top: 1px solid var(--border);
+  padding: 10px 0;
+}
+
+.ops-trace summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  cursor: pointer;
+}
+
+.ops-waterfall {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.ops-span {
+  display: grid;
+  grid-template-columns: minmax(110px, 160px) minmax(0, 1fr) 90px;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.ops-span-track {
+  position: relative;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--track);
+}
+
+.ops-span-bar {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 6px;
+}
+
+.ops-span-bar.ops-ok { background: var(--brand); }
+.ops-span-bar.ops-error { background: var(--decline-fg); }
+
+.ops-span-time {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.ops-span-time em {
+  color: var(--decline-fg);
+  font-style: normal;
+}
+
+@media (max-width: 640px) {
+  .ops-span {
+    grid-template-columns: minmax(0, 1fr) 70px;
+  }
+
+  .ops-span-track {
+    grid-column: 1 / -1;
+    order: 3;
+  }
+}

@@ -10,16 +10,17 @@ const AIQuality = lazy(() => import('@/components/quality/AIQuality'))
 const Integrations = lazy(() => import('@/components/integrations/Integrations'))
 const PaperForm = lazy(() => import('@/components/paper/PaperForm'))
 const HowItWorks = lazy(() => import('@/components/about/HowItWorks'))
+const StatusPage = lazy(() => import('@/components/status/StatusPage'))
 import { RiskProvider, useRiskContext } from '@/context/RiskContext'
 import { PreferencesProvider, usePreferences } from '@/context/Preferences'
 import type { BackendSubmission } from '@/types/backend'
 
-type View = 'dashboard' | 'new' | 'paper' | 'how' | 'result' | 'quality' | 'integrations'
+type View = 'dashboard' | 'new' | 'paper' | 'how' | 'status' | 'result' | 'quality' | 'integrations'
 
 function Application() {
   const [view, setViewState] = useState<View>(() => {
     const hash = window.location.hash.slice(1)
-    return hash === 'quality' || hash === 'integrations' || hash === 'new' || hash === 'paper' || hash === 'how' ? hash : 'dashboard'
+    return hash === 'quality' || hash === 'integrations' || hash === 'new' || hash === 'paper' || hash === 'how' || hash === 'status' ? hash : 'dashboard'
   })
   const [draftOpen, setDraftOpen] = useState(view === 'new')
   const [draftId, setDraftId] = useState(0)
@@ -48,7 +49,7 @@ function Application() {
   const [detailError, setDetailError] = useState<string | null>(null)
   const [prefill, setPrefill] = useState<Record<string, unknown> | null>(null)
   const { loadDetail, applyReview } = useRiskContext()
-  const { dev } = usePreferences()
+  const { dev, t } = usePreferences()
   useEffect(() => {
     if (!dev && (view === 'quality' || view === 'integrations')) setView('dashboard')
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -87,6 +88,7 @@ function Application() {
         }} onCancel={() => { setDraftOpen(false); setPrefill(null); setView('dashboard') }} /></Activity>}
         <Suspense fallback={<div className="page-loading" aria-busy="true" />}>
         {view === 'how' && <HowItWorks />}
+        {view === 'status' && <StatusPage />}
         {view === 'paper' && <PaperForm onUse={startDraft} />}
         {view === 'result' && resultSubmission && <BackendAssessmentResult submission={resultSubmission} onBack={() => setView('dashboard')} onReviewed={(updated) => {
           applyReview(updated)
@@ -96,7 +98,7 @@ function Application() {
         {view === 'quality' && <AIQuality />}
         {view === 'integrations' && <Integrations />}
         </Suspense>
-        <footer className="site-footer">Made with <span className="heart" aria-label="love">♥</span> by <a href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> · © 2026 imaarat.ai</footer>
+        <footer className="site-footer">Made with <span className="heart" aria-label="love">♥</span> by <a href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> · © 2026 imaarat.ai · <a href="#status" onClick={(event) => { event.preventDefault(); setView('status') }}>{t('nav.status')}</a></footer>
       </main>
     </div>
   )

@@ -18,6 +18,8 @@ def test_requests_are_logged_by_route_template_without_inputs():
     routes = client.get("/ops/summary").json()["requests"]["routes"]
     assert routes[0]["route"] == "/hazard/{pincode}" and routes[0]["count"] == 2
     assert "600001" not in str(client.get("/ops/summary").json())
+    assert len(client.get("/ops/summary").json()["requests"]["timeline"]) == 25
+    assert len(client.get("/ops/summary", params={"hours": 168}).json()["ai"]["timeline"]) == 8
 
 
 def test_an_assessment_records_a_trace_with_its_steps(tmp_path, monkeypatch):
