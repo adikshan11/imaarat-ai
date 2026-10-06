@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.22.0] - 2026-10-06
+
+### Added
+- A form-reading benchmark that renders the app's own printed form in seven languages with handwriting fonts and photo-like blur, then compares the app's Gemini reader, Sarvam Extract and Qwen3-VL field by field with the app's own checks, reporting accuracy, wrong-but-filled values, latency and tokens. It runs on demand in GitHub Actions so the API keys stay in GitHub.
+- Printed form fields carry a field name, so tests can fill and read them reliably.
+
 ## [2.21.1] - 2026-10-06
 
 ### Fixed
