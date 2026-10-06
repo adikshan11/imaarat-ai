@@ -35,9 +35,9 @@ QWEN_MODEL = "Qwen/Qwen3-VL-30B-A3B-Instruct:cheapest"
 def instruction(name: str) -> str:
     extra = ""
     if name in form_reader.TICK_FIELDS:
-        extra = " Answer yes if the yes box is ticked, no if the no box is ticked."
+        extra = " Answer yes or no from the English word printed with the ticked box."
     elif name in form_reader.CHOICE_FIELDS:
-        extra = " Give the ticked option."
+        extra = " Give the English option name printed with the ticked box, one of: " + ", ".join(form_reader.CHOICE_FIELDS[name]) + "."
     return f"{LABELS[name]}. Copy exactly what is handwritten; leave empty if blank.{extra}"
 
 

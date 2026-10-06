@@ -69,3 +69,13 @@ def test_letters_in_numbers_are_flagged_not_dropped():
     assert fields["year_built"]["value"] is None and fields["year_built"]["issue"] == "not_a_number"
     assert fields["building_value_inr"]["value"] is None and fields["building_value_inr"]["issue"] == "not_a_number"
     assert fields["stock_inventory_value_inr"]["value"] == 8000000
+
+
+def test_printed_option_wording_maps_to_the_option():
+    assert form_reader.check("construction_type", "Fire resistive (RCC)") == ("Fire Resistive", None)
+    assert form_reader.check("construction_type", "Masonry non-combustible") == ("Masonry Non-Combustible", None)
+    assert form_reader.check("construction_type", "फ्रेम (लकड़ी) · Frame") == ("Frame", None)
+    assert form_reader.check("cat_zone", "Wind / cyclone") == ("Wind", None)
+    assert form_reader.check("seismic_zone", "III") == ("III", None)
+    assert form_reader.check("seismic_zone", "IV") == ("IV", None)
+    assert form_reader.check("cat_zone", "बाढ़") == (None, "not_an_option")
