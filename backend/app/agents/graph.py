@@ -77,7 +77,7 @@ def decide_node(state: UWState) -> dict:
     return {"decision": decision_from_score(state["risk_score"])}
 
 
-@timed("AI memo")
+@timed("AI risk summary")
 def generate_report_node(state: UWState) -> dict:
     from app.agents.report_agent import generate_memo
 

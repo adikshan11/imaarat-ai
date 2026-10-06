@@ -29,7 +29,7 @@ def test_an_assessment_records_a_trace_with_its_steps(tmp_path, monkeypatch):
     recent = TestClient(main.app).get("/ops/summary").json()["assessments"]["recent"]
     names = [span["name"] for span in recent[0]["spans"]]
     assert names[:2] == ["intake", "photo review"]
-    assert {"risk rules", "decision", "AI memo"} <= set(names)
+    assert {"risk rules", "decision", "AI risk summary"} <= set(names)
     assert recent[0]["decision"]
     assert all(span["start_ms"] >= 0 and span["duration_ms"] >= 0 for span in recent[0]["spans"])
 

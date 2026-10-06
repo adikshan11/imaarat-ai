@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.22.1] - 2026-10-06
+
+### Changed
+- The AI write-up is now called the "AI risk summary" in every language instead of a "memo", matching how insurance AI tools name a decision-ready summary and the words Indian proposers and underwriters use; the status page step is renamed to match.
+
 ## [2.22.0] - 2026-10-06
 
 ### Added
