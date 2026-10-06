@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from threading import Lock
 from typing import Any, Literal
 from uuid import uuid4
 
@@ -132,6 +133,7 @@ def build_graph() -> StateGraph:
 
 
 _compiled: dict[str, Any] = {}
+_compiling = Lock()
 
 
 def checkpointer():
@@ -156,7 +158,9 @@ def checkpointer():
 def graph():
     url = database_url()
     if url not in _compiled:
-        _compiled[url] = build_graph().compile(checkpointer=checkpointer())
+        with _compiling:
+            if url not in _compiled:
+                _compiled[url] = build_graph().compile(checkpointer=checkpointer())
     return _compiled[url]
 
 
