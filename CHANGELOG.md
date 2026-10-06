@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.15.1] - 2026-10-06
+
+### Fixed
+- Several assessments arriving together on a fresh server no longer fail: the assessment workflow and its Postgres checkpoint tables are now set up once, even when requests race to be first. The 200-user load test found this.
+
 ## [2.15.0] - 2026-10-06
 
 ### Added

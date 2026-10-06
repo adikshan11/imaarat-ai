@@ -1,3 +1,6 @@
+import time
+from concurrent.futures import ThreadPoolExecutor
+
 from app import db
 from app.agents import graph as graph_module
 from app.agents import report_agent
@@ -47,3 +50,23 @@ def test_non_referral_needs_no_review(tmp_path, monkeypatch):
     assert state["decision"] == "Accept"
     assert state["review_status"] == "not_required"
     assert state["final_decision"] == "Accept"
+
+
+def test_concurrent_first_requests_build_the_checkpointer_once(monkeypatch):
+    built = []
+
+    def slow_checkpointer():
+        built.append(1)
+        time.sleep(0.2)
+        return graph_module.InMemorySaver()
+
+    monkeypatch.setattr(graph_module, "checkpointer", slow_checkpointer)
+    monkeypatch.setattr(graph_module, "_compiled", {})
+
+    def first_request(_):
+        return graph_module.graph()
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        graphs = list(pool.map(first_request, range(8)))
+    assert built == [1]
+    assert all(compiled is graphs[0] for compiled in graphs)
