@@ -86,7 +86,6 @@
   "dash.lead": "Commercial property risks assessed, the decisions taken and where the exposure sits.",
   "dash.new": "New assessment",
   "dash.retry": "Retry",
-  "dash.loading": "Loading assessments...",
   "kpi.submissions": "Assessments",
   "kpi.avg_score": "Average risk score",
   "kpi.pending": "Awaiting your review",
@@ -458,5 +457,17 @@
   "how.r1": "Use sample data only. Do not upload personal or confidential information. Google's unpaid AI service may use inputs and outputs to improve its products, and human reviewers may process them.",
   "how.r2": "The interface language does not change the AI explanation: assessment memos currently remain in English. Voice assistance is not available.",
   "how.industry": "Sources and further reading",
-  "how.industry_note": "These sources inform the design; they do not certify this prototype, its map accuracy or regulatory compliance."
+  "how.industry_note": "These sources inform the design; they do not certify this prototype, its map accuracy or regulatory compliance.",
+  "load.loading": "Loading",
+  "load.elapsed": "{seconds} s elapsed",
+  "load.assess_title": "Assessing this property",
+  "load.assess_hint": "Usually 10 to 25 seconds while the AI writes its memo. The rules decide even if the AI is busy.",
+  "load.step_hazard": "Checking PIN-code hazards",
+  "load.step_guidelines": "Searching underwriting guidelines",
+  "load.step_rules": "Scoring with the rules",
+  "load.step_memo": "Writing the AI memo",
+  "load.read_title": "Reading your form",
+  "load.read_hint": "Usually 5 to 15 seconds. Every value comes back for you to check.",
+  "load.step_read": "Reading each field",
+  "load.step_check": "Checking the values"
 }

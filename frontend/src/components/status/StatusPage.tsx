@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Card from '@/components/shared/Card'
+import { PageSkeleton } from '@/components/shared/Loader'
 import { fetchOpsSummary } from '@/api/underwriting'
 import { useRiskContext } from '@/context/RiskContext'
 import type { OpsSpan, OpsSummary } from '@/types/backend'
@@ -105,7 +106,7 @@ export default function StatusPage() {
       </div>
 
       {error && <div className="error-banner" role="alert">{error}</div>}
-      {!summary && !error && <Card><p aria-busy="true">Loading status…</p></Card>}
+      {!summary && !error && <PageSkeleton heading={false} />}
 
       {summary && requests && ai && <>
         <div className="kpi-row">

@@ -3,6 +3,7 @@ import { Activity, Suspense, lazy, useEffect, useRef, useState } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import StatusBanner from '@/components/layout/StatusBanner'
 import Dashboard from '@/components/dashboard/Dashboard'
+import { PageSkeleton } from '@/components/shared/Loader'
 import NewAssessment from '@/components/assessment/NewAssessment'
 import BackendAssessmentResult from '@/components/assessment/BackendAssessmentResult'
 
@@ -86,7 +87,7 @@ function Application() {
             setView('result')
           }
         }} onCancel={() => { setDraftOpen(false); setPrefill(null); setView('dashboard') }} /></Activity>}
-        <Suspense fallback={<div className="page-loading" aria-busy="true" />}>
+        <Suspense fallback={<PageSkeleton />}>
         {view === 'how' && <HowItWorks />}
         {view === 'status' && <StatusPage />}
         {view === 'paper' && <PaperForm onUse={startDraft} />}

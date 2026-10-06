@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.19.0] - 2026-10-06
+
+### Added
+- Loaders: while an assessment runs or a paper form is read, a progress panel shows an animated pixel grid, the elapsed seconds, how long it usually takes and what happens in the meantime; pages, the dashboard and the status page show shimmering placeholders while they load. Animation stops for people who prefer reduced motion, and screen readers are not interrupted every second.
+
 ## [2.18.1] - 2026-10-06
 
 ### Fixed

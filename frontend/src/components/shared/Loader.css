@@ -1,0 +1,110 @@
+.skeleton {
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--surface-muted) 0%, var(--surface-strong) 50%, var(--surface-muted) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-page {
+  display: grid;
+  gap: 14px;
+  min-height: 60vh;
+}
+
+.skeleton-eyebrow { width: 120px; height: 12px; }
+.skeleton-title { width: min(420px, 80%); height: 40px; }
+.skeleton-line { width: min(640px, 100%); height: 16px; }
+.skeleton-card { height: 180px; border-radius: 16px; }
+
+.skeleton-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.skeleton-kpi { height: 96px; border-radius: 16px; }
+
+.ai-progress {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.ai-progress-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.ai-progress-head > div {
+  display: grid;
+  gap: 2px;
+}
+
+.ai-progress-time {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-progress-hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.ai-progress-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ai-progress-steps li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  font-size: 13px;
+}
+
+.pixel-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 8px);
+  gap: 3px;
+  flex: none;
+}
+
+.pixel-grid i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--brand);
+  animation: pixel-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+@keyframes pixel-pulse {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  .pixel-grid i {
+    animation: none;
+  }
+
+  .pixel-grid i {
+    opacity: 0.7;
+  }
+}
