@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import en from '@/i18n/locales/en.json'
 import { LANGUAGES } from '@/i18n/languages'
@@ -40,15 +40,20 @@ const store = (key: string, value: string) => {
 
 const humanize = (value: string) => value.replaceAll('_', ' ').replace(/^\w/, (letter) => letter.toUpperCase())
 
-const loadFont = (family: string) => {
+const loadFont = (family: string) => new Promise<void>((resolve) => {
   const id = `font-${family.replaceAll(' ', '-')}`
-  if (document.getElementById(id)) return
+  if (document.getElementById(id)) {
+    resolve()
+    return
+  }
   const link = document.createElement('link')
   link.id = id
   link.rel = 'stylesheet'
   link.href = `https://fonts.googleapis.com/css2?family=${family.replaceAll(' ', '+')}:wght@400;600;700&display=swap`
+  link.onload = () => resolve()
+  link.onerror = () => resolve()
   document.head.appendChild(link)
-}
+})
 
 const initialLanguage = () => {
   const saved = stored('imaarat.lang')
@@ -74,6 +79,8 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const toggleTheme = () => setChosen(dark ? 'light' : 'dark')
   const [code, setCode] = useState(initialLanguage)
   const [messages, setMessages] = useState<Messages>(english)
+  const [shown, setShown] = useState<string | null>(null)
+  const firstLoad = useRef(true)
   const language = LANGUAGES.find((item) => item.code === code) ?? LANGUAGES[0]
 
   useEffect(() => { store('imaarat.dev', dev ? '1' : '0') }, [dev])
@@ -90,21 +97,40 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
     }
   }, [chosen])
   useEffect(() => {
-    let current = true
+    let pending = true
     store('imaarat.lang', language.code)
-    const root = document.documentElement
-    root.lang = language.code
-    root.dir = language.rtl ? 'rtl' : 'ltr'
-    root.style.setProperty('--script-font', language.font ? `'${language.font}'` : 'Inter')
-    if (language.font) loadFont(language.font)
-    const loader = locales[`../i18n/locales/${language.code}.json`]
-    if (!loader) {
-      setMessages(english)
-      return
+    if (firstLoad.current) {
+      firstLoad.current = false
+      setShown(language.code)
     }
-    loader().then((loaded) => { if (current) setMessages(loaded) }).catch(() => { if (current) setMessages(english) })
-    return () => { current = false }
+    const apply = (loaded: Messages) => {
+      if (!pending) return
+      pending = false
+      setMessages(loaded)
+      setShown(language.code)
+    }
+    const loader = locales[`../i18n/locales/${language.code}.json`]
+    const ready = loader ? loader().catch(() => english) : Promise.resolve(english)
+    void ready.then(async (loaded) => {
+      const timer = window.setTimeout(() => apply(loaded), 1500)
+      if (language.font) {
+        await loadFont(language.font)
+        await document.fonts.load(`600 16px '${language.font}'`, Object.values(loaded).slice(0, 40).join(' ')).catch(() => [])
+      }
+      window.clearTimeout(timer)
+      apply(loaded)
+    })
+    return () => { pending = false }
   }, [language])
+
+  useLayoutEffect(() => {
+    const target = LANGUAGES.find((item) => item.code === shown)
+    if (!target) return
+    const root = document.documentElement
+    root.lang = target.code
+    root.dir = target.rtl ? 'rtl' : 'ltr'
+    root.style.setProperty('--script-font', target.font ? `'${target.font}'` : 'Inter')
+  }, [shown])
 
   const t = (key: string, vars?: Vars) => {
     const template = messages[key] ?? english[key] ?? key
