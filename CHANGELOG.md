@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.18.1] - 2026-10-06
+
+### Fixed
+- An assessment can no longer time out at Vercel's 60-second limit when Gemini is slow or busy. Each Gemini attempt now stops after 25 seconds, and all AI steps of one assessment share a 50-second budget: a retry starts only if its wait and a full attempt still fit, otherwise the memo is reported as busy and the rules decide. Before, one attempt could run for 60 seconds and retries came on top.
+
 ## [2.18.0] - 2026-10-06
 
 ### Added

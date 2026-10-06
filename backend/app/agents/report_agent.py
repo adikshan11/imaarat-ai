@@ -141,7 +141,7 @@ def generate_memo(state: dict) -> dict[str, Any]:
         if getattr(e, "code", None) == 429 or getattr(e, "status_code", None) == 429 or "429" in error_text:
             error_text = f"RESOURCE_EXHAUSTED: {error_text}"
         _failure(state, "Unavailable", error_text)
-        busy = getattr(e, "code", None) in (429, 503) or "RESOURCE_EXHAUSTED" in error_text or "UNAVAILABLE" in error_text
+        busy = getattr(e, "code", None) in (429, 503) or "RESOURCE_EXHAUSTED" in error_text or "UNAVAILABLE" in error_text or "Timeout" in type(e).__name__
         state["ai_memo_reason"] = "Google's AI model is busy right now, so the decision comes from the rules alone. Try again in a few minutes." if busy else f"the AI model returned an error ({type(e).__name__})"
         return {}
 
