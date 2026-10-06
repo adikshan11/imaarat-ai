@@ -16,6 +16,7 @@ from pathlib import Path
 from app import config, llm
 from app.agents.graph import retrieval_query
 from app.agents.report_agent import build_prompt, generate_memo
+from app.db import init_db, seed_demo_database
 from app.evaluation import empty_report
 from app.schemas import decision_from_score
 from app.tools.comparables import comparable_lookup
@@ -278,6 +279,8 @@ def main() -> int:
     if args.live and not config.GEMINI_API_KEY:
         report.update({"status": "failed", "passed": False})
     elif args.live:
+        seed_demo_database()
+        init_db()
         selected = cases[::max(1, len(cases) // args.memo_cases)][:args.memo_cases]
         report["metadata"]["selected_live_cases"] = [case["id"] for case in selected]
         for name, function in (("retrieval", retrieval), ("prompt_tokens", prompt_tokens), ("memos", memos)):

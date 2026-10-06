@@ -41,7 +41,8 @@ def test_generate_memo_exposes_resource_exhausted_failure(monkeypatch):
     state["memo_json"] = report_agent.generate_memo(state)
 
     assert state["ai_memo_status"] == "Unavailable"
-    assert "RESOURCE_EXHAUSTED" in state["ai_memo_reason"]
+    assert "RESOURCE_EXHAUSTED" in state["memo_error"]
+    assert state["ai_memo_reason"].startswith("Google's AI model is busy")
     assert state["memo_json"] == {}
     models = [call.kwargs["model"] for call in client.models.generate_content.call_args_list]
     assert models == [llm.config.GEMINI_MODEL_NAME] * llm.config.GEMINI_ATTEMPTS

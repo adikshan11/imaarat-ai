@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.15.3] - 2026-10-06
+
+### Fixed
+- When Google's AI model is busy, the result now says so in plain words and that the decision came from the rules, instead of showing Google's raw error.
+- Live evaluations set up the reference-property database before measuring, so the token and memo sections run on a fresh machine.
+
 ## [2.15.2] - 2026-10-06
 
 ### Changed
