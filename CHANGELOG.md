@@ -2,6 +2,17 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.26.0] - 2026-10-07
+
+### Added
+- A landing page at / built with React and Tailwind and rendered to HTML at build time, so it shows without JavaScript and search engines can read it. It covers how the product works, the paper form, the PIN-code hazard check, explain-and-approve, product screenshots in accessible tabs, what is tested, questions and a footer, with link-preview tags, structured data, a sitemap and robots.txt. Photos are AI-generated, served as WebP in several sizes, and the footer says so.
+
+### Changed
+- The app moves to /app/. Old links such as /#paper and /?dev=1 redirect there.
+
+### Fixed
+- The app no longer says AI is off or that assessments are not kept while its status is still loading; those notes appear only when the status says so.
+
 ## [2.25.0] - 2026-10-07
 
 ### Added

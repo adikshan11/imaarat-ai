@@ -24,3 +24,4 @@ function run(label, args) {
 
 run('TypeScript', [join(root, 'node_modules', 'typescript', 'bin', 'tsc'), '-b'])
 run('Vite', [join(root, 'node_modules', 'vite', 'bin', 'vite.js'), 'build'])
+run('Prerender', [join(root, 'scripts', 'prerender.mjs')])

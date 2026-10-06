@@ -17,10 +17,12 @@ test('brand and favicon share a font-independent mark', async () => {
   const brand = await readFile(new URL('../src/components/layout/Brand.tsx', import.meta.url), 'utf8')
   assert.doesNotMatch(favicon, /<text\b|font-family/i)
   assert.match(favicon, /<path\b/)
-  const html = await readFile(new URL('../index.html', import.meta.url), 'utf8')
   const source = brand.match(/src="([^"]+)"/)?.[1]
   assert.match(source ?? '', /^\/favicon\.svg\?v=/)
-  assert.ok(html.includes(`href="${source}"`))
+  for (const page of ['../index.html', '../app/index.html']) {
+    const html = await readFile(new URL(page, import.meta.url), 'utf8')
+    assert.ok(html.includes(`href="${source}"`), page)
+  }
 })
 
 test('navigation uses shared alignment and separate mobile captions', async () => {
