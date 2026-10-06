@@ -1,4 +1,5 @@
 import random
+from datetime import date
 
 from locust import HttpUser, between, task
 
@@ -29,6 +30,7 @@ def proposal() -> dict[str, str]:
         "building_value_inr": str(random.randint(5, 500) * 1_000_000),
         "stock_inventory_value_inr": str(random.randint(0, 200) * 1_000_000),
         "prior_claims_count_5yr": str(random.randint(0, 4)),
+        "submission_date": date.today().isoformat(),
     }
 
 
