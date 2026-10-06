@@ -9,6 +9,7 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 
 ### Fixed
 - The backend development requirements install again: the web server pin was older than the MCP library allows.
+- Assessments and form reading no longer stall the server: the rule engine, AI calls and database writes run off the request loop, so one slow assessment does not delay every other visitor.
 
 ## [2.14.1] - 2026-10-06
 
