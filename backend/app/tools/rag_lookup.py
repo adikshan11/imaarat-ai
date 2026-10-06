@@ -5,12 +5,23 @@ import json
 import math
 import re
 
+from sqlalchemy import Column, String, Table, Text, select
+from sqlalchemy.exc import IntegrityError
+
 from app import llm
-from app.config import GEMINI_API_KEY, GUIDELINES_MD, QDRANT_API_KEY, QDRANT_COLLECTION, QDRANT_URL, VECTORSTORE_DIR
+from app.config import GEMINI_API_KEY, GUIDELINES_MD, QDRANT_API_KEY, QDRANT_COLLECTION, QDRANT_URL
+from app.db import get_engine, metadata
 from app.observability import traced
 
 _K_MIN, _K_MAX = 1, 10
-INDEX_PATH = VECTORSTORE_DIR / "underwriting_guidelines.json"
+loaded: dict[str, list[dict]] = {}
+
+guideline_index = Table(
+    "guideline_index",
+    metadata,
+    Column("version", String(16), primary_key=True),
+    Column("items", Text, nullable=False),
+)
 
 
 def guideline_sections() -> list[dict]:
@@ -60,17 +71,34 @@ def cosine(left: list[float], right: list[float]) -> float:
     return dot / norms if norms else 0.0
 
 
-def local_search(query_vector: list[float], k: int) -> list[dict]:
-    """Fallback when Qdrant is not configured: a JSON vector index on local disk."""
+def index_items() -> list[dict]:
+    """Guideline vectors embedded once per corpus version and kept in the app database, so cold starts only read them."""
     sections = guideline_sections()
     version = corpus_hash(sections)
-    index = json.loads(INDEX_PATH.read_text(encoding="utf-8")) if INDEX_PATH.exists() else {}
-    if index.get("version") != version:
+    if version in loaded:
+        return loaded[version]
+    engine = get_engine()
+    metadata.create_all(engine, tables=[guideline_index])
+    with engine.connect() as connection:
+        stored = connection.execute(select(guideline_index.c.items).where(guideline_index.c.version == version)).scalar()
+    if stored:
+        items = json.loads(stored)
+    else:
         vectors = llm.embed([section_document(section) for section in sections], "RETRIEVAL_DOCUMENT")
-        index = {"version": version, "items": [{**section, "vector": vector} for section, vector in zip(sections, vectors)]}
-        INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
-        INDEX_PATH.write_text(json.dumps(index), encoding="utf-8")
-    ranked = sorted(index["items"], key=lambda item: cosine(query_vector, item["vector"]), reverse=True)
+        items = [{**section, "vector": vector} for section, vector in zip(sections, vectors)]
+        try:
+            with engine.begin() as connection:
+                connection.execute(guideline_index.insert().values(version=version, items=json.dumps(items)))
+        except IntegrityError:
+            print(f"[rag_lookup] index version {version} was stored by another instance first")
+        print(f"[rag_lookup] embedded {len(sections)} guideline sections (version {version})")
+    loaded[version] = items
+    return items
+
+
+def local_search(query_vector: list[float], k: int) -> list[dict]:
+    """Search the guideline vectors kept in the app database when Qdrant is not configured."""
+    ranked = sorted(index_items(), key=lambda item: cosine(query_vector, item["vector"]), reverse=True)
     return [{"id": item["id"], "title": item["title"], "text": item["text"], "score": round(cosine(query_vector, item["vector"]), 4)} for item in ranked[:k]]
 
 

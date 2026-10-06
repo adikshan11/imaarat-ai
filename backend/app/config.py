@@ -14,7 +14,6 @@ RAW_DIR = DATA_DIR / "raw"
 DEMO_DB_PATH = DATA_DIR / "demo" / "uw_risk.db"
 WRITABLE_DIR = Path("/tmp/imaarat") if os.getenv("VERCEL") else DATA_DIR
 DB_DIR = WRITABLE_DIR / "db"
-VECTORSTORE_DIR = WRITABLE_DIR / "vectorstore"
 
 DB_PATH = DB_DIR / "uw_risk.db"
 PROPERTIES_CSV = RAW_DIR / "properties.csv"
