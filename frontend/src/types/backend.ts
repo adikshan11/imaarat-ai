@@ -140,6 +140,7 @@ export interface OpsSummary {
     lighthouse?: Array<CiRun<Record<string, { performance: number; accessibility: number; lcp_ms: number; tbt_ms: number; cls: number }>>>
     evals?: Array<CiRun<{ mode: string; passed: boolean | null; rules_agreement: number; rules_cases: number; retrieval_hit_rate: number | null; retrieval_recall: number | null; retrieval_cases: number | null; toon_token_saving: number | null; sections: Record<string, string> }>>
   }
+  storage: { database_bytes: number; limit_bytes: number; tables: Array<{ table: string; bytes: number }> } | null
   generated_at: string
   process_uptime_s: number
   requests: {
@@ -152,7 +153,7 @@ export interface OpsSummary {
     error_types: Record<string, number>
   }
   ai: {
-    budget: { admissions_left: number; calls_left: number; per_visitor_admissions: number; resets_in_seconds: number; tokens_today: { input: number; output: number } }
+    budget: { admissions_left: number; calls_left: number; generations_left?: number; per_visitor_admissions: number; resets_in_seconds: number; tokens_today: { input: number; output: number } }
     stages: Record<string, { calls: number; succeeded: number; failed: number; input_tokens: number; output_tokens: number; p50_ms: number | null; p95_ms: number | null }>
     timeline: Array<{ bucket: string; calls: number; failed: number; tokens: number }>
     memo_outcomes: Record<string, number>

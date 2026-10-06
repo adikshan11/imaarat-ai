@@ -15,12 +15,13 @@ from queue import Empty, SimpleQueue
 from threading import Lock, Thread
 from typing import Any, Callable
 
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, Table, Text, delete, select
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Table, Text, delete, select, text
 
 from app.db import get_engine, metadata
 
 RETENTION_DAYS = 14
 FLUSH_SECONDS = 2
+NEON_FREE_STORAGE_BYTES = 512 * 1024 * 1024
 process_started = time.time()
 first_request = {"pending": True}
 current_spans: ContextVar[list[dict[str, Any]] | None] = ContextVar("current_spans", default=None)
@@ -211,6 +212,16 @@ def buckets(since: datetime, hours: int) -> list[str]:
     return keys
 
 
+def storage() -> dict[str, Any] | None:
+    current = engine()
+    if current.dialect.name != "postgresql":
+        return None
+    with current.connect() as connection:
+        total = connection.execute(text("SELECT pg_database_size(current_database())")).scalar_one()
+        tables = connection.execute(text("SELECT relname, pg_total_relation_size(relid) AS bytes FROM pg_catalog.pg_statio_user_tables ORDER BY bytes DESC LIMIT 8")).all()
+    return {"database_bytes": total, "limit_bytes": NEON_FREE_STORAGE_BYTES, "tables": [{"table": row.relname, "bytes": row.bytes} for row in tables]}
+
+
 def summary(hours: int) -> dict[str, Any]:
     from app import budget
 
@@ -281,6 +292,7 @@ def summary(hours: int) -> dict[str, Any]:
     return {
         "window_hours": hours,
         "ci_runs": ci_runs,
+        "storage": storage(),
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "process_uptime_s": round(time.time() - process_started),
         "requests": {

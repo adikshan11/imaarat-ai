@@ -2,6 +2,14 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.25.0] - 2026-10-07
+
+### Added
+- The status page shows database size against the 0.5 GB of Neon's free plan, with the largest tables, and how many Gemini generations are left today.
+
+### Security
+- GraphQL requests are limited to depth 4, 2 aliases and 1,000 tokens. Before, one request could repeat the history query any number of times under different alias names, multiplying database work.
+
 ## [2.24.0] - 2026-10-07
 
 ### Changed

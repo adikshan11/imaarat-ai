@@ -25,3 +25,10 @@ def test_one_query_returns_status_hazard_totals_and_a_page(tmp_path, monkeypatch
 def test_unknown_pincode_is_null_not_an_error():
     body = TestClient(main.app).post("/graphql", json={"query": '{ hazard(pincode: "999999") }'}).json()
     assert body == {"data": {"hazard": None}}
+
+
+def test_aliases_cannot_multiply_database_work():
+    query = "{ " + " ".join(f"a{index}: history(limit: 100) {{ total }}" for index in range(3)) + " }"
+    body = TestClient(main.app).post("/graphql", json={"query": query}).json()
+    assert body.get("data") is None
+    assert "aliases" in body["errors"][0]["message"]
