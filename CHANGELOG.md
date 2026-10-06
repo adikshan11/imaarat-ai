@@ -7,6 +7,9 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 ### Added
 - A load test that runs the API against Postgres with simulated underwriters looking up PIN-code hazards, previewing, submitting and browsing history, and reports throughput and response times per endpoint. It runs on demand and on changes to the test itself.
 
+### Fixed
+- The backend development requirements install again: the web server pin was older than the MCP library allows.
+
 ## [2.14.1] - 2026-10-06
 
 ### Changed
