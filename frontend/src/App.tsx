@@ -10,9 +10,11 @@ import BackendAssessmentResult from '@/components/assessment/BackendAssessmentRe
 const PaperForm = lazy(() => import('@/components/paper/PaperForm'))
 const HowItWorks = lazy(() => import('@/components/about/HowItWorks'))
 const StatusPage = lazy(() => import('@/components/status/StatusPage'))
-import { RiskProvider, useRiskContext } from '@/context/RiskContext'
-import { SessionProvider } from '@/context/Session'
-import { PreferencesProvider, usePreferences } from '@/context/Preferences'
+import { useRiskContext } from '@/context/RiskContext'
+import { RiskProvider } from '@/context/RiskProvider'
+import { SessionProvider } from '@/context/SessionProvider'
+import { usePreferences } from '@/context/Preferences'
+import { PreferencesProvider } from '@/context/PreferencesProvider'
 import type { BackendSubmission } from '@/types/backend'
 
 type View = 'dashboard' | 'new' | 'paper' | 'how' | 'status' | 'result'

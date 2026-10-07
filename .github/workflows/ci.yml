@@ -18,7 +18,7 @@ concurrency:
 jobs:
   rules:
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -28,7 +28,7 @@ jobs:
       - run: python3 .github/scripts/release_check.py
 
   backend:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     services:
       postgres:
@@ -57,7 +57,7 @@ jobs:
         working-directory: backend
 
   frontend:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -78,7 +78,7 @@ jobs:
           PLAYWRIGHT_PATH: ${{ runner.temp }}/browser-tools
 
   pipeline:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -95,7 +95,7 @@ jobs:
         working-directory: pipeline/dbt
 
   secrets:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -110,7 +110,7 @@ jobs:
           ./gitleaks git --redact --no-banner --config .gitleaks.toml --exit-code 1 .
 
   container:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -133,7 +133,7 @@ jobs:
   preview:
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
     needs: [backend, frontend, pipeline]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     env:
       VERCEL_ORG_ID: team_IjFtm7aRrxcQ8mlUKZGG864P
@@ -164,7 +164,7 @@ jobs:
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [backend, frontend, pipeline, secrets, container]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     concurrency:
       group: deploy-production

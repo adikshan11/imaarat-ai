@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.37.1] - 2026-10-07
+
+### Changed
+- Each React provider now lives in its own file, which clears the fast-refresh lint warnings, and every workflow runs on Ubuntu 26.04 ahead of GitHub moving its default runner there.
+
 ## [2.37.0] - 2026-10-07
 
 ### Added

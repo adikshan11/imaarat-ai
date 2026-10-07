@@ -1,15 +1,6 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { fetchSession, signOut, startSignIn, type Session } from '@/api/session'
-
-type SessionState = {
-  session: Session | null
-  reviewer: boolean
-  error: string | null
-  signIn: () => Promise<void>
-  signOut: () => Promise<void>
-}
-
-const SessionContext = createContext<SessionState | undefined>(undefined)
+import { SessionContext, type SessionState } from './Session'
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
@@ -29,10 +20,4 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     },
   }
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>
-}
-
-export function useSession() {
-  const value = useContext(SessionContext)
-  if (!value) throw new Error('useSession must be used inside SessionProvider')
-  return value
 }

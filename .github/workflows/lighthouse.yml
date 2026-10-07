@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   audit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     env:
       AUDIT_URLS: ${{ inputs.url || 'https://imaarat-ai.vercel.app/ https://imaarat-ai.vercel.app/app/' }}

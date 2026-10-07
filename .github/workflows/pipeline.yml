@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   elt:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
@@ -45,7 +45,7 @@ jobs:
 
   docs:
     needs: elt
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
