@@ -13,15 +13,25 @@ from app.observability import traced
 from app.schemas import VisionObservations
 
 # Keys Vision is permitted to contribute; manual submission fields cannot be overwritten
-_VISION_KEYS = frozenset({
-    "image_status", "image_reason", "image_risk_evidence_used",
-    "visible_roof_condition", "visible_structural_damage",
-    "vegetation_defensible_space", "general_maintenance_level", "visible_hazards",
-})
+_VISION_KEYS = frozenset(
+    {
+        "image_status",
+        "image_reason",
+        "image_risk_evidence_used",
+        "visible_roof_condition",
+        "visible_structural_damage",
+        "vegetation_defensible_space",
+        "general_maintenance_level",
+        "visible_hazards",
+    }
+)
 # Observation keys used to derive evidence usability in Python (not trusted from Gemini)
 _OBSERVATION_KEYS = (
-    "visible_roof_condition", "visible_structural_damage",
-    "vegetation_defensible_space", "general_maintenance_level", "visible_hazards",
+    "visible_roof_condition",
+    "visible_structural_damage",
+    "vegetation_defensible_space",
+    "general_maintenance_level",
+    "visible_hazards",
 )
 _NOT_VISIBLE = {"not visible", "unclear", "none", "n/a", ""}
 

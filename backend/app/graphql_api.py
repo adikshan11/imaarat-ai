@@ -67,10 +67,17 @@ class HistoryPage:
 
 def submission_row(row: dict) -> SubmissionRow:
     return SubmissionRow(
-        id=row["id"], property_id=row["property_id"], decision=row["decision"], final_decision=row["final_decision"],
-        risk_score=row["risk_score"], review_status=row["review_status"], risk_flags=row["risk_flags"],
-        total_value_at_risk_inr=row["total_value_at_risk_inr"], created_at=row["created_at"],
-        raw_input=row["raw_input"], prototype_mitigation_model=row["prototype_mitigation_model"],
+        id=row["id"],
+        property_id=row["property_id"],
+        decision=row["decision"],
+        final_decision=row["final_decision"],
+        risk_score=row["risk_score"],
+        review_status=row["review_status"],
+        risk_flags=row["risk_flags"],
+        total_value_at_risk_inr=row["total_value_at_risk_inr"],
+        created_at=row["created_at"],
+        raw_input=row["raw_input"],
+        prototype_mitigation_model=row["prototype_mitigation_model"],
     )
 
 
@@ -92,8 +99,7 @@ class Query:
         return Portfolio(**summary)
 
     @strawberry.field(description="One page of assessments, searched, filtered and sorted on the server.")
-    async def history(self, limit: int = 20, offset: int = 0, decision: str | None = None, q: str | None = None,
-                      sort: SortKey = SortKey.CREATED, direction: Direction = Direction.DESC) -> HistoryPage:
+    async def history(self, limit: int = 20, offset: int = 0, decision: str | None = None, q: str | None = None, sort: SortKey = SortKey.CREATED, direction: Direction = Direction.DESC) -> HistoryPage:
         rows, total = await run_in_threadpool(history_page, max(1, min(limit, 100)), max(0, offset), decision, q, sort.value, direction.value)
         return HistoryPage(total=total, rows=[submission_row(row) for row in rows])
 

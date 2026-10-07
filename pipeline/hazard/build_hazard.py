@@ -96,8 +96,22 @@ CITY_LAYERS = {
 }
 OFFICE_SUFFIX = re.compile(r"\s+(h\.?\s?p?\.?\s?o\.?|g\.?\s?p\.?\s?o\.?|s\.?\s?o\.?|b\.?\s?o\.?)$", re.I)
 IMD_STATES = [
-    "Andaman &", "Andhra", "Pradesh (AP)", "AP", "Odisha", "Puducherry", "West Bengal", "Daman & Diu",
-    "Dadra & Nagar Haveli", "Gujarat", "Lakshadweep", "Tamil Nadu", "Goa", "Karnataka", "Kerala", "Maharastra",
+    "Andaman &",
+    "Andhra",
+    "Pradesh (AP)",
+    "AP",
+    "Odisha",
+    "Puducherry",
+    "West Bengal",
+    "Daman & Diu",
+    "Dadra & Nagar Haveli",
+    "Gujarat",
+    "Lakshadweep",
+    "Tamil Nadu",
+    "Goa",
+    "Karnataka",
+    "Kerala",
+    "Maharastra",
 ]
 
 
@@ -126,7 +140,7 @@ def cyclone_grades(pdf: Path, crosswalk: Path) -> dict[str, tuple[str, str]]:
         name = match.group(1).strip()
         for state in IMD_STATES:
             if name.startswith(state + " ") and name != "Dadra & Nagar Haveli":
-                name = name[len(state):].strip()
+                name = name[len(state) :].strip()
                 break
         rows.append((name, match.group(2)))
     counts = Counter(grade for _, grade in rows)
@@ -232,27 +246,42 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
         dominant = int(np.argmax(share[i])) if share[i].max() > 0 else None
         grade, grade_note = grades.get(district, (None, None)) if district else (None, None)
         map_zone = ROMAN.get(dominant)
-        records.append({
-            "pincode": str(pin_cols["Pincode"][i]),
-            "district": district,
-            "state": dist_cols["stname"][d].title() if d >= 0 else None,
-            "district_lgd": int(dist_cols["dist_lgd"][d]) if d >= 0 else None,
-            "seismic_zone": town_zone[i] or map_zone,
-            "seismic_zone_map": map_zone,
-            "seismic_zone_max": ROMAN.get(max(touched)) if touched else None,
-            "seismic_source": f"IS 1893 town list: {town_name[i]}" if town_zone[i] else "zone map",
-            "flood_area_pct": round(float(flood_pct[i]), 1),
-            "urban_flood_points": int(city_points[i]) if city_source[i] else None,
-            "urban_flood_source": city_source[i],
-            "cyclone_grade": grade,
-            "cyclone_note": grade_note,
-        })
+        records.append(
+            {
+                "pincode": str(pin_cols["Pincode"][i]),
+                "district": district,
+                "state": dist_cols["stname"][d].title() if d >= 0 else None,
+                "district_lgd": int(dist_cols["dist_lgd"][d]) if d >= 0 else None,
+                "seismic_zone": town_zone[i] or map_zone,
+                "seismic_zone_map": map_zone,
+                "seismic_zone_max": ROMAN.get(max(touched)) if touched else None,
+                "seismic_source": f"IS 1893 town list: {town_name[i]}" if town_zone[i] else "zone map",
+                "flood_area_pct": round(float(flood_pct[i]), 1),
+                "urban_flood_points": int(city_points[i]) if city_source[i] else None,
+                "urban_flood_source": city_source[i],
+                "cyclone_grade": grade,
+                "cyclone_note": grade_note,
+            }
+        )
 
     with out_csv.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(records[0]))
         writer.writeheader()
         writer.writerows(records)
-    fields = ["district", "state", "district_lgd", "seismic_zone", "seismic_zone_map", "seismic_zone_max", "seismic_source", "flood_area_pct", "urban_flood_points", "urban_flood_source", "cyclone_grade", "cyclone_note"]
+    fields = [
+        "district",
+        "state",
+        "district_lgd",
+        "seismic_zone",
+        "seismic_zone_map",
+        "seismic_zone_max",
+        "seismic_source",
+        "flood_area_pct",
+        "urban_flood_points",
+        "urban_flood_source",
+        "cyclone_grade",
+        "cyclone_note",
+    ]
     payload = {
         "built_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "fields": fields,

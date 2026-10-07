@@ -41,8 +41,10 @@ def test_no_live_default(monkeypatch, tmp_path):
     monkeypatch.setattr(config, "GEMINI_API_KEY", "configured")
     monkeypatch.setattr(runner, "RESULTS", tmp_path)
     monkeypatch.setattr("sys.argv", ["evals"])
+
     def forbidden(*args, **kwargs):
         pytest.fail("Default evaluation must not call live AI")
+
     monkeypatch.setattr(runner, "retrieve", forbidden)
     assert runner.main() == 0
     report = json.loads((tmp_path / "latest.json").read_text())
@@ -77,11 +79,14 @@ def test_judge_failure(monkeypatch):
     monkeypatch.setattr(runner, "faithfulness_judge", lambda: object())
     monkeypatch.setattr(runner, "memo_state", lambda case: {"guideline_hits": [{"id": "G6"}]})
     monkeypatch.setattr(runner, "pause", lambda: None)
+
     def generate(state):
         state["ai_memo_status"] = "Available"
         return {"guideline_citations": ["G6"]}
+
     def fail(*args):
         raise RuntimeError("private provider response")
+
     monkeypatch.setattr(runner, "generate_memo", generate)
     monkeypatch.setattr(runner, "judge", fail)
     previous = config.PROMPT_FORMAT
@@ -97,8 +102,10 @@ def test_failed_live_exit(monkeypatch, tmp_path):
     monkeypatch.setattr(config, "GEMINI_API_KEY", "configured")
     monkeypatch.setattr(runner, "RESULTS", tmp_path)
     monkeypatch.setattr("sys.argv", ["evals", "--live", "--memo-cases", "2"])
+
     def fail(*args):
         raise RuntimeError("private provider response")
+
     monkeypatch.setattr(runner, "retrieval", fail)
     assert runner.main() == 1
     report = json.loads((tmp_path / "latest.json").read_text())
@@ -124,11 +131,13 @@ def test_toon_generations(monkeypatch):
     monkeypatch.setattr(runner, "memo_state", lambda case: {})
     monkeypatch.setattr(runner, "pause", lambda: None)
     calls = []
+
     def generate(state):
         assert config.GEMINI_FALLBACK_MODEL == config.GEMINI_MODEL_NAME
         calls.append(config.PROMPT_FORMAT)
         state["ai_memo_status"] = "Available"
         return {"guideline_citations": ["G6"]}
+
     monkeypatch.setattr(runner, "generate_memo", generate)
     monkeypatch.setattr(runner, "judge", lambda *args: {"faithfulness": 0.8, "reason": "grounded"})
     previous = config.GEMINI_FALLBACK_MODEL
@@ -143,15 +152,19 @@ def test_failed_denominator(monkeypatch):
     monkeypatch.setattr(runner, "faithfulness_judge", lambda: object())
     monkeypatch.setattr(runner, "memo_state", lambda case: {})
     monkeypatch.setattr(runner, "pause", lambda: None)
+
     def generate(state):
         state["ai_memo_status"] = "Available"
         return {"guideline_citations": []}
+
     calls = []
+
     def measure(*args):
         calls.append(True)
         if len(calls) > 1:
             raise RuntimeError("judge unavailable")
         return {"faithfulness": 0.4, "reason": "unsupported"}
+
     monkeypatch.setattr(runner, "generate_memo", generate)
     monkeypatch.setattr(runner, "judge", measure)
     report = runner.memos(golden_cases()[:2])
@@ -171,9 +184,11 @@ def test_retrieval_gate(monkeypatch, tmp_path, hits):
     monkeypatch.setattr(runner, "prompt_tokens", lambda cases: {"toon_tokens": 1, "json_tokens": 2, "saving": 0.5, "rows": []})
     monkeypatch.setattr(runner, "faithfulness_judge", lambda: object())
     monkeypatch.setattr(runner, "memo_state", lambda case: {})
+
     def generate(state):
         state["ai_memo_status"] = "Available"
         return {"guideline_citations": []}
+
     monkeypatch.setattr(runner, "generate_once", generate)
     monkeypatch.setattr(runner, "judge", lambda *args: {"faithfulness": 0.8, "reason": "grounded"})
     assert runner.main() == 1
@@ -207,28 +222,36 @@ def test_partial_memos(monkeypatch, tmp_path, stage, attempts):
     monkeypatch.setattr(runner, "pause", lambda: None)
     monkeypatch.setattr(runner, "retrieve", lambda *args, **kwargs: [{"id": "G6"}, {"id": "G2"}])
     monkeypatch.setattr(runner, "prompt_tokens", lambda cases: {"toon_tokens": 1, "json_tokens": 2, "saving": 0.5, "rows": []})
+
     def metric():
         if stage == "judge_setup":
             raise RuntimeError("private provider response")
         return object()
+
     monkeypatch.setattr(runner, "faithfulness_judge", metric)
+
     def prepare(case):
         if stage == "preparation" and case["id"] == "boundary_30":
             raise RuntimeError("private provider response")
         return {"id": case["id"]}
+
     monkeypatch.setattr(runner, "memo_state", prepare)
     calls = []
+
     def generate(state):
         calls.append(state["id"])
         if stage == "generation" and state["id"] == "boundary_30":
             raise RuntimeError("private provider response")
         state["ai_memo_status"] = "Available"
         return {"guideline_citations": ["G6"]}
+
     monkeypatch.setattr(runner, "generate_once", generate)
+
     def measure(metric, state, memo):
         if stage == "judge" and state["id"] == "boundary_30":
             raise RuntimeError("private provider response")
         return {"faithfulness": 0.8, "reason": "grounded"}
+
     monkeypatch.setattr(runner, "judge", measure)
     previous = config.PROMPT_FORMAT
     assert runner.main() == 1

@@ -230,7 +230,14 @@ def shown(value: float | None, pattern: str) -> str:
 
 
 def markdown(report: dict) -> str:
-    lines = [f"# Evaluation results ({report['generated_at']})", "", f"Mode: {report['run_mode']}; status: {report['status']}; AI passed: {report['passed']}", "", f"Configured model: {report['model']}; judge: {report['judge_model']}", ""]
+    lines = [
+        f"# Evaluation results ({report['generated_at']})",
+        "",
+        f"Mode: {report['run_mode']}; status: {report['status']}; AI passed: {report['passed']}",
+        "",
+        f"Configured model: {report['model']}; judge: {report['judge_model']}",
+        "",
+    ]
     det = report["deterministic"]
     lines += ["## Deterministic decisions", f"{det['cases']} handcrafted synthetic cases: rule agreement {shown(det['accuracy'], '.0%')}. Not LLM accuracy; not real-property validation.", ""]
     for name, section in (("retrieval", "## Retrieval (RAG)"), ("prompt_tokens", "## TOON vs JSON: prompt tokens"), ("memos", "## AI risk summaries (TOON prompts)")):
@@ -242,19 +249,27 @@ def markdown(report: dict) -> str:
             lines.append("")
             continue
         if name == "retrieval":
-            lines += [f"k={data['k']}: hit rate **{shown(data['hit_rate'], '.0%')}**, recall **{shown(data['recall'], '.0%')}**, MRR **{shown(data['mrr'], '.2f')}**",
-                      f"Thresholds: hit rate {shown(data['thresholds']['hit_rate'], '.0%')}; recall {shown(data['thresholds']['recall'], '.0%')}; retrieval passed: {data['passed']}", report["metadata"]["retrieval_acceptance"], ""]
+            lines += [
+                f"k={data['k']}: hit rate **{shown(data['hit_rate'], '.0%')}**, recall **{shown(data['recall'], '.0%')}**, MRR **{shown(data['mrr'], '.2f')}**",
+                f"Thresholds: hit rate {shown(data['thresholds']['hit_rate'], '.0%')}; recall {shown(data['thresholds']['recall'], '.0%')}; retrieval passed: {data['passed']}",
+                report["metadata"]["retrieval_acceptance"],
+                "",
+            ]
         elif name == "prompt_tokens":
             lines += [f"TOON {data['toon_tokens']:,} vs JSON {data['json_tokens']:,} tokens across {len(data['rows'])} prompts; relative token difference: {shown(data['saving'], '.0%')}", ""]
         else:
             lines += ["| Format | Memos | Contract pass | Faithfulness | Citation precision | Avg input tokens | Avg latency (ms) |", "|---|---|---|---|---|---|---|"]
             for fmt in ("toon",):
                 s = data[fmt]
-                lines.append(f"| {fmt.upper()} | {s['memos']} | {s['contract_pass_rate']:.0%} | {shown(s['faithfulness'], '.2f')} | {shown(s['citation_precision'], '.0%')} | {shown(s['avg_input_tokens'], ',.0f')} | {shown(s['avg_latency_ms'], ',.0f')} |")
+                lines.append(
+                    f"| {fmt.upper()} | {s['memos']} | {s['contract_pass_rate']:.0%} | {shown(s['faithfulness'], '.2f')} | {shown(s['citation_precision'], '.0%')} | {shown(s['avg_input_tokens'], ',.0f')} | {shown(s['avg_latency_ms'], ',.0f')} |"
+                )
             lines.append("")
             for fmt in ("toon",):
                 s = data[fmt]
-                lines.append(f"{fmt}: judge denominator {s['faithfulness_cases']}/{s['memos']} planned case-format slots; generation attempts {s['generation_attempts']}; failed executions {s['failed']}.")
+                lines.append(
+                    f"{fmt}: judge denominator {s['faithfulness_cases']}/{s['memos']} planned case-format slots; generation attempts {s['generation_attempts']}; failed executions {s['failed']}."
+                )
             for row in data["rows"]:
                 if not row["passed"]:
                     lines.append(f"{row['id']} ({row['format']}): {row['status']}; {row['reason']}")
@@ -271,7 +286,14 @@ def main() -> int:
 
     cases = golden_cases()
     report = empty_report()
-    report.update({"generated_at": datetime.now(UTC).isoformat(timespec="seconds"), "run_mode": "live_bounded" if args.live else "deterministic_only", "status": "completed", "deterministic": deterministic(cases)})
+    report.update(
+        {
+            "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
+            "run_mode": "live_bounded" if args.live else "deterministic_only",
+            "status": "completed",
+            "deterministic": deterministic(cases),
+        }
+    )
     report["metadata"].update({"synthetic_cases": len(cases), "selected_live_cases": [], "memo_generations": 0})
     report["sections"]["deterministic"] = {"status": "completed" if report["deterministic"]["passed"] else "failed"}
     reason = "live_not_requested" if config.GEMINI_API_KEY else "missing_api_key"
@@ -282,7 +304,7 @@ def main() -> int:
     elif args.live:
         seed_demo_database()
         init_db()
-        selected = cases[::max(1, len(cases) // args.memo_cases)][:args.memo_cases]
+        selected = cases[:: max(1, len(cases) // args.memo_cases)][: args.memo_cases]
         report["metadata"]["selected_live_cases"] = [case["id"] for case in selected]
         for name, function in (("retrieval", retrieval), ("prompt_tokens", prompt_tokens), ("memos", memos)):
             try:

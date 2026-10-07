@@ -59,11 +59,12 @@ def build_submission_pdf(submission: dict[str, Any]) -> bytes:
     # ── Property summary ──────────────────────────────────────────────────────
     story.append(Paragraph("Property Summary", styles["Heading2"]))
     story.append(Paragraph(_text(submission.get("property_id")), styles["Normal"]))
-    story.append(Paragraph(
-        f"Location: {_text(raw.get('address'))}, {_text(raw.get('city'))}, "
-        f"{_text(raw.get('state'))} {_text(raw.get('zip'))}",
-        styles["Normal"],
-    ))
+    story.append(
+        Paragraph(
+            f"Location: {_text(raw.get('address'))}, {_text(raw.get('city'))}, {_text(raw.get('state'))} {_text(raw.get('zip'))}",
+            styles["Normal"],
+        )
+    )
     if memo.get("property_summary"):
         _bullet_list(story, memo["property_summary"], styles)
     story.append(Spacer(1, 6))
@@ -78,10 +79,14 @@ def build_submission_pdf(submission: dict[str, Any]) -> bytes:
         ["Policy segment", _text(raw.get("policy_type") or submission.get("policy_type"))],
     ]
     dec_table = Table(decision_rows, colWidths=[55 * mm, 115 * mm])
-    dec_table.setStyle(TableStyle([
-        ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
-        ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#eaf6ee")),
-    ]))
+    dec_table.setStyle(
+        TableStyle(
+            [
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+                ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#eaf6ee")),
+            ]
+        )
+    )
     story.append(dec_table)
     story.append(Spacer(1, 8))
 
@@ -93,12 +98,16 @@ def build_submission_pdf(submission: dict[str, Any]) -> bytes:
         bd_rows.append([factor.replace("_", " ").title(), str(points)])
     if len(bd_rows) > 1:
         bd_table = Table(bd_rows, colWidths=[90 * mm, 30 * mm])
-        bd_table.setStyle(TableStyle([
-            ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0d4838")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTSIZE", (0, 0), (-1, -1), 9),
-        ]))
+        bd_table.setStyle(
+            TableStyle(
+                [
+                    ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0d4838")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTSIZE", (0, 0), (-1, -1), 9),
+                ]
+            )
+        )
         story.append(bd_table)
     story.append(Spacer(1, 6))
 
@@ -127,11 +136,12 @@ def build_submission_pdf(submission: dict[str, Any]) -> bytes:
         story.append(Spacer(1, 4))
     elif not memo:
         story.append(Paragraph("Suggested Next Steps", styles["Heading2"]))
-        story.append(Paragraph(
-            f"AI-assisted analysis unavailable: {_text(submission.get('ai_memo_reason'))}. "
-            "Review the deterministic risk flags and available guideline evidence before final underwriting action.",
-            styles["Normal"],
-        ))
+        story.append(
+            Paragraph(
+                f"AI-assisted analysis unavailable: {_text(submission.get('ai_memo_reason'))}. Review the deterministic risk flags and available guideline evidence before final underwriting action.",
+                styles["Normal"],
+            )
+        )
         story.append(Spacer(1, 4))
 
     # ── Image review ──────────────────────────────────────────────────────────
@@ -157,10 +167,12 @@ def build_submission_pdf(submission: dict[str, Any]) -> bytes:
         report_image.drawHeight = report_image.imageHeight * scale
         story.append(Spacer(1, 5))
         story.append(report_image)
-        story.append(Paragraph(
-            f"Submitted property image: {_text(submitted_image.name)}. Visual observations above are evidence-extraction outputs, not authoritative property facts.",
-            styles["Italic"],
-        ))
+        story.append(
+            Paragraph(
+                f"Submitted property image: {_text(submitted_image.name)}. Visual observations above are evidence-extraction outputs, not authoritative property facts.",
+                styles["Italic"],
+            )
+        )
     story.append(Spacer(1, 6))
 
     # ── Guideline evidence (concise excerpts) ────────────────────────────────
@@ -182,13 +194,17 @@ def build_submission_pdf(submission: dict[str, Any]) -> bytes:
         comp_data = [comp_headers] + [[_text(c.get(k)) for k in comp_keys] for c in comps]
         comp_col_w = [22 * mm, 22 * mm, 14 * mm, 26 * mm, 18 * mm, 16 * mm, 14 * mm, 20 * mm]
         comp_table = Table(comp_data, colWidths=comp_col_w, repeatRows=1)
-        comp_table.setStyle(TableStyle([
-            ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0d4838")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("FONTSIZE", (0, 0), (-1, -1), 8),
-            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f7faf8")]),
-        ]))
+        comp_table.setStyle(
+            TableStyle(
+                [
+                    ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0d4838")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("FONTSIZE", (0, 0), (-1, -1), 8),
+                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f7faf8")]),
+                ]
+            )
+        )
         story.append(comp_table)
     else:
         story.append(Paragraph("No reference properties available.", styles["Normal"]))

@@ -3,16 +3,16 @@ from __future__ import annotations
 import math
 
 # Authoritative scoring point values — prototype calibration, not filed rating rules
-_ROOF_OLD_SCORE = 25        # roof > 30 years
-_ROOF_AGING_SCORE = 15      # roof > 20 years
-_FRAME_SCORE = 10           # combustible frame construction
-_NO_SPRINKLER_HH = 10       # warehouse/industrial without sprinkler
-_HIGH_CAT_SCORE = 20        # primary CAT perils (Wind/Flood/Wildfire)
-_HIGH_SEISMIC_SCORE = 15    # seismic zone IV or V
-_COASTAL_SCORE = 15         # < 1 mile to coast
-_WILDLAND_SCORE = 15        # < 1 mile to wildland-urban interface
-_ADVERSE_LOSS_SCORE = 15    # > 2 prior claims in 5 years
-_HIGH_TIV_SCORE = 5         # TIV > ₹20M
+_ROOF_OLD_SCORE = 25  # roof > 30 years
+_ROOF_AGING_SCORE = 15  # roof > 20 years
+_FRAME_SCORE = 10  # combustible frame construction
+_NO_SPRINKLER_HH = 10  # warehouse/industrial without sprinkler
+_HIGH_CAT_SCORE = 20  # primary CAT perils (Wind/Flood/Wildfire)
+_HIGH_SEISMIC_SCORE = 15  # seismic zone IV or V
+_COASTAL_SCORE = 15  # < 1 mile to coast
+_WILDLAND_SCORE = 15  # < 1 mile to wildland-urban interface
+_ADVERSE_LOSS_SCORE = 15  # > 2 prior claims in 5 years
+_HIGH_TIV_SCORE = 5  # TIV > ₹20M
 # Flood protection declared benefit; must equal actual cat_score reduction for consistency
 _FLOOD_PROTECTION_BENEFIT = 20
 
@@ -120,15 +120,7 @@ def prototype_mitigation_model(features: dict, authoritative_score: int) -> dict
         {"id": "loss", "name": "Loss History Risk", "score": loss_history_score},
         {"id": "age", "name": "Property Age Risk", "score": age_score},
     ]
-    risk_adjusted_view = _clamp(
-        climate_score * 0.20
-        + cat_score * 0.20
-        + construction_score * 0.15
-        + occupancy_score * 0.10
-        + protection_score * 0.15
-        + loss_history_score * 0.15
-        + age_score * 0.05
-    )
+    risk_adjusted_view = _clamp(climate_score * 0.20 + cat_score * 0.20 + construction_score * 0.15 + occupancy_score * 0.10 + protection_score * 0.15 + loss_history_score * 0.15 + age_score * 0.05)
 
     benefits: list[dict[str, int | str]] = []
     adjustments: list[dict[str, int | str]] = []
@@ -150,11 +142,7 @@ def prototype_mitigation_model(features: dict, authoritative_score: int) -> dict
     for factor in ("generator", "drainage", "security_protective_safeguards"):
         if features.get(factor) is True:
             benefits.append({"factor": factor, "benefit": 0})
-    positive_factors = [
-        {"id": item["factor"], "name": str(item["factor"]).replace("_", " ").title(), "benefit": item["benefit"]}
-        for item in benefits
-        if int(item["benefit"]) > 0
-    ]
+    positive_factors = [{"id": item["factor"], "name": str(item["factor"]).replace("_", " ").title(), "benefit": item["benefit"]} for item in benefits if int(item["benefit"]) > 0]
     return {
         "model": "prototype_mitigation_model",
         "authoritative_score": authoritative_score,
