@@ -1,7 +1,7 @@
 name: CI/CD
 
-# Stage 1 checks every pull request and every push to main: rules, lint, tests, secrets and the container build.
-# Stage 2 on a pull request deploys a preview and smoke-tests it; on main it deploys production and smoke-tests that.
+# Check and Test run on every pull request and every push to main.
+# Deploy then publishes a preview for a pull request, or production for main, and smoke-tests it.
 
 on:
   push:
@@ -16,21 +16,53 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  rules:
-    if: github.event_name == 'pull_request'
+  check:
+    name: Check
     runs-on: ubuntu-26.04
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Fetch main for comparison
-        run: git fetch --no-tags --depth=1 origin main
+          fetch-depth: 0
       - name: Check branch name, version bump and changelog
+        if: github.event_name == 'pull_request'
         run: python3 .github/scripts/release_check.py
+      - name: Scan every commit for secrets with Gitleaks
+        run: |
+          curl -sSL -o "$RUNNER_TEMP/gitleaks.tgz" https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $RUNNER_TEMP/gitleaks.tgz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/gitleaks.tgz" -C "$RUNNER_TEMP" gitleaks
+          "$RUNNER_TEMP/gitleaks" git --redact --no-banner --config .gitleaks.toml --exit-code 1 .
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Install Ruff
+        run: pip install ruff==0.14.0
+      - name: Check Python code style with Ruff
+        run: ruff check backend pipeline
+      - name: Check Python code formatting with Ruff
+        run: ruff format --check backend pipeline
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend
+      - name: Check translations match English
+        run: npm run check:locales
+        working-directory: frontend
+      - name: Check code style with Oxlint
+        run: npm run lint
+        working-directory: frontend
 
-  backend:
+  test-backend:
+    name: Test backend
     runs-on: ubuntu-26.04
     timeout-minutes: 20
     services:
@@ -53,16 +85,13 @@ jobs:
           python-version: "3.12"
           cache: pip
       - name: Install dependencies
-        run: pip install -r requirements.txt pytest httpx ruff==0.14.0 pytest-timeout==2.4.0
-      - name: Check Python code style with Ruff
-        run: ruff check backend pipeline
-      - name: Check Python code formatting with Ruff
-        run: ruff format --check backend pipeline
-      - name: Run backend tests
+        run: pip install -r requirements.txt pytest httpx pytest-timeout==2.4.0
+      - name: Run backend tests against Postgres
         run: pytest -q --timeout=120
         working-directory: backend
 
-  frontend:
+  test-frontend:
+    name: Test frontend
     runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
@@ -79,29 +108,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
         working-directory: frontend
-      - name: Check translations match English
-        run: npm run check:locales
-        working-directory: frontend
-      - name: Check code style with Oxlint
-        run: npm run lint
-        working-directory: frontend
       - name: Type-check and build
         run: npm run build
         working-directory: frontend
       - name: Run unit tests
         run: npm test
         working-directory: frontend
-      - name: Install Playwright
-        run: npm install --prefix "$RUNNER_TEMP/browser-tools" --no-save --package-lock=false --ignore-scripts playwright@1.63.0
-      - name: Install Chromium for browser tests
-        run: '"$RUNNER_TEMP/browser-tools/node_modules/.bin/playwright" install --with-deps chromium'
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/browser-tools" --no-save --package-lock=false --ignore-scripts playwright@1.63.0
+          "$RUNNER_TEMP/browser-tools/node_modules/.bin/playwright" install --with-deps chromium
       - name: Run browser tests
         run: npm run test:browser
         working-directory: frontend
         env:
           PLAYWRIGHT_PATH: ${{ runner.temp }}/browser-tools
 
-  pipeline:
+  test-pipeline:
+    name: Test pipeline
     runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
@@ -123,23 +147,8 @@ jobs:
         run: dbt build --profiles-dir .
         working-directory: pipeline/dbt
 
-  secrets:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 10
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - name: Scan every commit for secrets with Gitleaks
-        run: |
-          curl -sSL -o gitleaks.tgz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
-          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tgz" | sha256sum --check
-          tar -xzf gitleaks.tgz gitleaks
-          ./gitleaks git --redact --no-banner --config .gitleaks.toml --exit-code 1 .
-
-  container:
+  test-container:
+    name: Test container
     runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
@@ -162,67 +171,45 @@ jobs:
         if: always()
         run: docker compose down -v
 
-  preview:
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-    needs: [backend, frontend, pipeline]
+  deploy:
+    name: Deploy
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    needs: [check, test-backend, test-frontend, test-pipeline, test-container]
     runs-on: ubuntu-26.04
     timeout-minutes: 15
+    concurrency:
+      group: deploy-${{ github.event_name == 'push' && 'production' || github.ref }}
+      cancel-in-progress: false
+    environment:
+      name: ${{ github.event_name == 'push' && 'production' || 'preview' }}
+      url: ${{ steps.deploy.outputs.url }}
     env:
       VERCEL_ORG_ID: team_IjFtm7aRrxcQ8mlUKZGG864P
       VERCEL_PROJECT_ID: prj_KG8CVLdeu5KR5eyJnuPWTHyS12zT
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      PROD_FLAG: ${{ github.event_name == 'push' && '--prod' || '' }}
     steps:
-      # Deploy the pull request's own head commit: Vercel blocks the merge commit GitHub creates, which is not authored by the account owner.
+      # A pull request deploys its own head commit: Vercel blocks the merge commit GitHub creates, which is not authored by the account owner.
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
-      - name: Deploy a preview
-        id: preview
+      - name: Deploy to Vercel
+        id: deploy
         timeout-minutes: 8
         run: |
-          url=$(npx --yes vercel@62.7.0 deploy --yes --token "$VERCEL_TOKEN")
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-          echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
-      - name: Smoke test the preview
-        run: |
-          if [ -z "$BYPASS" ]; then echo "::error::Add the VERCEL_AUTOMATION_BYPASS_SECRET repository secret so CI can open protected previews"; exit 1; fi
-          .github/scripts/smoke_check.sh "${{ steps.preview.outputs.url }}"
-
-  deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [backend, frontend, pipeline, secrets, container]
-    runs-on: ubuntu-26.04
-    timeout-minutes: 15
-    concurrency:
-      group: deploy-production
-      cancel-in-progress: false
-    environment:
-      name: production
-      url: https://imaarat-ai.vercel.app
-    env:
-      VERCEL_ORG_ID: team_IjFtm7aRrxcQ8mlUKZGG864P
-      VERCEL_PROJECT_ID: prj_KG8CVLdeu5KR5eyJnuPWTHyS12zT
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      SITE: https://imaarat-ai.vercel.app
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
-        with:
-          node-version: 22
-      - name: Deploy to production
-        run: |
           if [ -z "$VERCEL_TOKEN" ]; then echo "::error::Add the VERCEL_TOKEN repository secret to deploy from CI"; exit 1; fi
-          npx --yes vercel@62.7.0 deploy --prod --yes --token "$VERCEL_TOKEN"
-      - name: Smoke test production
-        run: .github/scripts/smoke_check.sh "$SITE"
+          url=$(npx --yes vercel@62.7.0 deploy $PROD_FLAG --yes --token "$VERCEL_TOKEN")
+          if [ "${{ github.event_name }}" = "push" ]; then url=https://imaarat-ai.vercel.app; fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Deployed: $url" >> "$GITHUB_STEP_SUMMARY"
+      - name: Smoke test the deployment
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ -z "$BYPASS" ]; then echo "::error::Add the VERCEL_AUTOMATION_BYPASS_SECRET repository secret so CI can open protected previews"; exit 1; fi
+          .github/scripts/smoke_check.sh "${{ steps.deploy.outputs.url }}"

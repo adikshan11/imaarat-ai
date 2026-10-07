@@ -1,0 +1,281 @@
+name: Benchmarks
+
+# Measurements that are too slow or too costly for every pull request.
+# Weekly: evals and Lighthouse. Pull requests that change a benchmark: Lighthouse and the load test. Any run on demand.
+# Results from main are published to the status page.
+
+on:
+  schedule:
+    - cron: "0 21 * * 0"  # Monday 02:30 IST
+  pull_request:
+    paths:
+      - .github/workflows/benchmarks.yml
+      - .github/scripts/lighthouse_summary.mjs
+      - backend/load/**
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: What to run
+        type: choice
+        options: [evals, lighthouse, load, vision]
+        default: evals
+      memo_cases:
+        description: "Evals: AI risk summaries to generate and judge"
+        type: choice
+        options: ["1", "2"]
+        default: "2"
+      live:
+        description: "Evals: call the live AI (uses the daily allowance)"
+        type: boolean
+        default: false
+      urls:
+        description: "Lighthouse: pages to audit, separated by spaces"
+        default: https://imaarat-ai.vercel.app/ https://imaarat-ai.vercel.app/app/
+      users:
+        description: "Load test: concurrent simulated underwriters"
+        default: "50"
+      duration:
+        description: "Load test: run time, for example 3m"
+        default: "3m"
+      providers:
+        description: "Vision: form readers to compare"
+        default: "gemini,sarvam,qwen"
+
+permissions:
+  contents: read
+
+jobs:
+  evals:
+    name: Evals
+    if: github.event_name == 'schedule' || inputs.suite == 'evals'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    env:
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      QDRANT_URL: ${{ secrets.QDRANT_URL }}
+      QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+      LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+      LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+      LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
+      DEEPEVAL_TELEMETRY_OPT_OUT: "YES"
+      CONFIDENT_TRACE_FLUSH: "NO"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          pip install -r backend/evals/requirements.txt
+          pip check
+      - name: Run the evals
+        id: evaluate
+        run: |
+          rm -f evals/results/latest.json evals/results/latest.md
+          python -m evals.run_evals --memo-cases "$MEMO_CASES" $LIVE_FLAG
+        working-directory: backend
+        env:
+          MEMO_CASES: ${{ inputs.memo_cases || '2' }}
+          LIVE_FLAG: ${{ inputs.live && '--live' || '' }}
+      - name: Write the job summary
+        if: always() && hashFiles('backend/evals/results/latest.md') != ''
+        run: cat backend/evals/results/latest.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish to the status page
+        if: always() && github.ref == 'refs/heads/main' && hashFiles('backend/evals/results/latest.json') != ''
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python -m ops.publish_run evals evals/results/latest.json
+      - name: Upload results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always() && steps.evaluate.outcome != 'skipped'
+        with:
+          name: eval-results
+          path: backend/evals/results/
+          if-no-files-found: warn
+
+  lighthouse:
+    name: Lighthouse
+    if: github.event_name != 'workflow_dispatch' || inputs.suite == 'lighthouse'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    env:
+      AUDIT_URLS: ${{ inputs.urls || 'https://imaarat-ai.vercel.app/ https://imaarat-ai.vercel.app/app/' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - name: Install Lighthouse
+        run: npm install --prefix "$RUNNER_TEMP/lighthouse" --no-save --package-lock=false lighthouse@13.5.0
+      - name: Audit mobile and desktop
+        run: |
+          mkdir -p reports
+          LH="$RUNNER_TEMP/lighthouse/node_modules/.bin/lighthouse"
+          FLAGS='--only-categories=performance,accessibility,best-practices,seo --output=json --output=html --chrome-flags=--headless=new --quiet'
+          for url in $AUDIT_URLS; do
+            name=$(echo "$url" | grep -q "/app/" && echo app- || true)
+            $LH "$url" $FLAGS --form-factor=mobile --screenEmulation.mobile --output-path=reports/${name}mobile
+            $LH "$url" $FLAGS --preset=desktop --output-path=reports/${name}desktop
+          done
+      - name: Write the job summary
+        run: node .github/scripts/lighthouse_summary.mjs reports/*.report.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        if: github.ref == 'refs/heads/main'
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Publish to the status page
+        if: github.ref == 'refs/heads/main'
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          pip install -r ../requirements.txt
+          python -m ops.publish_run lighthouse ../reports/*.report.json
+      - name: Upload reports
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: reports/
+          if-no-files-found: warn
+
+  load:
+    name: Load test
+    if: github.event_name == 'pull_request' || inputs.suite == 'load'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    concurrency:
+      group: load-test
+      cancel-in-progress: false
+    services:
+      postgres:
+        image: postgres:17@sha256:e31e3d5327d1806f6177827c9710643e4f35f7ab3f14d26d05332753d3e95ee0
+        env:
+          POSTGRES_PASSWORD: ci-only
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg://postgres:ci-only@localhost:5432/postgres
+      USERS: ${{ inputs.users || '50' }}
+      SPAWN_RATE: "5"
+      DURATION: ${{ inputs.duration || '3m' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          pip install -r backend/requirements.txt locust==2.46.7
+          pip check
+      - name: Start the API
+        working-directory: backend
+        run: |
+          nohup python -m uvicorn app.api.main:app --host 127.0.0.1 --port 8000 > ../server.log 2>&1 &
+          for attempt in $(seq 1 30); do curl -sf http://127.0.0.1:8000/health && exit 0; sleep 2; done
+          cat ../server.log
+          exit 1
+      - name: Run the load test
+        id: load
+        run: >
+          locust -f backend/load/locustfile.py --headless
+          -u "$USERS" -r "$SPAWN_RATE" -t "$DURATION"
+          --host http://127.0.0.1:8000 --csv load --html load.html
+      - name: Write the job summary
+        if: always() && steps.load.outcome != 'skipped'
+        run: |
+          echo "### $USERS users, $DURATION, AI off, Postgres 17" >> "$GITHUB_STEP_SUMMARY"
+          python backend/load/summary.py load_stats.csv >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish to the status page
+        if: github.ref == 'refs/heads/main' && steps.load.outcome != 'skipped'
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python -m ops.publish_run load ../load_stats.csv
+      - name: Upload results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: load-test
+          path: |
+            load*.csv
+            load.html
+            server.log
+          retention-days: 30
+
+  vision:
+    name: Vision benchmark
+    if: inputs.suite == 'vision'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    concurrency:
+      group: vision-bench
+      cancel-in-progress: false
+    env:
+      PROVIDERS: ${{ inputs.providers || 'gemini,sarvam,qwen' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install and build the frontend
+        run: npm ci && npm run build
+        working-directory: frontend
+      - name: Install Playwright and Chromium
+        run: |
+          npm install --prefix "$RUNNER_TEMP/browser-tools" --no-save --package-lock=false --ignore-scripts playwright@1.63.0
+          "$RUNNER_TEMP/browser-tools/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt sarvamai==0.1.36 httpx
+      - name: Generate test cases
+        working-directory: backend
+        run: mkdir -p ../bench_out && python -m bench.form_cases > ../bench_out/cases.json
+      - name: Render the forms
+        env:
+          PLAYWRIGHT_PATH: ${{ runner.temp }}/browser-tools
+        run: node frontend/scripts/render_forms.mjs bench_out/cases.json bench_out/forms
+      - name: Read the forms
+        working-directory: backend
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          SARVAM_API_KEY: ${{ secrets.SARVAM_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python -m bench.forms_bench ../bench_out/cases.json ../bench_out/forms ../bench_out/results "$PROVIDERS"
+      - name: Write the job summary
+        if: always() && hashFiles('bench_out/results/forms_summary.md') != ''
+        run: cat bench_out/results/forms_summary.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload the forms and results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: vision-bench-forms
+          path: bench_out/
+          retention-days: 30
