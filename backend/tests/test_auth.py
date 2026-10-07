@@ -75,3 +75,10 @@ def test_logout_revokes_the_session_on_the_server(client):
     assert client.post("/auth/logout", headers=headers).status_code == 204
     client.cookies.set(auth.SESSION_COOKIE, token)
     assert client.get("/auth/session").status_code == 401
+
+
+def test_origin_ignores_the_api_path_in_the_base_url(monkeypatch):
+    monkeypatch.setenv("PUBLIC_BASE_URL", "https://imaarat-ai.vercel.app/api")
+    assert auth.app_origin() == "https://imaarat-ai.vercel.app"
+    monkeypatch.setenv("PUBLIC_BASE_URL", "")
+    assert auth.app_origin() == ""

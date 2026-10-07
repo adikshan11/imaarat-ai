@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.31.1] - 2026-10-07
+
+### Fixed
+- Sign-in works on the live site. The base URL setting ends in /api, which made every origin check fail and would have pointed GitHub at the wrong callback address; the site origin is now taken from its scheme and host only.
+
 ## [2.31.0] - 2026-10-07
 
 ### Added
