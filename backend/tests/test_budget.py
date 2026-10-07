@@ -83,7 +83,7 @@ class ApiError(Exception):
 
 def test_retries_reserve_budget_and_never_switch_model(store, monkeypatch):
     slept = []
-    monkeypatch.setattr(llm.time, "sleep", slept.append)
+    monkeypatch.setattr(llm, "sleep", slept.append)
     calls = []
 
     def flaky(model):
@@ -196,7 +196,7 @@ def test_no_attempt_starts_without_time_left_in_the_request(store, monkeypatch):
 
 def test_retries_stop_when_the_next_attempt_would_overrun(store, monkeypatch):
     slept = []
-    monkeypatch.setattr(llm.time, "sleep", slept.append)
+    monkeypatch.setattr(llm, "sleep", slept.append)
     calls = []
 
     def busy(model):

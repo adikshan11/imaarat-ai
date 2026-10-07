@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import time
 from contextvars import ContextVar
+from time import sleep  # tests patch llm.sleep; patching time.sleep would also spin the telemetry writer thread
 from typing import Any
 
 import toon_format
@@ -60,7 +61,7 @@ def budgeted(stage: str, call: Any, **arguments: Any) -> tuple[Any, int, int]:
             telemetry.add_span(f"Gemini {stage}", started, time.perf_counter(), f"error {code}" if code else "error")
             if code not in RETRYABLE or daily_quota(error) or attempt == config.GEMINI_ATTEMPTS or not time_left(2**attempt):
                 raise
-            time.sleep(2**attempt)
+            sleep(2**attempt)
             continue
         telemetry.add_span(f"Gemini {stage}", started, time.perf_counter(), "ok")
         return response, call_id, round((time.perf_counter() - started) * 1000)
