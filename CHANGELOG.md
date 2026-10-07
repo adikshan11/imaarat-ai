@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.30.0] - 2026-10-07
+
+### Changed
+- CI now runs in two stages. The check stage tests every pull request: branch name, a version bump above main with a CHANGELOG entry, ruff lint and format checks on the backend, the backend and frontend tests, browser tests and the dbt build. The deploy stage runs only on main after every check passes, deploys to Vercel and confirms the live version, the public pages and the security headers.
+- The backend code is formatted and linted with ruff; the fixes change no behaviour.
+
 ## [2.29.0] - 2026-10-07
 
 ### Added

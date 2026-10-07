@@ -1,4 +1,7 @@
-name: CI
+name: CI/CD
+
+# Stage 1 checks every pull request and every push to main.
+# Stage 2 deploys to production only from main, only after every check passes, then confirms the live version.
 
 on:
   push:
@@ -10,9 +13,20 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  rules:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - run: git fetch --no-tags --depth=1 origin main
+      - run: python3 .github/scripts/release_check.py
+
   backend:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -33,7 +47,11 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt pytest httpx
+      - run: pip install -r requirements.txt pytest httpx ruff==0.14.0
+      - name: Lint (ruff)
+        run: ruff check backend pipeline
+      - name: Format check (ruff)
+        run: ruff format --check backend pipeline
       - run: pytest -q
         working-directory: backend
 
@@ -74,3 +92,46 @@ jobs:
         working-directory: pipeline
       - run: dbt build --profiles-dir .
         working-directory: pipeline/dbt
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [backend, frontend, pipeline]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    environment:
+      name: production
+      url: https://imaarat-ai.vercel.app
+    env:
+      VERCEL_ORG_ID: team_IjFtm7aRrxcQ8mlUKZGG864P
+      VERCEL_PROJECT_ID: prj_KG8CVLdeu5KR5eyJnuPWTHyS12zT
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      SITE: https://imaarat-ai.vercel.app
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+      - name: Deploy to production
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then echo "::error::Add the VERCEL_TOKEN repository secret to deploy from CI"; exit 1; fi
+          npx --yes vercel@62.7.0 deploy --prod --yes --token "$VERCEL_TOKEN"
+      - name: Confirm the live version
+        run: |
+          expected=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' backend/app/__init__.py)
+          for attempt in $(seq 1 20); do
+            live=$(curl -fsS "$SITE/api/status" | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])' || true)
+            [ "$live" = "$expected" ] && break
+            sleep 6
+          done
+          if [ "$live" != "$expected" ]; then echo "::error::Live version is '$live', expected $expected"; exit 1; fi
+          for path in / /app/ /privacy/ /terms/ /changelog/; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$SITE$path")
+            [ "$code" = "200" ] || { echo "::error::$path returned $code"; exit 1; }
+          done
+          curl -sI "$SITE/app/" | grep -qi "^content-security-policy:" || { echo "::error::Security headers missing on /app/"; exit 1; }
+          echo "Live: $expected, all pages 200, security headers present"
