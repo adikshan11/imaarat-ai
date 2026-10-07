@@ -4,7 +4,7 @@ import json
 import re
 from typing import Any
 
-from app import budget, llm
+from app import llm
 from app.config import AI_API_KEY
 from app.observability import traced
 from app.schemas import UnderwritingMemo
@@ -143,15 +143,7 @@ def generate_memo(state: dict) -> dict[str, Any]:
         if getattr(e, "code", None) == 429 or getattr(e, "status_code", None) == 429 or "429" in error_text:
             error_text = f"RESOURCE_EXHAUSTED: {error_text}"
         _failure(state, "Unavailable", error_text)
-        busy = getattr(e, "code", None) in (429, 503) or "RESOURCE_EXHAUSTED" in error_text or "UNAVAILABLE" in error_text or "Timeout" in type(e).__name__
-        if isinstance(e, budget.BudgetExceeded) and e.scope == "this minute":
-            state["ai_memo_reason"] = "This demo's AI is at its per-minute limit, so the decision comes from the rules alone. Try again in a minute."
-        elif isinstance(e, budget.BudgetExceeded) or llm.daily_quota(e):
-            state["ai_memo_reason"] = "This demo has used today's free AI allowance from Google, so the decision comes from the rules alone. The allowance resets every day."
-        elif busy:
-            state["ai_memo_reason"] = "Google's AI model is busy right now, so the decision comes from the rules alone. Try again in a few minutes."
-        else:
-            state["ai_memo_reason"] = f"the AI model returned an error ({type(e).__name__})"
+        state["ai_memo_reason"] = f"{llm.failure_reason(e)} The decision comes from the rules alone."
         return {}
 
     state["memo_model"] = result["model"]

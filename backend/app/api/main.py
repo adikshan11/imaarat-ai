@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from app import __version__, auth, budget, telemetry
+from app import __version__, auth, budget, llm, telemetry
 from app.api.auth_routes import router as auth_router
 from app.config import AI_API_KEY, DB_PATH, QDRANT_URL
 from app.db import fetch_submission_detail, history_page, init_db, is_postgres, portfolio_summary, record_review, save_submission, seed_demo_database
@@ -407,9 +407,9 @@ async def read_paper_form(request: Request, image: UploadFile = File(...)) -> di
     try:
         return await run_in_threadpool(read_form, data, image.content_type)
     except budget.BudgetExceeded as exceeded:
-        raise HTTPException(status_code=429, detail=str(exceeded), headers={"Retry-After": str(exceeded.retry_after)}) from exceeded
+        raise HTTPException(status_code=429, detail=f"The form could not be read. {llm.failure_reason(exceeded)}", headers={"Retry-After": str(exceeded.retry_after)}) from exceeded
     except Exception as error:
-        raise HTTPException(status_code=502, detail=f"The form could not be read: {type(error).__name__}") from error
+        raise HTTPException(status_code=502, detail=f"The form could not be read. {llm.failure_reason(error)}") from error
 
 
 @app.get("/hazard/sources")

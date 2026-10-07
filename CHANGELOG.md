@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.35.1] - 2026-10-07
+
+### Fixed
+- A failed paper-form read now says why in plain words (the AI is busy, at its per-minute limit, or out of today's allowance) instead of showing an internal error name. The same wording now comes from the AI gateway for every component and no longer names one vendor.
+
 ## [2.35.0] - 2026-10-07
 
 ### Changed

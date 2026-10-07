@@ -35,6 +35,17 @@ def daily_quota(error: Exception) -> bool:
     return getattr(error, "daily_quota", False) or "PerDay" in str(error)
 
 
+def failure_reason(error: Exception) -> str:
+    """Plain words for why an AI step did not run, the same in every component and for every provider."""
+    if isinstance(error, budget.BudgetExceeded) and error.scope == "this minute":
+        return "This demo's AI is at its per-minute limit. Try again in a minute."
+    if isinstance(error, budget.BudgetExceeded) or daily_quota(error):
+        return "This demo has used today's AI allowance, which resets every day."
+    if getattr(error, "code", None) in (429, 500, 502, 503, 504) or "Timeout" in type(error).__name__:
+        return "The AI model is busy right now. Try again in a few minutes."
+    return f"The AI model returned an error ({type(error).__name__})."
+
+
 def budgeted(stage: str, call: Any, **arguments: Any) -> tuple[Any, int, int]:
     """Run one provider call, reserving budget for every attempt and retrying only 429/5xx on the same model."""
     span = f"{config.AI_PROVIDER.title()} {stage}"
