@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.37.3] - 2026-10-07
+
+### Changed
+- The README now opens with a banner, a quick start and architecture diagrams, and the deeper engineering notes moved to the architecture guide with outdated details corrected.
+
 ## [2.37.2] - 2026-10-07
 
 ### Changed

@@ -1,151 +1,219 @@
-# imaarat.ai
+<p align="center">
+  <img src="frontend/public/og.jpg" alt="imaarat.ai: AI underwriting for Indian commercial property" width="720">
+</p>
 
-**Imaarat** (Hindi/Urdu for "building") is AI-assisted underwriting for Indian commercial property. An underwriter enters a property and sees a live risk preview while typing. The system returns a decision backed by evidence: Gemini Vision observations from the property photo, guideline sections retrieved by RAG and cited in the memo, similar reference properties, and a validated AI memo. Referrals pause for an underwriter to approve or override. Every assessment feeds a nightly, tested analytics pipeline.
+<p align="center">
+  <a href="https://imaarat-ai.vercel.app"><b>Live demo</b></a> ·
+  <a href="https://imaarat-ai.vercel.app/app/">Open the app</a> ·
+  <a href="ARCHITECTURE.md">Architecture</a> ·
+  <a href="https://imaarat-ai.vercel.app/changelog/">Changelog</a> ·
+  <a href="https://adikshan11.github.io/uw-risk-assessment/">Data lineage</a> ·
+  <a href="https://github.com/adikshan11/uw-risk-assessment/issues">Report an issue</a>
+</p>
 
-What it adds for India specifically:
+<p align="center">
+  <a href="https://github.com/adikshan11/uw-risk-assessment/actions/workflows/ci-cd.yml"><img src="https://github.com/adikshan11/uw-risk-assessment/actions/workflows/ci-cd.yml/badge.svg" alt="CI/CD"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License"></a>
+  <img src="https://img.shields.io/badge/languages-26-blue" alt="26 languages">
+  <img src="https://img.shields.io/badge/MCP%20%2B%20A2A-ready-purple" alt="MCP and A2A">
+</p>
 
-- **Location hazard check.** Every PIN code (19,312 of them) is mapped to its district, its IS 1893 seismic zone, the share of its area flooded in 1998–2022 satellite records and the IMD cyclone grade of its district, all from open government data. A proposal that understates its seismic zone is scored at the official zone and flagged.
-- **Paper proposals.** A printable two-page form in the chosen language, filled by hand. Only the property page is photographed; the AI reads it, and a person confirms the PIN code, year and amounts before anything is assessed.
-- **26 languages.** English, the 22 Eighth Schedule languages, Bhojpuri, Chhattisgarhi and Tulu, with each script's font and right-to-left layout for Urdu, Sindhi and Kashmiri. Translations are machine-made and labelled as such.
+**imaarat.ai** (*imaarat* is Hindi and Urdu for "building") turns a commercial property proposal into a decision an underwriter can defend. It checks the proposal against official hazard data for its PIN code, scores it with written rules, explains the result in plain words with AI, and waits for a person to approve anything referred.
 
-Built by **Pranjal Jain, Adithya Shankaran and Sanjeev Sharma** as the capstone of Xebia's Quantum Shift AI Practitioner+ program (August 2026). Adithya extended it into this production-style version: evals, observability, MCP and A2A, human review, Postgres and the dbt pipeline.
+> **Rules decide · AI explains · You approve.** The model never makes the decision. A deterministic rule engine does, and every AI output is checked against it before anyone sees it.
 
-**Live app:** [imaarat-ai.vercel.app](https://imaarat-ai.vercel.app) · **AI quality:** [evals page](https://imaarat-ai.vercel.app/#quality) · **dbt docs and lineage:** [GitHub Pages](https://adikshan11.github.io/uw-risk-assessment/) · **MCP:** `https://imaarat-ai.vercel.app/api/mcp/` · **A2A card:** [agent-card.json](https://imaarat-ai.vercel.app/api/.well-known/agent-card.json)
+## What it does
 
-## The rule that shapes everything
+| Module | What you get |
+|---|---|
+| **Paper reader** | Photograph a hand-filled proposal in any of 26 Indian languages. AI reads every box with its confidence; a person confirms the key values. |
+| **Hazard verification** | All 19,312 PIN codes mapped to their IS 1893 seismic zone, satellite flood history (1998–2022), city flooding spots and IMD cyclone grade. A proposal that understates its hazard is scored at the official value and flagged. |
+| **Rule engine** | A 0–100 score with every point explained, and a decision: Accept, Refer, Decline (mitigation possible) or Auto-Decline. |
+| **AI risk summary** | A plain-language explanation that may only use the facts above and cite the guideline sections it was given. |
+| **Sign-off** | Referrals wait for a signed-in reviewer. A reviewer holds a referral while working on it, the first decision saved is final, overrides need a reason, and every decision exports as a PDF. |
+| **Open APIs** | The same assessment for AI assistants (MCP), other agents (A2A) and your own systems (GraphQL and REST), under the same rules and limits. |
 
-**Python decides, Gemini explains.** A deterministic rule engine scores the property and owns the decision; the model can only explain it, and its output is checked mechanically before anyone sees it.
+## Quick start
+
+**Try it:** open the [live demo](https://imaarat-ai.vercel.app) with the sample proposals. No sign-up needed.
+
+**Run it yourself** with Postgres, the API and the website in one command:
+
+```bash
+git clone https://github.com/adikshan11/uw-risk-assessment.git && cd uw-risk-assessment
+docker compose up --build        # then open http://localhost:8080
+```
+
+Without an AI key the rules still decide every assessment. To switch the AI on, put `GEMINI_API_KEY=...` in a `.env` file next to `compose.yaml`.
+
+**Use it from an AI assistant** over MCP:
+
+```bash
+claude mcp add --transport http imaarat https://imaarat-ai.vercel.app/api/mcp/
+```
+
+Tools: `assess_property`, `lookup_hazard`, `search_guidelines`, `get_assessment`, `list_assessments`. Other agents can read the A2A card at [`/api/.well-known/agent-card.json`](https://imaarat-ai.vercel.app/api/.well-known/agent-card.json).
+
+## How a decision is made
 
 | Score | Decision |
 |---|---|
 | 0–30 | Accept |
-| 31–60 | Refer (pauses for underwriter review) |
+| 31–60 | Refer: paused until a reviewer approves or changes it |
 | 61–84 | Decline (mitigation possible) |
 | 85–100 | Auto-Decline |
 
 ## Architecture
 
-The layers, the rules CI enforces between them, and how to switch AI providers (for example to Amazon Bedrock) are in [ARCHITECTURE.md](ARCHITECTURE.md).
+The diagrams follow the [C4 model](https://c4model.com): first the system in its surroundings, then the containers inside it. They are Mermaid text in this file, so they are versioned and reviewed with the code. Components, the layer rules CI enforces and how to swap AI providers are in [ARCHITECTURE.md](ARCHITECTURE.md).
+
+### System context
 
 ```mermaid
 flowchart LR
-  UI[React + TypeScript] -->|REST| API[FastAPI on Vercel]
-  Agents[Other AI agents] -->|A2A v1.0| API
-  Assistants[Claude / Copilot / MCP clients] -->|MCP 2026-07-28| API
-  API --> G{{LangGraph}}
-  G --> V[Gemini Vision]
-  G --> R[RAG: Gemini embeddings + Qdrant]
-  G --> S[Deterministic scoring]
-  G --> C[Reference properties]
-  G --> M[Gemini memo, schema-validated]
-  G --> H[Human review interrupt]
-  G <--> PG[(Postgres on Neon: submissions + LangGraph checkpoints)]
-  G -.traces.-> LF[Langfuse]
-  PG -->|nightly| P[Parquet] --> D[dbt on DuckDB, tested] --> PG
+  uw(["👤 Underwriter<br/><small>assesses proposals</small>"])
+  rev(["👤 Reviewer<br/><small>approves referrals</small>"])
+  agent(["🤖 AI assistant or agent<br/><small>Claude, Copilot, other systems</small>"])
+  sys["<b>imaarat.ai</b><br/><small>scores, explains and records<br/>property risk decisions</small>"]
+  ai["AI provider<br/><small>Gemini today, pluggable</small>"]
+  gh["GitHub<br/><small>sign-in</small>"]
+  gov["Open government data<br/><small>BIS, NRSC, IMD, India Post</small>"]
+  uw -- "proposal, photo, paper form" --> sys
+  rev -- "approve or change" --> sys
+  agent -- "MCP · A2A · GraphQL" --> sys
+  sys -- "read forms, embed, summarise" --> ai
+  sys -- "OAuth" --> gh
+  gov -. "built into hazard tables" .-> sys
+  classDef person fill:#0b3d2e,stroke:#6ee7b7,color:#fff
+  classDef system fill:#14532d,stroke:#6ee7b7,color:#fff,stroke-width:2px
+  classDef external fill:#374151,stroke:#9ca3af,color:#fff
+  class uw,rev,agent person
+  class sys system
+  class ai,gh,gov external
 ```
 
-## AI engineering
+### Containers
 
-| Capability | How |
-|---|---|
-| **Structured output** | Gemini's native JSON-schema mode with Pydantic models for the memo and vision output, plus a mechanical validator: the decision must match the engine, risk factors must be real flags, citations must be retrieved sections, and no invented amounts, rates or regulations. |
-| **Reliability on the free tier** | One LLM layer (`app/llm.py`) with HTTP retries on 429/5xx and a model fallback (`gemini-3.8-flash` → `gemini-3.5-flash-lite`). AI failures degrade to "unavailable"; the deterministic decision always stands. |
-| **RAG with citations** | Underwriting guidelines split into sections (G1–G12), embedded with `gemini-embedding-001`, stored in Qdrant Cloud and re-indexed automatically when the text changes. The memo cites the sections it used; citing anything not retrieved fails validation. |
-| **Evals** | A 24-property golden set covering every scoring rule and band. It measures decision accuracy, retrieval hit rate, recall and MRR, the memo contract pass rate, citation precision, and faithfulness via a DeepEval LLM judge. Runs weekly in GitHub Actions; results appear on the app's **AI Quality** page. |
-| **TOON vs JSON** | Evidence is sent to Gemini as TOON (official `toon-format`) or JSON. The eval measures both on the same prompts, for tokens, contract pass rate and faithfulness, instead of assuming. |
-| **Observability** | Langfuse traces every graph node and Gemini call with tokens and latency; each assessment links to its public trace. |
-| **Human in the loop** | LangGraph `interrupt()` pauses referrals; Postgres checkpoints let a reviewer resume them later, even after a serverless restart. Overrides require a written reason, enforced in the API and in dbt tests. |
-| **MCP server** | `/api/mcp/`: tools `assess_property` (pass a `pincode` to verify hazards), `lookup_hazard`, `search_guidelines`, `get_assessment`, `list_assessments` and resource `uw://guidelines`, on the stateless 2026-07-28 spec. |
-| **Reading paper forms** | Gemini returns every field of the photographed page with a confidence and the image area it came from (`/api/underwrite/read-form`). Blank boxes stay blank, and the values are checked outside the model: the PIN code must exist, years and amounts must be in range. The review screen shows each value beside its crop and blocks until a person confirms the critical ones. |
-| **A2A agent** | Agent Card at `/api/.well-known/agent-card.json`, JSON-RPC at `/api/a2a`. Send property data to get an assessment, or a text question to get guideline sections. |
-
-### Framework choices
-
-- **LangGraph**, not CrewAI or AutoGen: underwriting needs deterministic control flow, checkpoints and human interrupts, which are LangGraph's strengths. Role-playing agent crews or conversational agents would add autonomy where it is not wanted.
-- **Langfuse**, not LangSmith: open source, built on OpenTelemetry, and a larger free tier.
-- **DeepEval** for LLM-judged metrics: actively maintained and pytest-style.
-- **Not used:** n8n and Langflow are visual builders that hide the engineering. OpenClaw is a personal-assistant agent, not an application framework. LlamaIndex adds little for a 12-section corpus that Qdrant plus a few lines of code handle.
-
-## AI budget
-
-Every AI call is paid for from a daily budget before it is made, so a public demo cannot exhaust the Gemini quota or run up a bill.
-
-- **Admission:** each assessment, paper-form reading, A2A request or MCP guideline search takes one slot from a global daily cap (`AI_DAILY_ADMISSIONS`, default 15) and from a per-visitor cap (`AI_CLIENT_DAILY_ADMISSIONS`, default 3), both or neither. Visitors are counted by a daily-rotating hash of their address, never the address itself.
-- **Calls:** every Gemini attempt (generation, vision, embedding, token counting), including each retry, takes one call from `AI_DAILY_CALLS` (default 200). Text and image generations also count against Google's free-tier limits for gemini-3.8-flash: `AI_DAILY_GENERATIONS` (default 20) and `AI_MINUTE_GENERATIONS` (default 5). Embeddings and token counts have their own, larger Google limits and skip these two. Output is capped at `AI_STAGE_OUTPUT_TOKENS` (default 2048) per call.
-- **Atomic:** a reservation is a single `UPDATE … SET used = used + n WHERE used + n <= cap`, so concurrent servers can never overspend; CI proves it with 20 parallel requests against a cap of 5 on real Postgres.
-- **One model, honest failure:** a call uses only the configured model and retries only 429/500/503 errors, at most two attempts, and never retries a daily-quota 429. There is no fallback model.
-- **Fail closed:** on Vercel the AI runs only when the budget lives in Postgres (`DATABASE_URL`), because per-instance SQLite counters are not a global limit. When the budget is spent, AI stages are skipped and the result says why and when the budget resets.
-- **Resets** at midnight Pacific time, when Google's daily quotas reset. `/api/status` shows what is left; the `ai_usage` table records each call's stage, model, tokens, latency and outcome.
-
-## Data engineering
-
-```
-Postgres (Neon) ──extract──▶ Parquet lake ──dbt build──▶ DuckDB marts ──publish──▶ Postgres snapshot ──▶ dashboard
+```mermaid
+flowchart TB
+  subgraph browser["Browser"]
+    web["Landing and web app<br/><small>React 19 · Vite · Tailwind<br/>prerendered static pages</small>"]
+  end
+  subgraph vercel["Vercel, Singapore"]
+    api["API<br/><small>FastAPI · REST · GraphQL<br/>MCP · A2A · sign-in</small>"]
+    flow["Underwriting workflow<br/><small>LangGraph with a<br/>human-review pause</small>"]
+    gw["AI gateway<br/><small>budgets · retries<br/>deadline · tracing</small>"]
+  end
+  subgraph data["Data"]
+    db[("Postgres on Neon<br/><small>assessments · checkpoints<br/>sessions · AI budget</small>")]
+    elt["Nightly ELT<br/><small>Parquet → dbt on DuckDB</small>"]
+  end
+  ai["AI provider<br/><small>Gemini</small>"]
+  lf["Langfuse<br/><small>AI traces</small>"]
+  web -- "HTTPS, JSON" --> api
+  api --> flow
+  flow --> gw
+  gw -- "provider adapter" --> ai
+  gw -. "traces" .-> lf
+  api & flow -- "SQL" --> db
+  db -- "extract nightly" --> elt
+  elt -- "analytics snapshot" --> db
+  classDef box fill:#14532d,stroke:#6ee7b7,color:#fff
+  classDef store fill:#0b3d2e,stroke:#6ee7b7,color:#fff
+  classDef external fill:#374151,stroke:#9ca3af,color:#fff
+  class web,api,flow,gw,elt box
+  class db store
+  class ai,lf external
 ```
 
-- **Models:** `stg_submissions`, `stg_reference_properties` → `fct_assessments` and marts for CAT exposure, city accumulation, risk drivers, the review funnel, reference benchmarks and `mart_hazard_verification` (each proposal's declared hazards against the official ones for its PIN code).
-- **Hazard pipeline:** `pipeline/hazard/build_hazard.py` downloads the open sources, overlays pincode boundaries with district, seismic-zone and flood-inundation polygons (Shapely), parses IMD's cyclone tables from the PDF, and maps old district names to current ones through a hand-checked crosswalk. It fails if IMD's published counts (100 districts: 12 P1, 25 P2, 48 P3, 15 P4) don't match. Output: a dbt seed and the JSON the API serves.
-- **Data tests (25):** keys, accepted decision values, scores within 0–100, unique PIN codes, valid zones and grades, flood shares between 0 and 100. Each stored decision must match its score band, which is a contract with the application. Every override must carry a reason.
-- **Orchestration:** GitHub Actions runs nightly; CI runs the backend tests, the frontend build and `dbt build` on every push. dbt docs and lineage are published to GitHub Pages.
+### One assessment, end to end
 
-## Run locally
+```mermaid
+sequenceDiagram
+  autonumber
+  actor U as Underwriter
+  participant A as API
+  participant W as Workflow
+  participant H as Hazard data
+  participant R as Rule engine
+  participant G as AI gateway
+  participant D as Postgres
+  U->>A: Submit a proposal
+  A->>W: Run the assessment
+  W->>H: Official hazards for the PIN code
+  W->>R: Score with written rules
+  R-->>W: Score, reasons, decision
+  W->>G: Explain the decision, within budget
+  G-->>W: Summary, checked against the rules
+  W->>D: Save the assessment and checkpoint
+  alt Score 31–60
+    W-->>U: Referred, waiting for a reviewer
+  else Any other score
+    W-->>U: Decision with reasons and summary
+  end
+```
+
+## Tech stack
+
+| Area | Choice | Why |
+|---|---|---|
+| Web | React 19, TypeScript, Vite, Tailwind CSS | Fast static pages; the landing page ships almost no JavaScript |
+| API | FastAPI, Strawberry GraphQL, MCP and A2A SDKs | One backend for people, agents and other systems |
+| Workflow | LangGraph with Postgres checkpoints | Fixed steps and a resumable human review |
+| AI | Gemini through a provider adapter | Switch to Bedrock or another provider with configuration; see [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Data | Postgres on Neon, dbt on DuckDB | Transactions for the app, a tested nightly pipeline for analytics |
+| Quality | pytest, Playwright, DeepEval, Lighthouse, Locust | Every layer measured, with results on the status page |
+| Delivery | GitHub Actions, Docker Compose, Vercel | Checked, tested and smoke-tested before every deploy |
+
+## Repository layout
+
+```
+backend/
+  app/            API, workflow, components, AI gateway, provider adapters
+  evals/          golden set and quality metrics
+  load/           load test
+  tests/          unit, integration and architecture tests
+frontend/
+  src/landing/    landing, privacy, terms and changelog pages
+  src/            the web app
+pipeline/         nightly extract, dbt models and the hazard-data builder
+deploy/docker/    images for the self-hosted stack
+.github/          CI/CD, benchmark and nightly pipeline workflows
+```
+
+## Development
 
 ```bash
 pip install -r requirements.txt pytest httpx uvicorn
-cd backend && cp .env.example .env     # GEMINI_API_KEY; optional QDRANT_*, LANGFUSE_*, DATABASE_URL
-uvicorn app.api.main:app --port 8000 --reload
-pytest -q                              # 91 tests
-python -m evals.run_evals              # eval report (needs GEMINI_API_KEY)
+cd backend && uvicorn app.api.main:app --port 8000 --reload   # API on :8000
+pytest -q                                                    # backend tests
 
-cd ../frontend && npm ci && npm run dev            # http://localhost:3000
-cd ../pipeline && pip install -r requirements.txt && python extract.py && (cd dbt && dbt build --profiles-dir .) && python publish.py
+cd ../frontend && npm ci && npm run dev                       # app on :3000
+npm run lint && npm test
 ```
 
-Without `DATABASE_URL` everything runs on SQLite; without `QDRANT_*` RAG uses a local JSON vector index; without `LANGFUSE_*` tracing is off.
+Without `DATABASE_URL` the API uses SQLite; without `QDRANT_*` guideline search uses a local vector index; without `LANGFUSE_*` tracing is off.
 
-## Deploy
+### CI/CD
 
-One Vercel project: `frontend/` builds to static files, and `api/index.py` serves the FastAPI app as a Python function under `/api`. Set the same variables in Vercel and as GitHub Actions secrets (for the nightly pipeline and evals):
+Three workflows, in the same shape as our other repositories:
+
+- **CI/CD** on every pull request and every push to `main`: **Check** (release rules, secret scan, Ruff, Oxlint, translations), four parallel **Test** jobs (backend on Postgres, frontend with browser tests, pipeline, the Docker stack), then **Deploy**: a smoke-tested preview for a pull request, production for `main`.
+- **Benchmarks**: evals and Lighthouse every week, and Lighthouse, the load test or the vision benchmark on demand. Results appear on the app's status page.
+- **Nightly ELT**: the analytics pipeline and the published data lineage.
+
+Conventions: branches `feature/`, `fix/`, `ci/`, `docs/` or `chore/` with a snake_case name; one version bump and one plain-English CHANGELOG line per branch; commit messages of two or three words.
+
+### Configuration
 
 | Variable | Used for |
 |---|---|
-| `GEMINI_API_KEY` | Vision, embeddings, memo, eval judge |
-| `QDRANT_URL`, `QDRANT_API_KEY` | RAG vector store |
-| `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | Tracing |
-| `DATABASE_URL` | Postgres for submissions, checkpoints and analytics |
-| `VERCEL_TOKEN` (GitHub only) | Preview and production deploys from CI |
-| `VERCEL_AUTOMATION_BYPASS_SECRET` (GitHub only) | Smoke-testing protected previews |
-
-## Run it yourself
-
-Everything runs in Docker with one command: Postgres, the API and the website.
-
-```bash
-docker compose up --build
-# open http://localhost:8080
-```
-
-AI features need `GEMINI_API_KEY` in your shell or in a `.env` file next to `compose.yaml`; without it the rules still decide every assessment. Images are defined in `deploy/docker/`, and CI builds and smoke-tests this exact stack on every pull request.
-
-## CI/CD and conventions
-
-Three workflows, modelled on the framework repositories:
-
-- **CI/CD** (`ci-cd.yml`), on every pull request and every push to `main`:
-  1. **Check**: release rules on pull requests (branch name, one version across `backend/app/__init__.py` and `frontend/package*.json`, above `main`'s, with a CHANGELOG entry), gitleaks over the full history (allowed patterns in `.gitleaks.toml`), ruff lint including the Bandit security rules and format check (`ruff.toml`), the locale check and oxlint.
-  2. **Test**, in parallel: backend pytest against Postgres with each test stopped after 120 seconds; frontend type check, build, unit tests and Playwright browser tests; pipeline extract and `dbt build`; container build, compose start and smoke test.
-  3. **Deploy**: a smoke-tested Vercel preview for a pull request, or production for `main`.
-- **Benchmarks** (`benchmarks.yml`): evals and Lighthouse weekly, Lighthouse and the load test on pull requests that change them, and any of evals, Lighthouse, load or the vision benchmark on demand. Results from `main` go to the status page.
-- **Nightly ELT** (`nightly_elt.yml`): the analytics pipeline and the dbt docs site.
-
-The smoke test (`.github/scripts/smoke_check.sh`) is shared by the container, preview and production: `/api/status` must report this checkout's version, every public page must return 200, and the security headers must be present.
-
-Conventions:
-
-- Branches: `feature/`, `fix/`, `ci/`, `docs/` or `chore/` plus a snake_case name, for example `feature/react_landing`.
-- One version bump and one CHANGELOG line per branch, in plain English. The CHANGELOG also feeds the public changelog page.
-- Commit messages of two or three words; pull request bodies follow the template.
-- Files and functions get short plain names (`hazard_lookup.py`, `portfolio_summary`).
+| `GEMINI_API_KEY` (or `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`) | Reading forms, photo review, guideline search, summaries |
+| `DATABASE_URL` | Postgres for assessments, checkpoints, sessions and budgets |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `OPERATOR_GITHUB_IDS` | Reviewer sign-in |
+| `QDRANT_URL`, `QDRANT_API_KEY` | Optional hosted vector store |
+| `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | Optional AI tracing |
+| `VERCEL_TOKEN`, `VERCEL_AUTOMATION_BYPASS_SECRET` (GitHub only) | Deploys and preview smoke tests |
 
 ## Hazard data sources
 
@@ -154,20 +222,24 @@ Conventions:
 | PIN code boundaries | India Post via data.gov.in (May 2025) | Government Open Data License - India |
 | Districts | District boundaries with LGD codes | Government Open Data License - India |
 | Seismic zones | IS 1893 (Part 1):2016 zone map, data.gov.in | Government Open Data License - India |
-| Seismic zones of towns | IS 1893 (Part 1):2016 Annex E, 108 towns over 3 lakh people, applied within 10 km of each town's head post office | Zone values are facts from the standard; the standard is BIS copyright |
+| Seismic zones of towns | IS 1893 (Part 1):2016 Annex E, towns over 3 lakh people, applied within 10 km of each town's head post office | Zone values are facts from the standard; the standard is BIS copyright |
 | Flood history | NRSC / NDEM flood inundation 1998–2022 | CC0 as published by the aggregator; NRSC terms not verified |
-| City flood points | Greater Chennai Corporation inundation and 2015 flood points; BBMP flood-vulnerable, flood-prone and low-lying locations (OpenCity, November 2025) | Public domain, as published on OpenCity |
+| City flood points | Greater Chennai Corporation; BBMP flood-prone and low-lying locations (OpenCity, November 2025) | Public domain, as published on OpenCity |
 | Cyclone grades | IMD RSMC New Delhi, *Cyclone hazard prone districts of India*, June 2023 | No licence stated; cited with attribution |
 
 The 2025 seismic code revision (which added Zone VI) was withdrawn in March 2026, so the 2016 zones apply.
 
 ## Limitations
 
-- Scoring weights are prototype calibrations, not filed insurance rating rules; the guidelines are prototype guidance.
-- The 300 reference properties are synthetic. The five demo properties use public names and images with assumed underwriting facts.
-- Free tiers limit throughput (Gemini Flash is roughly 10 requests per minute), and evals throttle themselves accordingly.
-- Hazard results are indicative. Near the 104 towns of the IS 1893 town list the code's own zone is used; elsewhere the zone map is coarse. Satellite flood maps miss urban waterlogging; city-recorded flood points cover only Chennai and Bengaluru so far. IMD grades whole districts.
-- Handwriting accuracy has not been measured, so every value read from a paper form needs a person to check it. The free Gemini API may use uploads to improve Google's products, which is why only the property page, without personal details, is uploaded.
-- The translations are machine-made and have not been reviewed by native speakers; Santali, Kashmiri, Manipuri, Bodo and Tulu are marked as drafts. Hindi follows the wording on IRDAI's Hindi policyholder pages where a term is given there (for example बीमित राशि, बीमांकन, संकट).
+- Scoring weights and guidelines are prototype calibrations, not filed rating rules. Decisions are indicative, not an insurer's offer.
+- The 300 reference properties are synthetic; the demo properties use public names with assumed facts.
+- The public demo runs on Gemini's free tier: 20 AI summaries a day, shared by everyone. Google may use free-tier inputs to improve its products, so the demo is for sample data only; real data needs a paid key.
+- Handwriting accuracy has not been measured on real forms, so every value read from paper is confirmed by a person.
+- Translations are machine-made; Santali, Kashmiri, Manipuri, Bodo and Tulu are drafts awaiting native review.
+- Hazard results are indicative: satellite flood maps miss urban waterlogging, and city flood points cover only Chennai and Bengaluru so far.
 
-Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+## Credits and licence
+
+Started by **Pranjal Jain, Adithya Shankaran and Sanjeev Sharma** as the capstone of Xebia's Quantum Shift AI Practitioner+ programme (August 2026), and extended by Adithya into this production version.
+
+Released under the [MIT License](LICENSE). Changes are listed in [CHANGELOG.md](CHANGELOG.md).

@@ -72,6 +72,63 @@ Nothing else changes: the components, workflow, budgets, retries, tracing and st
 | `AI_JUDGE_MODEL` | falls back to `GEMINI_FALLBACK_MODEL` | the evaluation judge |
 | `AI_DAILY_GENERATIONS`, `AI_MINUTE_GENERATIONS` | 20, 5 | spending limits, matched to the provider's quota |
 
+## Keeping the AI honest
+
+| Concern | How it is handled |
+|---|---|
+| Structured output | JSON-schema mode with Pydantic models for the summary and photo review, then a mechanical check: the decision must match the rule engine, risk factors must be real flags, citations must be sections that were retrieved, and no invented amounts, rates or regulations. |
+| One model, honest failure | Each call uses only the configured model. Busy errors (429, 500, 503) are retried at most once; a spent daily quota is never retried. There is no fallback model. When AI is unavailable the rules still decide, and the page says why in plain words. |
+| Guideline search | Guidelines G1–G12 are embedded with `gemini-embedding-001` and stored in Postgres (or Qdrant when configured), re-indexed when the text changes. |
+| Evals | A 24-property golden set measures decision accuracy, retrieval hit rate and recall, the summary contract, citation precision, and faithfulness through a DeepEval judge. TOON and JSON prompts are compared on the same cases. |
+| Tracing | Langfuse records every workflow step and model call with tokens and latency; each assessment links to its trace. |
+| Human review | LangGraph `interrupt()` pauses referrals and Postgres checkpoints let a reviewer resume them later. A claim holds a referral for 30 minutes, and the decision is saved with one conditional update, so two reviewers can never both decide it. |
+
+## AI budget
+
+Every AI call is paid for from a daily budget before it is made, so the public demo cannot exhaust the provider quota or run up a bill.
+
+- **Admission:** an assessment, form reading, A2A request or MCP guideline search takes one slot from a global daily cap (`AI_DAILY_ADMISSIONS`, 15) and a per-visitor cap (`AI_CLIENT_DAILY_ADMISSIONS`, 3). Visitors are counted by a daily-rotating hash of their address, never the address itself.
+- **Calls:** every attempt, including retries, takes one call from `AI_DAILY_CALLS` (200). Text and image generations also count against `AI_DAILY_GENERATIONS` (20) and `AI_MINUTE_GENERATIONS` (5), matched to the free tier of gemini-3.8-flash.
+- **Atomic:** a reservation is one `UPDATE … SET used = used + n WHERE used + n <= cap`, so concurrent servers never overspend; CI proves it with 20 parallel requests on real Postgres.
+- **Fail closed:** on Vercel, AI runs only when the budget lives in Postgres. `/api/status` shows what is left.
+
+## Data pipeline
+
+```
+Postgres ──extract──▶ Parquet ──dbt build──▶ DuckDB marts ──publish──▶ Postgres snapshot ──▶ dashboard
+```
+
+- Staging models feed `fct_assessments` and marts for catastrophe exposure, city accumulation, risk drivers, the review funnel, reference benchmarks and declared-versus-official hazards.
+- dbt tests check keys, accepted values, score ranges, that each stored decision matches its score band, and that every override has a reason.
+- `pipeline/hazard/build_hazard.py` builds the PIN-code hazard table from the open sources listed in the README, and fails if IMD's published district counts do not match.
+
+## Framework choices
+
+- **LangGraph**, not CrewAI or AutoGen: underwriting needs fixed steps, checkpoints and human interrupts, not autonomous agent crews.
+- **Langfuse**, not LangSmith: open source, built on OpenTelemetry, with a larger free tier.
+- **DeepEval** for judged metrics: maintained and pytest-style.
+- **Not used:** visual builders such as n8n and Langflow hide the engineering; LlamaIndex adds little for a 12-section corpus.
+
 ## Deployment
 
-The same code runs on Vercel (one Python function behind `/api`, static pages for the rest) and in Docker (`compose.yaml`: Postgres, the API, and nginx serving the website). CI builds and smoke-tests both; see the README.
+```mermaid
+flowchart LR
+  subgraph gha["GitHub Actions"]
+    ci["CI/CD<br/><small>Check → Test → Deploy</small>"]
+    nightly["Nightly ELT"]
+  end
+  subgraph vercel["Vercel, sin1"]
+    static["Static pages<br/><small>landing · app · legal</small>"]
+    fn["Python function<br/><small>api/index.py → /api</small>"]
+  end
+  neon[("Neon Postgres<br/>Singapore")]
+  pages["GitHub Pages<br/><small>dbt docs</small>"]
+  ci -- "vercel deploy, smoke test" --> static & fn
+  fn --> neon
+  nightly --> neon
+  nightly --> pages
+  classDef box fill:#14532d,stroke:#6ee7b7,color:#fff
+  class ci,nightly,static,fn,pages box
+```
+
+The same code also runs in Docker: `compose.yaml` starts Postgres, the API and nginx serving the website, and CI builds and smoke-tests that stack on every pull request.
