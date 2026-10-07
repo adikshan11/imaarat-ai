@@ -1,4 +1,4 @@
-"""Single entry point for Gemini calls: one model per call, budgeted retries, structured output and tracing."""
+"""The AI gateway: every model call goes through here for budgets, retries, the request deadline and tracing. Vendor code lives in app/providers/."""
 
 from __future__ import annotations
 
@@ -9,25 +9,14 @@ from time import sleep  # tests patch llm.sleep; patching time.sleep would also 
 from typing import Any
 
 import toon_format
-from google import genai
-from google.genai import types
 from pydantic import BaseModel
 
 from app import budget, config, telemetry
 from app.observability import record_generation
+from app.providers import EmbedTask, get_provider
 
 RETRYABLE = {429, 500, 503}
 deadline: ContextVar[float | None] = ContextVar("deadline", default=None)
-
-
-def client() -> genai.Client:
-    return genai.Client(
-        api_key=config.GEMINI_API_KEY,
-        http_options=types.HttpOptions(
-            timeout=config.GEMINI_TIMEOUT_MS,
-            retry_options=types.HttpRetryOptions(attempts=1),
-        ),
-    )
 
 
 def encode(data: Any, fmt: str | None = None) -> str:
@@ -39,16 +28,17 @@ def encode(data: Any, fmt: str | None = None) -> str:
 
 def time_left(wait_seconds: float) -> bool:
     limit = deadline.get()
-    return limit is None or limit - time.perf_counter() >= wait_seconds + config.GEMINI_TIMEOUT_MS / 1000
+    return limit is None or limit - time.perf_counter() >= wait_seconds + config.AI_TIMEOUT_MS / 1000
 
 
 def daily_quota(error: Exception) -> bool:
-    return "PerDay" in str(error)
+    return getattr(error, "daily_quota", False) or "PerDay" in str(error)
 
 
 def budgeted(stage: str, call: Any, **arguments: Any) -> tuple[Any, int, int]:
-    """Run one Gemini call, reserving budget for every attempt and retrying only 429/5xx on the same model."""
-    for attempt in range(1, config.GEMINI_ATTEMPTS + 1):
+    """Run one provider call, reserving budget for every attempt and retrying only 429/5xx on the same model."""
+    span = f"{config.AI_PROVIDER.title()} {stage}"
+    for attempt in range(1, config.AI_ATTEMPTS + 1):
         if not time_left(0):
             raise TimeoutError(f"no time left in this request for another {stage} attempt")
         call_id = budget.reserve_call(stage)
@@ -58,46 +48,35 @@ def budgeted(stage: str, call: Any, **arguments: Any) -> tuple[Any, int, int]:
         except Exception as error:
             code = getattr(error, "code", None)
             budget.finish_call(call_id, "failed", latency_ms=round((time.perf_counter() - started) * 1000))
-            telemetry.add_span(f"Gemini {stage}", started, time.perf_counter(), f"error {code}" if code else "error")
-            if code not in RETRYABLE or daily_quota(error) or attempt == config.GEMINI_ATTEMPTS or not time_left(2**attempt):
+            telemetry.add_span(span, started, time.perf_counter(), f"error {code}" if code else "error")
+            if code not in RETRYABLE or daily_quota(error) or attempt == config.AI_ATTEMPTS or not time_left(2**attempt):
                 raise
             sleep(2**attempt)
             continue
-        telemetry.add_span(f"Gemini {stage}", started, time.perf_counter(), "ok")
+        telemetry.add_span(span, started, time.perf_counter(), "ok")
         return response, call_id, round((time.perf_counter() - started) * 1000)
 
 
-def token_count(usage: Any, field: str) -> int | None:
-    value = getattr(usage, field, None)
-    return value if isinstance(value, int) else None
-
-
-def billed_output(usage: Any) -> int | None:
-    answer = token_count(usage, "candidates_token_count")
-    thoughts = token_count(usage, "thoughts_token_count") or 0
-    return None if answer is None else answer + thoughts
-
-
 def generate(name: str, contents: Any, schema: type[BaseModel] | None = None, system: str | None = None) -> dict[str, Any]:
-    """Call the configured Gemini model once (with budgeted retries) and return text, tokens and latency."""
-    model = config.GEMINI_MODEL_NAME
-    generation_config = types.GenerateContentConfig(
-        system_instruction=system,
+    """Call the configured model once (with budgeted retries) and return text, tokens and latency."""
+    model = config.AI_MODEL
+    reply, call_id, latency_ms = budgeted(
+        name,
+        get_provider().generate,
+        model=model,
+        contents=contents if isinstance(contents, list) else [contents],
+        system=system,
+        schema=schema,
+        thinking=config.STAGE_THINKING.get(name),
         temperature=0.2,
         max_output_tokens=config.AI_STAGE_OUTPUT_TOKENS,
-        response_mime_type="application/json" if schema else None,
-        response_schema=schema,
-        thinking_config=types.ThinkingConfig(thinking_level=config.STAGE_THINKING[name]) if name in config.STAGE_THINKING else None,
     )
-    gemini = client()
-    response, call_id, latency_ms = budgeted(name, gemini.models.generate_content, model=model, contents=contents, config=generation_config)
-    usage = getattr(response, "usage_metadata", None)
     result = {
-        "text": getattr(response, "text", None) or "",
+        "text": reply.text,
         "model": model,
-        "input_tokens": token_count(usage, "prompt_token_count"),
-        "output_tokens": billed_output(usage),
-        "thought_tokens": token_count(usage, "thoughts_token_count"),
+        "input_tokens": reply.input_tokens,
+        "output_tokens": reply.output_tokens,
+        "thought_tokens": reply.thought_tokens,
         "latency_ms": latency_ms,
     }
     budget.finish_call(call_id, "succeeded", model, result["input_tokens"], result["output_tokens"], latency_ms)
@@ -106,20 +85,12 @@ def generate(name: str, contents: Any, schema: type[BaseModel] | None = None, sy
 
 
 def count_tokens(text: str) -> int:
-    gemini = client()
-    response, call_id, latency_ms = budgeted("count_tokens", gemini.models.count_tokens, model=config.GEMINI_MODEL_NAME, contents=text)
-    budget.finish_call(call_id, "succeeded", config.GEMINI_MODEL_NAME, response.total_tokens, 0, latency_ms)
-    return response.total_tokens
+    total, call_id, latency_ms = budgeted("count_tokens", get_provider().count_tokens, model=config.AI_MODEL, text=text)
+    budget.finish_call(call_id, "succeeded", config.AI_MODEL, total, 0, latency_ms)
+    return total
 
 
-def embed(texts: list[str], task_type: str) -> list[list[float]]:
-    gemini = client()
-    response, call_id, latency_ms = budgeted(
-        "embed",
-        gemini.models.embed_content,
-        model=config.GEMINI_EMBEDDING_MODEL_NAME,
-        contents=texts,
-        config=types.EmbedContentConfig(task_type=task_type),
-    )
-    budget.finish_call(call_id, "succeeded", config.GEMINI_EMBEDDING_MODEL_NAME, None, None, latency_ms)
-    return [list(item.values) for item in response.embeddings]
+def embed(texts: list[str], task: EmbedTask) -> list[list[float]]:
+    vectors, call_id, latency_ms = budgeted("embed", get_provider().embed, model=config.AI_EMBEDDING_MODEL, texts=texts, task=task)
+    budget.finish_call(call_id, "succeeded", config.AI_EMBEDDING_MODEL, None, None, latency_ms)
+    return vectors

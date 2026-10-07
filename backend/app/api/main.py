@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 from app import __version__, auth, budget, telemetry
 from app.api.auth_routes import router as auth_router
-from app.config import DB_PATH, GEMINI_API_KEY, QDRANT_URL
+from app.config import AI_API_KEY, DB_PATH, QDRANT_URL
 from app.db import fetch_submission_detail, history_page, init_db, is_postgres, portfolio_summary, record_review, save_submission, seed_demo_database
 from app.graphql_api import graphql_router
 from app.interop import add_a2a, mcp, mcp_app
@@ -87,7 +87,7 @@ def status() -> dict[str, Any]:
         "ai": ready,
         "ai_reason": reason,
         "ai_budget": budget.remaining(),
-        "vector_store": "qdrant" if QDRANT_URL and GEMINI_API_KEY else "local",
+        "vector_store": "qdrant" if QDRANT_URL and AI_API_KEY else "local",
         "tracing": TRACING_ENABLED,
         "persistent_storage": is_postgres(),
     }

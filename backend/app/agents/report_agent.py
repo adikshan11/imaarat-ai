@@ -5,7 +5,7 @@ import re
 from typing import Any
 
 from app import budget, llm
-from app.config import GEMINI_API_KEY
+from app.config import AI_API_KEY
 from app.observability import traced
 from app.schemas import UnderwritingMemo
 
@@ -126,7 +126,7 @@ def build_prompt(state: dict, fmt: str | None = None) -> str:
 @traced("memo", as_type="agent")
 def generate_memo(state: dict) -> dict[str, Any]:
     """Generate and mechanically validate a grounded structured AI memo."""
-    if not GEMINI_API_KEY:
+    if not AI_API_KEY:
         return _failure(state, "Unavailable", "missing API key")
     if state.get("ai_note"):
         return _failure(state, "Unavailable", state["ai_note"])

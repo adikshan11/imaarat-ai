@@ -38,7 +38,7 @@ def test_null_report(monkeypatch, tmp_path):
 
 
 def test_no_live_default(monkeypatch, tmp_path):
-    monkeypatch.setattr(config, "GEMINI_API_KEY", "configured")
+    monkeypatch.setattr(config, "AI_API_KEY", "configured")
     monkeypatch.setattr(runner, "RESULTS", tmp_path)
     monkeypatch.setattr("sys.argv", ["evals"])
 
@@ -99,7 +99,7 @@ def test_judge_failure(monkeypatch):
 
 
 def test_failed_live_exit(monkeypatch, tmp_path):
-    monkeypatch.setattr(config, "GEMINI_API_KEY", "configured")
+    monkeypatch.setattr(config, "AI_API_KEY", "configured")
     monkeypatch.setattr(runner, "RESULTS", tmp_path)
     monkeypatch.setattr("sys.argv", ["evals", "--live", "--memo-cases", "2"])
 
@@ -117,7 +117,7 @@ def test_failed_live_exit(monkeypatch, tmp_path):
 
 
 def test_no_key_live(monkeypatch, tmp_path):
-    monkeypatch.setattr(config, "GEMINI_API_KEY", "")
+    monkeypatch.setattr(config, "AI_API_KEY", "")
     monkeypatch.setattr(runner, "RESULTS", tmp_path)
     monkeypatch.setattr("sys.argv", ["evals", "--live"])
     assert runner.main() == 1
@@ -133,19 +133,19 @@ def test_toon_generations(monkeypatch):
     calls = []
 
     def generate(state):
-        assert config.GEMINI_FALLBACK_MODEL == config.GEMINI_MODEL_NAME
+        assert config.AI_ATTEMPTS == 1
         calls.append(config.PROMPT_FORMAT)
         state["ai_memo_status"] = "Available"
         return {"guideline_citations": ["G6"]}
 
     monkeypatch.setattr(runner, "generate_memo", generate)
     monkeypatch.setattr(runner, "judge", lambda *args: {"faithfulness": 0.8, "reason": "grounded"})
-    previous = config.GEMINI_FALLBACK_MODEL
+    previous = config.AI_ATTEMPTS
     report = runner.memos(golden_cases()[:2])
     assert calls == ["toon", "toon"]
     assert report["passed"] is True
     assert report["toon"]["faithfulness_cases"] == 2
-    assert config.GEMINI_FALLBACK_MODEL == previous
+    assert config.AI_ATTEMPTS == previous
 
 
 def test_failed_denominator(monkeypatch):
@@ -176,7 +176,7 @@ def test_failed_denominator(monkeypatch):
 
 @pytest.mark.parametrize("hits", [[], [{"id": "irrelevant"}]])
 def test_retrieval_gate(monkeypatch, tmp_path, hits):
-    monkeypatch.setattr(config, "GEMINI_API_KEY", "offline-test")
+    monkeypatch.setattr(config, "AI_API_KEY", "offline-test")
     monkeypatch.setattr(runner, "RESULTS", tmp_path)
     monkeypatch.setattr("sys.argv", ["evals", "--live"])
     monkeypatch.setattr(runner, "retrieve", lambda *args, **kwargs: hits)
@@ -216,7 +216,7 @@ def test_retrieval_minimum(monkeypatch):
 
 @pytest.mark.parametrize("stage,attempts", [("preparation", 1), ("generation", 2), ("judge", 2), ("judge_setup", 0)])
 def test_partial_memos(monkeypatch, tmp_path, stage, attempts):
-    monkeypatch.setattr(config, "GEMINI_API_KEY", "offline-test")
+    monkeypatch.setattr(config, "AI_API_KEY", "offline-test")
     monkeypatch.setattr(runner, "RESULTS", tmp_path)
     monkeypatch.setattr("sys.argv", ["evals", "--live"])
     monkeypatch.setattr(runner, "pause", lambda: None)
