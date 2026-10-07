@@ -455,5 +455,13 @@
   "load.read_title": "ᱟᱢᱟᱜ ᱯᱷᱚᱨᱢ ᱯᱟᱲᱦᱟᱣ ᱠᱟᱱᱟ",
   "load.read_hint": "ᱥᱟᱫᱷᱟᱨᱚᱬ ᱛᱮ 5 ᱠᱷᱚᱱ 15 ᱥᱮᱠᱮᱱᱰ ᱾ ᱡᱚᱛᱚ ᱢᱚᱱ ᱟᱢ ᱧᱮᱞ ᱞᱟᱹᱜᱤᱫ ᱨᱩᱣᱟᱹᱲ ᱦᱤᱡᱩᱜᱼᱟ ᱾",
   "load.step_read": "ᱡᱚᱛᱚ ᱯᱷᱤᱞᱰ ᱯᱟᱲᱦᱟᱣ",
-  "load.step_check": "ᱢᱚᱱ ᱠᱚ ᱧᱮᱞ"
+  "load.step_check": "ᱢᱚᱱ ᱠᱚ ᱧᱮᱞ",
+  "auth.sign_in": "GitHub ᱛᱮ ᱥᱟᱭᱤᱱ ᱤᱱ ᱢᱮ",
+  "auth.sign_out": "ᱥᱟᱭᱤᱱ ᱟᱣᱴ ᱢᱮ",
+  "auth.signed_in": "{role} ᱞᱮᱠᱟᱛᱮ ᱥᱟᱭᱤᱱ ᱤᱱ",
+  "auth.role.member": "ᱢᱮᱢᱵᱚᱨ",
+  "auth.role.reviewer": "ᱧᱮᱞᱤᱭᱟᱹ",
+  "auth.role.operator": "ᱚᱯᱚᱨᱮᱴᱚᱨ",
+  "auth.need_reviewer": "ᱥᱟᱭᱤᱱ ᱤᱱ ᱟᱠᱟᱱ ᱧᱮᱞᱤᱭᱟᱹ ᱜᱮ ᱱᱚᱶᱟ ᱨᱮᱯᱷᱚᱨᱟᱞ ᱢᱟᱱᱟᱣ ᱥᱮ ᱵᱤᱪᱟᱨ ᱵᱚᱫᱚᱞ ᱫᱟᱲᱮᱭᱟᱭ ᱾",
+  "auth.need_reviewer_role": "ᱟᱢᱟᱜ ᱮᱠᱟᱣᱩᱱᱴ ᱱᱚᱶᱟ ᱨᱮᱯᱷᱚᱨᱟᱞ ᱧᱮᱞ ᱫᱟᱲᱮᱭᱟᱭ, ᱢᱮᱱᱠᱷᱟᱱ ᱧᱮᱞᱤᱭᱟᱹ ᱜᱮ ᱢᱟᱱᱟᱣ ᱥᱮ ᱵᱤᱪᱟᱨ ᱵᱚᱫᱚᱞ ᱫᱟᱲᱮᱭᱟᱭ ᱾"
 }

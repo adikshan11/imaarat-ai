@@ -3,6 +3,7 @@ const PATHS: Record<string, string> = {
   sun: 'M12 8a4 4 0 1 0 0 8a4 4 0 1 0 0-8M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4',
   moon: 'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z',
   monitor: 'M3 4h18v12H3zM8 20h8M12 16v4',
+  user: 'M12 12a4 4 0 1 0 0-8a4 4 0 0 0 0 8zM4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5',
   code: 'M8 7l-5 5l5 5M16 7l5 5l-5 5M14 4l-4 16',
   grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
   plus: 'M12 5v14M5 12h14',

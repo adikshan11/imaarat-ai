@@ -455,5 +455,13 @@
   "load.read_title": "तुमचो फॉर्म वाचता",
   "load.read_hint": "सादारणपणान 5 ते 15 सेकंद. दरेक मोल तुमकां तपासपाक परत मेळटा.",
   "load.step_read": "दरेक रकानो वाचप",
-  "load.step_check": "मोलां तपासप"
+  "load.step_check": "मोलां तपासप",
+  "auth.sign_in": "GitHub वरवीं साइन इन करात",
+  "auth.sign_out": "साइन आउट करात",
+  "auth.signed_in": "{role} म्हूण साइन इन",
+  "auth.role.member": "वांगडी",
+  "auth.role.reviewer": "पुनरावलोकक",
+  "auth.role.operator": "संचालक",
+  "auth.need_reviewer": "फकत साइन इन केल्लो पुनरावलोककूच हें रेफरल मंजूर करूंक वा निर्णय बदलूंक शकता.",
+  "auth.need_reviewer_role": "तुमच्या खात्याक हें रेफरल दिसता, पूण फकत पुनरावलोककूच तें मंजूर करूंक वा निर्णय बदलूंक शकता."
 }
