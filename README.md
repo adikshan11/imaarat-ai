@@ -7,12 +7,12 @@
   <a href="https://imaarat-ai.vercel.app/app/">Open the app</a> ·
   <a href="ARCHITECTURE.md">Architecture</a> ·
   <a href="https://imaarat-ai.vercel.app/changelog/">Changelog</a> ·
-  <a href="https://adikshan11.github.io/uw-risk-assessment/">Data lineage</a> ·
-  <a href="https://github.com/adikshan11/uw-risk-assessment/issues">Report an issue</a>
+  <a href="https://adikshan11.github.io/imaarat-ai/">Data lineage</a> ·
+  <a href="https://github.com/adikshan11/imaarat-ai/issues">Report an issue</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/adikshan11/uw-risk-assessment/actions/workflows/ci-cd.yml"><img src="https://github.com/adikshan11/uw-risk-assessment/actions/workflows/ci-cd.yml/badge.svg" alt="CI/CD"></a>
+  <a href="https://github.com/adikshan11/imaarat-ai/actions/workflows/ci-cd.yml"><img src="https://github.com/adikshan11/imaarat-ai/actions/workflows/ci-cd.yml/badge.svg" alt="CI/CD"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License"></a>
   <img src="https://img.shields.io/badge/languages-26-blue" alt="26 languages">
   <img src="https://img.shields.io/badge/MCP%20%2B%20A2A-ready-purple" alt="MCP and A2A">
@@ -40,7 +40,7 @@
 **Run it yourself** with Postgres, the API and the website in one command:
 
 ```bash
-git clone https://github.com/adikshan11/uw-risk-assessment.git && cd uw-risk-assessment
+git clone https://github.com/adikshan11/imaarat-ai.git && cd imaarat-ai
 docker compose up --build        # then open http://localhost:8080
 ```
 

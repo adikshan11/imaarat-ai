@@ -1,4 +1,4 @@
-# Imaarat (uw-risk-assessment): GitHub Copilot Instructions
+# Imaarat (imaarat-ai): GitHub Copilot Instructions
 
 ## Project
 
