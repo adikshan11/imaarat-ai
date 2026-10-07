@@ -13,7 +13,7 @@ interface Props {
 }
 
 export default function Sidebar({ activeView, onNavigate }: Props) {
-  const { t, dev, language } = usePreferences()
+  const { t, language } = usePreferences()
   const tabbar = useRef<HTMLElement>(null)
   const track = useRef<HTMLDivElement>(null)
   const indicator = useRef<HTMLSpanElement>(null)
@@ -36,21 +36,9 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
     { view: 'paper', icon: 'file', text: t('nav.paper') },
     { view: 'how', icon: 'info', text: t('nav.how') },
     { view: 'status', icon: 'monitor', text: t('nav.status') },
-    ...(dev ? [
-      { view: 'quality', icon: 'gauge', text: t('nav.quality') },
-      { view: 'integrations', icon: 'plug', text: t('nav.integrations') },
-    ] : []),
   ]
   const tabs = items.filter((item) => item.view !== 'status')
   const buttons = () => Array.from(track.current?.querySelectorAll<HTMLButtonElement>('.tab-item') ?? [])
-  const reveal = (button?: HTMLButtonElement) => {
-    const node = tabbar.current
-    if (!dev || !node || !button) return
-    const bounds = node.getBoundingClientRect()
-    const rect = button.getBoundingClientRect()
-    if (rect.left < bounds.left + 6) node.scrollLeft += rect.left - bounds.left - 6
-    else if (rect.right > bounds.right - 6) node.scrollLeft += rect.right - bounds.right + 6
-  }
   const place = (button?: HTMLButtonElement, x?: number) => {
     const node = indicator.current
     const row = track.current
@@ -70,14 +58,13 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
       const button = buttons().find((item) => item.dataset.view === activeView)
       if (indicator.current) indicator.current.style.opacity = button ? '1' : '0'
       place(button)
-      reveal(buttons().find((item) => item === document.activeElement) ?? button)
     }
     const observer = new ResizeObserver(measure)
     observer.observe(row)
     buttons().forEach((button) => observer.observe(button))
     measure()
     return () => observer.disconnect()
-  }, [activeView, dev, language.code])
+  }, [activeView, language.code])
   const stop = (event: PointerEvent<HTMLElement>, cancelled = false) => {
     const current = gesture.current
     if (!current || current.id !== event.pointerId) return
@@ -118,7 +105,7 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
     <button key={item.view} data-view={item.view} className={`${className} ${activeView === item.view ? 'active' : ''}`} onClick={(event) => {
       if (className === 'tab-item' && blockClick.current && event.detail !== 0) return
       onNavigate(item.view)
-    }} onFocus={(event) => { if (className === 'tab-item') reveal(event.currentTarget) }} onKeyDown={(event) => {
+    }} onKeyDown={(event) => {
       const index = navKey(event.key, list.indexOf(item), list.length, Boolean(language.rtl))
       if (index === null) return
       event.preventDefault()
@@ -139,7 +126,7 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
           <nav className="nav" aria-label={t('nav.section')}>{items.map((item) => link(item, 'nav-item', items))}</nav>
           <div className="sidebar-footer">
             <Controls />
-            <div className="sidebar-tagline">{t(dev ? 'footer.dev' : 'footer.underwriter')}</div>
+            <div className="sidebar-tagline">{t('footer.underwriter')}</div>
           </div>
         </div>
       </aside>
@@ -148,9 +135,9 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
         <Brand sub={t('brand.sub')} />
         <Controls compact />
       </header>
-      <nav ref={tabbar} className={`tabbar${dev ? ' is-developer' : ''}${scrubbing ? ' is-scrubbing' : ''}`} aria-label={t('nav.section')} onPointerDown={(event) => {
+      <nav ref={tabbar} className={`tabbar${scrubbing ? ' is-scrubbing' : ''}`} aria-label={t('nav.section')} onPointerDown={(event) => {
         blockClick.current = false
-        if (dev || !event.isPrimary || event.button !== 0) return
+        if (!event.isPrimary || event.button !== 0) return
         gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false }
       }} onPointerMove={move} onPointerUp={(event) => stop(event)} onPointerCancel={(event) => stop(event, true)} onLostPointerCapture={(event) => { if (event.target === event.currentTarget) stop(event, true) }}>
         <div ref={track} className="tab-track">

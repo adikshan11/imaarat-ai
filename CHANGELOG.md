@@ -2,6 +2,14 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.28.0] - 2026-10-07
+
+### Changed
+- The hidden developer mode (?dev=1) is gone. Its AI quality evidence and the MCP and A2A integration guide are now sections of the public Status page, and old #quality and #integrations links open Status. Result pages always show the underwriter view: only score factors that added points, the guideline titles, and no model names or trace links.
+
+### Removed
+- Thirteen strings used only by developer mode, from all 26 languages.
+
 ## [2.27.0] - 2026-10-07
 
 ### Security

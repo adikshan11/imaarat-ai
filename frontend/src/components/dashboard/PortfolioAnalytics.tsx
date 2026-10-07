@@ -6,7 +6,7 @@ import { inrShort } from '@/lib/format'
 import type { AnalyticsSnapshot } from '@/types/backend'
 
 export default function PortfolioAnalytics() {
-  const { t, label, dev } = usePreferences()
+  const { t, label } = usePreferences()
   const [snapshot, setSnapshot] = useState<AnalyticsSnapshot | null>(null)
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export default function PortfolioAnalytics() {
 
   return (
     <>
-      <Card title={t(dev ? 'cat.title_dev' : 'cat.title')}>
+      <Card title={t('cat.title')}>
         <div className="table-wrap">
           <table>
             <thead><tr><th>{t('cat.zone')}</th><th>{t('cat.assessments')}</th><th>{t('cat.sum_insured')}</th><th>{t('cat.avg')}</th><th>{t('cat.declined')}</th></tr></thead>
@@ -29,7 +29,7 @@ export default function PortfolioAnalytics() {
           </table>
         </div>
       </Card>
-      <Card title={t(dev ? 'city.title_dev' : 'city.title')}>
+      <Card title={t('city.title')}>
         <div className="table-wrap">
           <table>
             <thead><tr><th>#</th><th>{t('city.city')}</th><th>{t('cat.sum_insured')}</th><th>{t('city.share')}</th><th>{t('city.max')}</th></tr></thead>
@@ -38,7 +38,7 @@ export default function PortfolioAnalytics() {
             ))}</tbody>
           </table>
         </div>
-        <p className="card-footnote">{t(dev ? 'pipeline.note_dev' : 'pipeline.note', { time })}</p>
+        <p className="card-footnote">{t('pipeline.note', { time })}</p>
       </Card>
     </>
   )

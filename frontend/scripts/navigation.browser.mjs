@@ -46,7 +46,7 @@ try {
   for (const check of checks) {
     const page = check.touch || check.name === 'verifyCompletion' ? await (await browser.newContext({ hasTouch: check.touch, viewport: check.touch ? { width: 390, height: 844 } : undefined })).newPage() : shared
     try {
-      if (check.open) await page.goto(`${process.env.APP_URL}/app/?dev=0`)
+      if (check.open) await page.goto(`${process.env.APP_URL}/app/`)
       await check.run(page)
       console.log(`ok ${check.name}`)
     } catch (error) {

@@ -7,8 +7,6 @@ import { PageSkeleton } from '@/components/shared/Loader'
 import NewAssessment from '@/components/assessment/NewAssessment'
 import BackendAssessmentResult from '@/components/assessment/BackendAssessmentResult'
 
-const AIQuality = lazy(() => import('@/components/quality/AIQuality'))
-const Integrations = lazy(() => import('@/components/integrations/Integrations'))
 const PaperForm = lazy(() => import('@/components/paper/PaperForm'))
 const HowItWorks = lazy(() => import('@/components/about/HowItWorks'))
 const StatusPage = lazy(() => import('@/components/status/StatusPage'))
@@ -16,12 +14,13 @@ import { RiskProvider, useRiskContext } from '@/context/RiskContext'
 import { PreferencesProvider, usePreferences } from '@/context/Preferences'
 import type { BackendSubmission } from '@/types/backend'
 
-type View = 'dashboard' | 'new' | 'paper' | 'how' | 'status' | 'result' | 'quality' | 'integrations'
+type View = 'dashboard' | 'new' | 'paper' | 'how' | 'status' | 'result'
 
 function Application() {
   const [view, setViewState] = useState<View>(() => {
     const hash = window.location.hash.slice(1)
-    return hash === 'quality' || hash === 'integrations' || hash === 'new' || hash === 'paper' || hash === 'how' || hash === 'status' ? hash : 'dashboard'
+    if (hash === 'quality' || hash === 'integrations') return 'status'
+    return hash === 'new' || hash === 'paper' || hash === 'how' || hash === 'status' ? hash : 'dashboard'
   })
   const [draftOpen, setDraftOpen] = useState(view === 'new')
   const [draftId, setDraftId] = useState(0)
@@ -50,11 +49,7 @@ function Application() {
   const [detailError, setDetailError] = useState<string | null>(null)
   const [prefill, setPrefill] = useState<Record<string, unknown> | null>(null)
   const { loadDetail, applyReview } = useRiskContext()
-  const { dev, t } = usePreferences()
-  useEffect(() => {
-    if (!dev && (view === 'quality' || view === 'integrations')) setView('dashboard')
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dev, view])
+  const { t } = usePreferences()
 
   const showResult = async (submission: BackendSubmission) => {
     setDetailError(null)
@@ -96,8 +91,6 @@ function Application() {
           setResultSubmission(updated)
           setCompletedSubmission((current) => current?.id === updated.id ? updated : current)
         }} />}
-        {view === 'quality' && <AIQuality />}
-        {view === 'integrations' && <Integrations />}
         </Suspense>
         <footer className="site-footer">Made with <span className="heart" aria-label="love">♥</span> by <a href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> · © 2026 imaarat.ai · <a href="#status" onClick={(event) => { event.preventDefault(); setView('status') }}>{t('nav.status')}</a></footer>
       </main>

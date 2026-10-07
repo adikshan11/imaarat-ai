@@ -21,7 +21,7 @@ function Memo({ memo }: { memo: StructuredMemo }) {
 }
 
 export default function BackendAssessmentResult({ submission, onBack, onReviewed }: { submission: BackendSubmission; onBack: () => void; onReviewed: (updated: BackendSubmission) => void }) {
-  const { t, label, dev } = usePreferences()
+  const { t, label } = usePreferences()
   const cited = new Set(submission.memo_json?.guideline_citations ?? [])
   const features = submission.extracted_features ?? {}
   const mitigation = submission.prototype_mitigation_model
@@ -74,7 +74,6 @@ export default function BackendAssessmentResult({ submission, onBack, onReviewed
       <Card title={t('res.image_title')}>
         <div className="risk-stack">
           <div className="risk-line"><span>{t('img.status')}</span><strong>{String(features.image_status ?? t('img.not_submitted'))}</strong></div>
-          {dev && <div className="risk-line"><span>{t('img.reason')}</span><strong>{String(features.image_reason ?? t('img.no_meta'))}</strong></div>}
           <div className="risk-line"><span>{t('img.evidence')}</span><strong>{t(features.image_risk_evidence_used ? 'img.used' : 'img.not_used')}</strong></div>
           <div className="risk-line"><span>{t('img.roof')}</span><strong>{seen('visible_roof_condition')}</strong></div>
           <div className="risk-line"><span>{t('img.structure')}</span><strong>{seen('visible_structural_damage')}</strong></div>
@@ -85,7 +84,7 @@ export default function BackendAssessmentResult({ submission, onBack, onReviewed
     </div>
     <div className="dashboard-grid">
       <Card title={t('res.breakdown')}>
-        <div className="metric-grid">{Object.entries(submission.risk_breakdown).filter(([, value]) => dev || value > 0).map(([key, value]) => <div className="mini-metric" key={key}><span>{label('bd', key)}</span><strong>{value}</strong></div>)}</div>
+        <div className="metric-grid">{Object.entries(submission.risk_breakdown).filter(([, value]) => value > 0).map(([key, value]) => <div className="mini-metric" key={key}><span>{label('bd', key)}</span><strong>{value}</strong></div>)}</div>
       </Card>
       <Card title={t('res.mitigation_title')}>
         <p className="card-footnote">{t('res.mitigation_note')}</p>
@@ -96,15 +95,13 @@ export default function BackendAssessmentResult({ submission, onBack, onReviewed
     <Card title={t('res.memo_title')}>
       <p className="card-footnote">
         {t('res.memo_ai_label')}
-        {dev && submission.memo_model && <> · {t('res.memo_model', { model: submission.memo_model })}</>}
-        {dev && submission.trace_url && <> · <a href={submission.trace_url} target="_blank" rel="noreferrer">{t('res.trace')}</a></>}
       </p>
       {cited.size > 0 && <p className="card-footnote">{t('res.cited', { ids: [...cited].join(', ') })}</p>}
       {submission.ai_memo_status !== 'Available' || !submission.memo_json ? <p>{t('res.memo_reason', { reason: submission.ai_memo_reason ?? t('res.not_available') })}</p> : <Memo memo={submission.memo_json} />}
     </Card>
     <div className="dashboard-grid">
-      <Card title={t(dev ? 'res.guidelines_dev' : 'res.guidelines')}>
-        {dev || !hits.length
+      <Card title={t('res.guidelines')}>
+        {!hits.length
           ? <ul>{submission.guideline_chunks.map((chunk, index) => {
               const id = chunk.match(/^\[(G\d+)\]/)?.[1]
               return <li key={index} className={id && cited.has(id) ? 'cited' : undefined}>{chunk}{id && cited.has(id) ? ` (${t('res.cited_tag')})` : ''}</li>

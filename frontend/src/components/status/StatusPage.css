@@ -124,3 +124,13 @@ rect.ops-error,
     order: 3;
   }
 }
+
+.status-section {
+  display: grid;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.status-section .page-title {
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+}

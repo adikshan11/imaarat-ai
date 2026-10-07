@@ -5,7 +5,7 @@ import { usePreferences } from '@/context/Preferences'
 import { LANGUAGES } from '@/i18n/languages'
 
 export default function Controls({ compact = false }: { compact?: boolean }) {
-  const { t, language, setLanguage, dark, toggleTheme, dev, setDev } = usePreferences()
+  const { t, language, setLanguage, dark, toggleTheme } = usePreferences()
   const dialog = useRef<HTMLDialogElement>(null)
   const themeLabel = `${t('theme.label')}: ${t(dark ? 'theme.light' : 'theme.dark')}`
 
@@ -18,12 +18,6 @@ export default function Controls({ compact = false }: { compact?: boolean }) {
       <button type="button" className="control-button" onClick={toggleTheme} title={themeLabel} aria-label={themeLabel}>
         <Icon name={dark ? 'sun' : 'moon'} />
       </button>
-      {dev && (
-        <button type="button" className="control-button is-on" onClick={() => setDev(false)} title={t('mode.dev')} aria-label={t('mode.dev')}>
-          <Icon name="code" />
-          {!compact && <Icon name="close" size={14} />}
-        </button>
-      )}
 
       <dialog ref={dialog} className="language-dialog" aria-label={t('lang.label')} onKeyDown={(event) => { if (event.key === 'Escape') dialog.current?.close() }} onClick={(event) => { if (event.target === dialog.current) dialog.current?.close() }}>
         <div className="language-dialog-head">

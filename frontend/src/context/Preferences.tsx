@@ -8,8 +8,6 @@ type Messages = Record<string, string>
 type Vars = Record<string, string | number>
 
 interface Preferences {
-  dev: boolean
-  setDev: (value: boolean) => void
   dark: boolean
   toggleTheme: () => void
   language: Language
@@ -65,11 +63,6 @@ const initialLanguage = () => {
 const PreferencesContext = createContext<Preferences | undefined>(undefined)
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
-  const [dev, setDev] = useState(() => {
-    const query = new URLSearchParams(window.location.search).get('dev')
-    if (query !== null) return query !== '0'
-    return stored('imaarat.dev') === '1' || ['quality', 'integrations'].includes(window.location.hash.slice(1))
-  })
   const [chosen, setChosen] = useState<'light' | 'dark' | null>(() => {
     const saved = stored('imaarat.theme')
     return saved === 'light' || saved === 'dark' ? saved : null
@@ -83,7 +76,6 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const firstLoad = useRef(true)
   const language = LANGUAGES.find((item) => item.code === code) ?? LANGUAGES[0]
 
-  useEffect(() => { store('imaarat.dev', dev ? '1' : '0') }, [dev])
   useEffect(() => {
     const query = window.matchMedia('(prefers-color-scheme: dark)')
     const listen = (event: MediaQueryListEvent) => setSystemDark(event.matches)
@@ -139,7 +131,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   const label = (prefix: string, id: string) => messages[`${prefix}.${id}`] ?? english[`${prefix}.${id}`] ?? humanize(id)
 
   return (
-    <PreferencesContext.Provider value={{ dev, setDev, dark, toggleTheme, language, setLanguage: setCode, t, label, english: (key: string) => english[key] ?? key }}>
+    <PreferencesContext.Provider value={{ dark, toggleTheme, language, setLanguage: setCode, t, label, english: (key: string) => english[key] ?? key }}>
       {children}
     </PreferencesContext.Provider>
   )
