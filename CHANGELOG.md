@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.32.0] - 2026-10-07
+
+### Changed
+- The landing page now presents imaarat.ai as the underwriting desk for Indian property insurance: a six-step journey from intake to portfolio in tabs, the six open-source building blocks with links to their code, who it is for, and what makes it different. The headline numbers add the 11 public hazard data sources and the MIT licence.
+
 ## [2.31.0] - 2026-10-07
 
 ### Added
