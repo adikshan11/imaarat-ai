@@ -13,14 +13,16 @@ def seed(tmp_path, monkeypatch):
         ("P-4", "Chennai", 90, "Auto-Decline", ["Old roof"], {"tiv": 50}),
     ]
     for property_id, city, score, decision, flags, extra in rows:
-        db.save_submission({
-            "raw_input": {"property_id": property_id, "city": city, "address": f"{property_id} Road", **extra},
-            "decision": decision,
-            "risk_score": score,
-            "risk_flags": flags,
-            "prototype_mitigation_model": {"mitigation_benefit": 2},
-            "review_status": "pending_review" if score == 45 else "not_required",
-        })
+        db.save_submission(
+            {
+                "raw_input": {"property_id": property_id, "city": city, "address": f"{property_id} Road", **extra},
+                "decision": decision,
+                "risk_score": score,
+                "risk_flags": flags,
+                "prototype_mitigation_model": {"mitigation_benefit": 2},
+                "review_status": "pending_review" if score == 45 else "not_required",
+            }
+        )
 
 
 def test_portfolio_totals_match_every_submission(tmp_path, monkeypatch):

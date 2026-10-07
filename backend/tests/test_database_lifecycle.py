@@ -31,7 +31,19 @@ def test_cleanup_is_deterministic_and_retains_canonical_tidell(tmp_path, monkeyp
 
 
 def test_pdf_builder_returns_nonempty_pdf():
-    pdf = build_submission_pdf({"property_id": "TIDEL", "risk_score": 5, "decision": "Accept", "risk_flags": [], "risk_breakdown": {}, "raw_input": {}, "extracted_features": {}, "ai_memo_status": "Unavailable", "ai_memo_reason": "test"})
+    pdf = build_submission_pdf(
+        {
+            "property_id": "TIDEL",
+            "risk_score": 5,
+            "decision": "Accept",
+            "risk_flags": [],
+            "risk_breakdown": {},
+            "raw_input": {},
+            "extracted_features": {},
+            "ai_memo_status": "Unavailable",
+            "ai_memo_reason": "test",
+        }
+    )
     assert pdf.startswith(b"%PDF")
     assert len(pdf) > 100
 
@@ -39,17 +51,19 @@ def test_pdf_builder_returns_nonempty_pdf():
 def test_pdf_builder_embeds_submitted_image(tmp_path):
     image_path = tmp_path / "property.jpg"
     Image.new("RGB", (320, 180), color=(40, 100, 130)).save(image_path)
-    pdf = build_submission_pdf({
-        "property_id": "IMAGE-PDF-001",
-        "risk_score": 5,
-        "decision": "Accept",
-        "risk_flags": [],
-        "risk_breakdown": {},
-        "raw_input": {},
-        "extracted_features": {"image_status": "usable", "image_risk_evidence_used": True},
-        "image_path": str(image_path),
-        "ai_memo_status": "Unavailable",
-        "ai_memo_reason": "test",
-    })
+    pdf = build_submission_pdf(
+        {
+            "property_id": "IMAGE-PDF-001",
+            "risk_score": 5,
+            "decision": "Accept",
+            "risk_flags": [],
+            "risk_breakdown": {},
+            "raw_input": {},
+            "extracted_features": {"image_status": "usable", "image_risk_evidence_used": True},
+            "image_path": str(image_path),
+            "ai_memo_status": "Unavailable",
+            "ai_memo_reason": "test",
+        }
+    )
     assert pdf.startswith(b"%PDF")
     assert b"/Subtype /Image" in pdf

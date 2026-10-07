@@ -14,19 +14,34 @@ from app import budget
 from app.tools import form_reader
 
 LABELS = {
-    "zip": "PIN code, 6 digits", "address": "Address", "city": "City", "state": "State", "occupancy_type": "Occupancy",
-    "construction_type": "Construction type", "year_built": "Year built", "num_stories": "Floors",
-    "square_footage": "Built-up area in sq ft", "roof_age_years": "Roof age in years", "prior_claims_count_5yr": "Claims in the last 5 years",
-    "cat_zone": "Main natural hazard", "seismic_zone": "Seismic zone (IS 1893)", "sprinkler_system": "Sprinklers",
-    "fire_alarm": "Fire alarm", "flood_protection": "Flood protection", "building_value_inr": "Building value in rupees",
-    "plant_machinery_value_inr": "Plant and machinery value in rupees", "stock_inventory_value_inr": "Stock value in rupees",
+    "zip": "PIN code, 6 digits",
+    "address": "Address",
+    "city": "City",
+    "state": "State",
+    "occupancy_type": "Occupancy",
+    "construction_type": "Construction type",
+    "year_built": "Year built",
+    "num_stories": "Floors",
+    "square_footage": "Built-up area in sq ft",
+    "roof_age_years": "Roof age in years",
+    "prior_claims_count_5yr": "Claims in the last 5 years",
+    "cat_zone": "Main natural hazard",
+    "seismic_zone": "Seismic zone (IS 1893)",
+    "sprinkler_system": "Sprinklers",
+    "fire_alarm": "Fire alarm",
+    "flood_protection": "Flood protection",
+    "building_value_inr": "Building value in rupees",
+    "plant_machinery_value_inr": "Plant and machinery value in rupees",
+    "stock_inventory_value_inr": "Stock value in rupees",
     "other_contents_value_inr": "Other contents value in rupees",
 }
-GROUPS = {"digits": ["zip", "year_built", "num_stories", "square_footage", "roof_age_years", "prior_claims_count_5yr"],
-          "money": ["building_value_inr", "plant_machinery_value_inr", "stock_inventory_value_inr", "other_contents_value_inr"],
-          "text": ["address", "city", "state", "occupancy_type"],
-          "choices": ["construction_type", "cat_zone", "seismic_zone"],
-          "ticks": ["sprinkler_system", "fire_alarm", "flood_protection"]}
+GROUPS = {
+    "digits": ["zip", "year_built", "num_stories", "square_footage", "roof_age_years", "prior_claims_count_5yr"],
+    "money": ["building_value_inr", "plant_machinery_value_inr", "stock_inventory_value_inr", "other_contents_value_inr"],
+    "text": ["address", "city", "state", "occupancy_type"],
+    "choices": ["construction_type", "cat_zone", "seismic_zone"],
+    "ticks": ["sprinkler_system", "fire_alarm", "flood_protection"],
+}
 LANGUAGE_CODES = {"en": "en-IN", "hi": "hi-IN", "ta": "ta-IN", "bn": "bn-IN", "te": "te-IN", "ml": "ml-IN", "gu": "gu-IN"}
 QWEN_MODEL = "Qwen/Qwen3-VL-30B-A3B-Instruct:cheapest"
 
@@ -84,10 +99,13 @@ def read_qwen(image: bytes, lang: str) -> dict:
             "temperature": 0,
             "messages": [
                 {"role": "system", "content": form_reader.SYSTEM},
-                {"role": "user", "content": [
-                    {"type": "text", "text": f"Return only one JSON object with these keys, each a string or null: {keys}"},
-                    {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(image).decode()}},
-                ]},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": f"Return only one JSON object with these keys, each a string or null: {keys}"},
+                        {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64," + base64.b64encode(image).decode()}},
+                    ],
+                },
             ],
         },
         timeout=120,
@@ -121,8 +139,19 @@ def main() -> int:
                 predicted, error = {}, f"{type(failure).__name__}: {str(failure)[:160]}"
             latency = round((time.perf_counter() - started) * 1000)
             for name in form_reader.FIELDS:
-                rows.append({"provider": provider, "case": case["id"], "lang": case["lang"], "field": name, "expected": truth[name],
-                             "got": predicted.get(name), "correct": same(truth[name], predicted.get(name)), "latency_ms": latency, "error": error})
+                rows.append(
+                    {
+                        "provider": provider,
+                        "case": case["id"],
+                        "lang": case["lang"],
+                        "field": name,
+                        "expected": truth[name],
+                        "got": predicted.get(name),
+                        "correct": same(truth[name], predicted.get(name)),
+                        "latency_ms": latency,
+                        "error": error,
+                    }
+                )
             print(f"{provider} {case['id']} {latency} ms {error or ''}", flush=True)
             time.sleep(SPACING[provider])
     tokens_after = budget.remaining()["tokens_today"]
@@ -160,12 +189,23 @@ def summarise(rows: list[dict], providers: list[str], extra: dict) -> dict:
 
 def markdown(summary: dict, rows: list[dict]) -> str:
     providers = list(summary["providers"])
-    lines = [f"## Form reading: {summary['forms']} rendered forms x {summary['fields_per_form']} fields", "",
-             "Synthetic handwriting fonts on the app's own printed form, photo-like blur and tilt. Fonts flatter every reader; real handwriting will score lower.",
-             "Gemini reads one form per language (7 forms) to stay within its free tier of 20 requests a day, unless GEMINI_ALL_FORMS is set.", "",
-             "| Metric | " + " | ".join(providers) + " |", "|---|" + "---:|" * len(providers)]
-    metric_rows = [("Field accuracy", "field_accuracy"), ("Filled but wrong", "filled_but_wrong"), ("Forms fully correct", "forms_fully_correct"),
-                   ("Failed forms", "failed_forms"), ("Latency p50 ms", "latency_p50_ms"), ("Latency p95 ms", "latency_p95_ms")]
+    lines = [
+        f"## Form reading: {summary['forms']} rendered forms x {summary['fields_per_form']} fields",
+        "",
+        "Synthetic handwriting fonts on the app's own printed form, photo-like blur and tilt. Fonts flatter every reader; real handwriting will score lower.",
+        "Gemini reads one form per language (7 forms) to stay within its free tier of 20 requests a day, unless GEMINI_ALL_FORMS is set.",
+        "",
+        "| Metric | " + " | ".join(providers) + " |",
+        "|---|" + "---:|" * len(providers),
+    ]
+    metric_rows = [
+        ("Field accuracy", "field_accuracy"),
+        ("Filled but wrong", "filled_but_wrong"),
+        ("Forms fully correct", "forms_fully_correct"),
+        ("Failed forms", "failed_forms"),
+        ("Latency p50 ms", "latency_p50_ms"),
+        ("Latency p95 ms", "latency_p95_ms"),
+    ]
     for label, key in metric_rows:
         lines.append(f"| {label} | " + " | ".join(str(summary["providers"][provider][key]) for provider in providers) + " |")
     for group in GROUPS:

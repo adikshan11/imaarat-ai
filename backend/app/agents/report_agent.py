@@ -20,11 +20,13 @@ MEMO_FIELDS = {
 }
 OPTIONAL_LISTS = {"guideline_citations"}
 
+
 def _failure(state: dict, status: str, reason: str) -> dict[str, Any]:
     state["memo_error"] = reason
     state["ai_memo_reason"] = reason
     state["ai_memo_status"] = status
     return {}
+
 
 def _validate_memo(candidate: Any, state: dict) -> dict[str, Any]:
     if not isinstance(candidate, dict) or set(candidate) != MEMO_FIELDS:
@@ -49,10 +51,10 @@ def _validate_memo(candidate: Any, state: dict) -> dict[str, Any]:
             return _failure(state, "Incomplete", "Structured memo contains unsupported roof-age claim")
     # Reject invented monetary values, invented rate percentages, and fabricated regulatory mandates in coverage_review
     _invented = [
-        r"[₹$]\s*\d",                                   # specific monetary amounts
+        r"[₹$]\s*\d",  # specific monetary amounts
         r"\d+\s*%\s*(loading|rate|premium|deductible)",  # invented rate percentages
-        r"mandatory under\b",                             # fabricated mandate claims
-        r"required by (irdai|law|regulation)\b",         # fabricated compliance claims
+        r"mandatory under\b",  # fabricated mandate claims
+        r"required by (irdai|law|regulation)\b",  # fabricated compliance claims
     ]
     for item in candidate.get("coverage_review", []):
         if isinstance(item, str) and any(re.search(p, item, re.IGNORECASE) for p in _invented):

@@ -58,13 +58,12 @@ def budgeted(stage: str, call: Any, **arguments: Any) -> tuple[Any, int, int]:
             code = getattr(error, "code", None)
             budget.finish_call(call_id, "failed", latency_ms=round((time.perf_counter() - started) * 1000))
             telemetry.add_span(f"Gemini {stage}", started, time.perf_counter(), f"error {code}" if code else "error")
-            if code not in RETRYABLE or daily_quota(error) or attempt == config.GEMINI_ATTEMPTS or not time_left(2 ** attempt):
+            if code not in RETRYABLE or daily_quota(error) or attempt == config.GEMINI_ATTEMPTS or not time_left(2**attempt):
                 raise
-            time.sleep(2 ** attempt)
+            time.sleep(2**attempt)
             continue
         telemetry.add_span(f"Gemini {stage}", started, time.perf_counter(), "ok")
         return response, call_id, round((time.perf_counter() - started) * 1000)
-
 
 
 def token_count(usage: Any, field: str) -> int | None:

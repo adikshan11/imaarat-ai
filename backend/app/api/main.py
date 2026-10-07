@@ -56,6 +56,8 @@ async def record_requests(request: Request, call_next: Any) -> Any:
         route = getattr(request.scope.get("route"), "path", None) or "unmatched"
         if route not in ("/health", "/ops/summary"):
             telemetry.record_request(route, request.method, status, round((time.perf_counter() - started) * 1000), error_type)
+
+
 app.mount("/mcp", mcp_app())
 app.include_router(graphql_router, prefix="/graphql")
 add_a2a(app)
@@ -68,6 +70,7 @@ app.add_middleware(
     allow_headers=["*"],
     expose_headers=["X-Total-Count"],
 )
+
 
 @app.get("/health")
 def health() -> dict[str, str]:
@@ -256,6 +259,7 @@ async def submit_underwriting(
         print(f"[POST /underwrite/submit] IMAGE RECEIVED: {image.filename}, SIZE: {len(image_bytes)} bytes")
 
     from app.agents.graph import run_graph
+
     note = await run_in_threadpool(budget.admission_note, budget.client_address(request.headers, request.client.host if request.client else None))
     result = await run_in_threadpool(run_graph, raw_input, image_path=image_path, ai_note=note)
     result["raw_input"] = raw_input
@@ -330,6 +334,7 @@ async def preview_underwriting(request: Request) -> dict[str, Any]:
         "zip": text("zip"),
     }
     from app.tools.risk_calculator import risk_score_calculator
+
     features = verify_location(features)
     score_data = risk_score_calculator(features)
     model = score_data["prototype_mitigation_model"]

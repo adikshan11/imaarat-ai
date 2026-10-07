@@ -21,7 +21,19 @@ def lighthouse(form_factor, score):
 def test_ci_runs_are_published_and_shown_newest_first(tmp_path, monkeypatch):
     (tmp_path / "load_stats.csv").write_text(LOAD_CSV, encoding="utf-8")
     (tmp_path / "mobile.json").write_text(json.dumps(lighthouse("mobile", 0.79)), encoding="utf-8")
-    (tmp_path / "latest.json").write_text(json.dumps({"run_mode": "live_bounded", "passed": False, "deterministic": {"accuracy": 1, "cases": 24}, "retrieval": {"hit_rate": 0.5, "recall": 0.25, "cases": 2}, "prompt_tokens": {"saving": 0.34}, "sections": {"memos": {"status": "failed", "reason": "checks_failed"}}}), encoding="utf-8")
+    (tmp_path / "latest.json").write_text(
+        json.dumps(
+            {
+                "run_mode": "live_bounded",
+                "passed": False,
+                "deterministic": {"accuracy": 1, "cases": 24},
+                "retrieval": {"hit_rate": 0.5, "recall": 0.25, "cases": 2},
+                "prompt_tokens": {"saving": 0.34},
+                "sections": {"memos": {"status": "failed", "reason": "checks_failed"}},
+            }
+        ),
+        encoding="utf-8",
+    )
     monkeypatch.setenv("USERS", "200")
     for argv in (["publish_run", "load", str(tmp_path / "load_stats.csv")], ["publish_run", "lighthouse", str(tmp_path / "mobile.json")], ["publish_run", "evals", str(tmp_path / "latest.json")]):
         monkeypatch.setattr("sys.argv", argv)

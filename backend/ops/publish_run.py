@@ -66,11 +66,15 @@ def main() -> int:
     kind, paths = sys.argv[1], sys.argv[2:]
     summary = SUMMARIES[kind](paths)
     with telemetry.engine().begin() as connection:
-        connection.execute(telemetry.runs.insert().values(
-            kind=kind, created_at=datetime.now(UTC), git_sha=os.getenv("GITHUB_SHA", "")[:12],
-            run_url=f"{os.getenv('GITHUB_SERVER_URL', '')}/{os.getenv('GITHUB_REPOSITORY', '')}/actions/runs/{os.getenv('GITHUB_RUN_ID', '')}",
-            summary=json.dumps(summary),
-        ))
+        connection.execute(
+            telemetry.runs.insert().values(
+                kind=kind,
+                created_at=datetime.now(UTC),
+                git_sha=os.getenv("GITHUB_SHA", "")[:12],
+                run_url=f"{os.getenv('GITHUB_SERVER_URL', '')}/{os.getenv('GITHUB_REPOSITORY', '')}/actions/runs/{os.getenv('GITHUB_RUN_ID', '')}",
+                summary=json.dumps(summary),
+            )
+        )
     print(f"published {kind}: {json.dumps(summary)}")
     return 0
 

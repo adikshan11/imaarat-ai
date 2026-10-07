@@ -117,10 +117,22 @@ def timed(name: str) -> Callable:
 def record_request(route: str, method: str, status: int, latency_ms: int, error_type: str | None) -> None:
     cold_start = first_request["pending"]
     first_request["pending"] = False
-    pending.put(("request", {
-        "created_at": datetime.now(UTC), "route": route[:120], "method": method, "status": status,
-        "latency_ms": latency_ms, "cold_start": cold_start, "region": os.getenv("VERCEL_REGION"), "error_type": error_type,
-    }, None))
+    pending.put(
+        (
+            "request",
+            {
+                "created_at": datetime.now(UTC),
+                "route": route[:120],
+                "method": method,
+                "status": status,
+                "latency_ms": latency_ms,
+                "cold_start": cold_start,
+                "region": os.getenv("VERCEL_REGION"),
+                "error_type": error_type,
+            },
+            None,
+        )
+    )
     start_writer()
 
 
@@ -131,8 +143,7 @@ def record_trace(trace_id: str, collected: list[dict[str, Any]], memo_status: st
     total_ms = round((max(span["ended"] for span in collected) - origin) * 1000)
     trace_row = {"trace_id": trace_id, "created_at": datetime.now(UTC), "total_ms": total_ms, "memo_status": memo_status, "decision": decision}
     span_rows = [
-        {"trace_id": trace_id, "name": span["name"], "start_ms": round((span["started"] - origin) * 1000),
-         "duration_ms": round((span["ended"] - span["started"]) * 1000), "status": span["status"]}
+        {"trace_id": trace_id, "name": span["name"], "start_ms": round((span["started"] - origin) * 1000), "duration_ms": round((span["ended"] - span["started"]) * 1000), "status": span["status"]}
         for span in collected
     ]
     pending.put(("trace", trace_row, span_rows))
@@ -231,21 +242,25 @@ def summary(hours: int) -> dict[str, Any]:
     with engine().connect() as connection:
         request_rows = connection.execute(
             select(requests.c.created_at, requests.c.route, requests.c.status, requests.c.latency_ms, requests.c.cold_start, requests.c.error_type)
-            .where(requests.c.created_at >= since).order_by(requests.c.id.desc()).limit(50_000)
+            .where(requests.c.created_at >= since)
+            .order_by(requests.c.id.desc())
+            .limit(50_000)
         ).all()
         trace_rows = connection.execute(
-            select(traces.c.trace_id, traces.c.created_at, traces.c.total_ms, traces.c.memo_status, traces.c.decision)
-            .where(traces.c.created_at >= since).order_by(traces.c.id.desc())
+            select(traces.c.trace_id, traces.c.created_at, traces.c.total_ms, traces.c.memo_status, traces.c.decision).where(traces.c.created_at >= since).order_by(traces.c.id.desc())
         ).all()
         run_rows = connection.execute(select(runs.c.kind, runs.c.created_at, runs.c.git_sha, runs.c.run_url, runs.c.summary).order_by(runs.c.id.desc()).limit(60)).all()
         recent = [row.trace_id for row in trace_rows[:8]]
-        span_rows = connection.execute(
-            select(spans.c.trace_id, spans.c.name, spans.c.start_ms, spans.c.duration_ms, spans.c.status).where(spans.c.trace_id.in_(recent)).order_by(spans.c.id)
-        ).all() if recent else []
+        span_rows = (
+            connection.execute(select(spans.c.trace_id, spans.c.name, spans.c.start_ms, spans.c.duration_ms, spans.c.status).where(spans.c.trace_id.in_(recent)).order_by(spans.c.id)).all()
+            if recent
+            else []
+        )
     with budget.engine().connect() as connection:
         ai_rows = connection.execute(
-            select(budget.usage.c.created_at, budget.usage.c.stage, budget.usage.c.status, budget.usage.c.input_tokens, budget.usage.c.output_tokens, budget.usage.c.latency_ms)
-            .where(budget.usage.c.created_at >= since)
+            select(budget.usage.c.created_at, budget.usage.c.stage, budget.usage.c.status, budget.usage.c.input_tokens, budget.usage.c.output_tokens, budget.usage.c.latency_ms).where(
+                budget.usage.c.created_at >= since
+            )
         ).all()
 
     timeline: dict[str, dict[str, int]] = {}
@@ -288,7 +303,14 @@ def summary(hours: int) -> dict[str, Any]:
     for row in run_rows:
         history = ci_runs.setdefault(row.kind, [])
         if len(history) < 10:
-            history.append({"created_at": row.created_at.isoformat() if hasattr(row.created_at, "isoformat") else str(row.created_at), "git_sha": row.git_sha, "run_url": row.run_url, "summary": json.loads(row.summary)})
+            history.append(
+                {
+                    "created_at": row.created_at.isoformat() if hasattr(row.created_at, "isoformat") else str(row.created_at),
+                    "git_sha": row.git_sha,
+                    "run_url": row.run_url,
+                    "summary": json.loads(row.summary),
+                }
+            )
 
     return {
         "window_hours": hours,
@@ -302,19 +324,29 @@ def summary(hours: int) -> dict[str, Any]:
             "client_errors": sum(400 <= row.status < 500 for row in request_rows),
             "cold_starts": sum(bool(row.cold_start) for row in request_rows),
             "timeline": [{"bucket": key, **timeline.get(key, {"requests": 0, "client_errors": 0, "server_errors": 0})} for key in buckets(since, hours)],
-            "routes": sorted(({
-                "route": route,
-                "count": len(rows),
-                "error_rate": round(sum(row.status >= 500 for row in rows) / len(rows), 4),
-                "p50_ms": percentile([row.latency_ms for row in rows], 0.5),
-                "p95_ms": percentile([row.latency_ms for row in rows], 0.95),
-                "p99_ms": percentile([row.latency_ms for row in rows], 0.99),
-            } for route, rows in routes.items()), key=itemgetter("count"), reverse=True),
+            "routes": sorted(
+                (
+                    {
+                        "route": route,
+                        "count": len(rows),
+                        "error_rate": round(sum(row.status >= 500 for row in rows) / len(rows), 4),
+                        "p50_ms": percentile([row.latency_ms for row in rows], 0.5),
+                        "p95_ms": percentile([row.latency_ms for row in rows], 0.95),
+                        "p99_ms": percentile([row.latency_ms for row in rows], 0.99),
+                    }
+                    for route, rows in routes.items()
+                ),
+                key=itemgetter("count"),
+                reverse=True,
+            ),
             "error_types": errors,
         },
         "ai": {
             "budget": budget.remaining(),
-            "stages": {name: {**{key: value for key, value in stage.items() if key != "latencies"}, "p50_ms": percentile(stage["latencies"], 0.5), "p95_ms": percentile(stage["latencies"], 0.95)} for name, stage in stages.items()},
+            "stages": {
+                name: {**{key: value for key, value in stage.items() if key != "latencies"}, "p50_ms": percentile(stage["latencies"], 0.5), "p95_ms": percentile(stage["latencies"], 0.95)}
+                for name, stage in stages.items()
+            },
             "timeline": [{"bucket": key, **ai_timeline.get(key, {"calls": 0, "failed": 0, "tokens": 0})} for key in buckets(since, hours)],
             "memo_outcomes": memo_outcomes,
         },
@@ -322,6 +354,15 @@ def summary(hours: int) -> dict[str, Any]:
             "total": len(trace_rows),
             "p50_ms": percentile([row.total_ms for row in trace_rows], 0.5),
             "p95_ms": percentile([row.total_ms for row in trace_rows], 0.95),
-            "recent": [{"created_at": row.created_at.isoformat() if hasattr(row.created_at, "isoformat") else str(row.created_at), "total_ms": row.total_ms, "memo_status": row.memo_status, "decision": row.decision, "spans": waterfall.get(row.trace_id, [])} for row in trace_rows[:8]],
+            "recent": [
+                {
+                    "created_at": row.created_at.isoformat() if hasattr(row.created_at, "isoformat") else str(row.created_at),
+                    "total_ms": row.total_ms,
+                    "memo_status": row.memo_status,
+                    "decision": row.decision,
+                    "spans": waterfall.get(row.trace_id, []),
+                }
+                for row in trace_rows[:8]
+            ],
         },
     }

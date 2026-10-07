@@ -72,7 +72,9 @@ mcp = MCPServer(
 )
 
 
-@mcp.tool(description="Score a commercial property with the deterministic underwriting engine and return the decision, risk flags and score breakdown. Pass the 6-digit pincode to check the declared seismic zone against official data and add flood and cyclone evidence. Nothing is stored.")
+@mcp.tool(
+    description="Score a commercial property with the deterministic underwriting engine and return the decision, risk flags and score breakdown. Pass the 6-digit pincode to check the declared seismic zone against official data and add flood and cyclone evidence. Nothing is stored."
+)
 def assess_property(
     construction_type: str,
     occupancy_type: str,
@@ -103,7 +105,9 @@ def assess_property(
     )
 
 
-@mcp.tool(description="Look up official natural-hazard evidence for an Indian 6-digit pincode: seismic zone (IS 1893:2016 map), share of the pincode area flooded in 1998-2022 satellite records (NRSC/NDEM) and the IMD cyclone hazard grade of its district.")
+@mcp.tool(
+    description="Look up official natural-hazard evidence for an Indian 6-digit pincode: seismic zone (IS 1893:2016 map), share of the pincode area flooded in 1998-2022 satellite records (NRSC/NDEM) and the IMD cyclone hazard grade of its district."
+)
 def lookup_hazard(pincode: str) -> dict[str, Any]:
     return hazard_lookup(pincode) or {"error": f"no hazard data for pincode {pincode}"}
 
@@ -122,10 +126,7 @@ def get_assessment(assessment_id: int) -> dict[str, Any]:
 @mcp.tool(description="List stored underwriting assessments, newest first, optionally filtered by decision (Accept, Refer, Decline (mitigation possible), Auto-Decline).")
 def list_assessments(decision: str | None = None, limit: int = 20) -> list[dict[str, Any]]:
     rows = [row for row in fetch_history() if decision is None or row["decision"] == decision]
-    return [
-        {key: row.get(key) for key in ("id", "property_id", "risk_score", "decision", "final_decision", "review_status", "risk_flags")}
-        for row in rows[:limit]
-    ]
+    return [{key: row.get(key) for key in ("id", "property_id", "risk_score", "decision", "final_decision", "review_status", "risk_flags")} for row in rows[:limit]]
 
 
 @mcp.resource("uw://guidelines", name="underwriting-guidelines", description="The full underwriting guidelines (sections G1 to G12).", mime_type="text/markdown")
@@ -182,7 +183,11 @@ def agent_card() -> AgentCard:
                 name="Assess property",
                 description="Send property facts as a JSON data part; receive the risk score, decision, review status, rationale and guideline citations.",
                 tags=["underwriting", "risk", "insurance"],
-                examples=[json.dumps({"construction_type": "Frame", "occupancy_type": "Warehouse", "cat_zone": "Flood", "roof_age_years": 32, "sprinkler_system": "N", "prior_claims_count_5yr": 3, "tiv": 30000000})],
+                examples=[
+                    json.dumps(
+                        {"construction_type": "Frame", "occupancy_type": "Warehouse", "cat_zone": "Flood", "roof_age_years": 32, "sprinkler_system": "N", "prior_claims_count_5yr": 3, "tiv": 30000000}
+                    )
+                ],
                 input_modes=["application/json"],
                 output_modes=["application/json"],
             ),

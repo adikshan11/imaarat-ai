@@ -114,11 +114,7 @@ def engine() -> Any:
 def _reserve(connection: Any, day: str, scope: str, amount: int, limit: int) -> bool:
     insert = postgres_insert if is_postgres() else sqlite_insert
     connection.execute(insert(counters).values(day=day, scope=scope, used=0).on_conflict_do_nothing())
-    result = connection.execute(
-        update(counters)
-        .where(counters.c.day == day, counters.c.scope == scope, counters.c.used + amount <= limit)
-        .values(used=counters.c.used + amount)
-    )
+    result = connection.execute(update(counters).where(counters.c.day == day, counters.c.scope == scope, counters.c.used + amount <= limit).values(used=counters.c.used + amount))
     return result.rowcount == 1
 
 
@@ -142,27 +138,19 @@ def reserve_call(stage: str, now: datetime | None = None) -> int:
                 raise BudgetExceeded("AI generations", seconds_until_reset(current))
         if not _reserve(connection, day, "calls", 1, limits()["calls"]):
             raise BudgetExceeded("AI calls", seconds_until_reset(current))
-        return connection.execute(
-            usage.insert().values(day=day, stage=stage, status="reserved", created_at=current)
-        ).inserted_primary_key[0]
+        return connection.execute(usage.insert().values(day=day, stage=stage, status="reserved", created_at=current)).inserted_primary_key[0]
 
 
 def finish_call(call_id: int, status: str, model: str | None = None, input_tokens: int | None = None, output_tokens: int | None = None, latency_ms: int | None = None) -> None:
     with engine().begin() as connection:
-        connection.execute(
-            update(usage)
-            .where(usage.c.id == call_id)
-            .values(status=status, model=model, input_tokens=input_tokens, output_tokens=output_tokens, latency_ms=latency_ms)
-        )
+        connection.execute(update(usage).where(usage.c.id == call_id).values(status=status, model=model, input_tokens=input_tokens, output_tokens=output_tokens, latency_ms=latency_ms))
 
 
 def remaining(now: datetime | None = None) -> dict[str, Any]:
     day = budget_day(now)
     with engine().connect() as connection:
         used = dict(connection.execute(select(counters.c.scope, counters.c.used).where(counters.c.day == day, counters.c.scope.in_(["admissions", "calls", "generations"]))).all())
-        tokens = connection.execute(
-            select(func.coalesce(func.sum(usage.c.input_tokens), 0), func.coalesce(func.sum(usage.c.output_tokens), 0)).where(usage.c.day == day)
-        ).one()
+        tokens = connection.execute(select(func.coalesce(func.sum(usage.c.input_tokens), 0), func.coalesce(func.sum(usage.c.output_tokens), 0)).where(usage.c.day == day)).one()
     caps = limits()
     return {
         "day": day,

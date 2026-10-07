@@ -227,11 +227,7 @@ def save_submission(state: dict[str, Any]) -> dict[str, Any]:
     with get_engine().begin() as conn:
         submission_id = conn.execute(insert(submissions).values(values).returning(submissions.c.id)).scalar_one()
         state_with_id = {**state, "id": submission_id}
-        conn.execute(
-            update(submissions)
-            .where(submissions.c.id == submission_id)
-            .values(result_json=json.dumps(state_with_id, ensure_ascii=False, default=str))
-        )
+        conn.execute(update(submissions).where(submissions.c.id == submission_id).values(result_json=json.dumps(state_with_id, ensure_ascii=False, default=str)))
     return {
         "id": submission_id,
         "property_id": values["property_id"],
@@ -255,11 +251,7 @@ def record_review(submission_id: int, final_decision: str, reviewer: str, note: 
             "review_note": note,
             "reviewed_at": datetime.now(UTC).isoformat(timespec="seconds"),
         }
-        conn.execute(
-            update(submissions)
-            .where(submissions.c.id == submission_id)
-            .values(**review, result_json=json.dumps({**detail, **review}, ensure_ascii=False, default=str))
-        )
+        conn.execute(update(submissions).where(submissions.c.id == submission_id).values(**review, result_json=json.dumps({**detail, **review}, ensure_ascii=False, default=str)))
 
 
 def history_row(row: Any) -> dict[str, Any]:
@@ -317,7 +309,7 @@ def history_page(limit: int, offset: int, decision: str | None, query: str | Non
         needle = query.lower()
         rows = [(row, raw) for row, raw in rows if needle in f"{row.property_id} {raw.get('address', '')} {raw.get('city', '')}".lower()]
     ranked = sorted(((sort_value(row, raw, sort), row.id) for row, raw in rows), reverse=direction != "asc")
-    ids = [submission_id for _, submission_id in ranked[offset:offset + limit]]
+    ids = [submission_id for _, submission_id in ranked[offset : offset + limit]]
     if not ids:
         return [], len(rows)
     with get_engine().connect() as conn:
