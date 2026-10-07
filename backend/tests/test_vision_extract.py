@@ -1,15 +1,11 @@
 from __future__ import annotations
 
-import io
 import json
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import MagicMock
 
 import app.llm as llm
 import app.tools.vision_extract as vision_module
 from app.tools.vision_extract import extract_property_features
-
 
 MANUAL = {"property_id": "TEST-001", "construction_type": "Non-Combustible", "sprinkler_system": "Y", "roof_age_years": None}
 

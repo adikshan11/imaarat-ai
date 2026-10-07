@@ -1,7 +1,6 @@
-from fastapi.testclient import TestClient
-
 from app import __version__, config
 from app.api import main
+from fastapi.testclient import TestClient
 
 
 def test_status_reports_capabilities_without_secrets(monkeypatch):

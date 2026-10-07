@@ -1,9 +1,8 @@
 import pytest
-from fastapi.testclient import TestClient
-
 from app.api import main
 from app.tools.hazard_lookup import lookup, verify_location
 from app.tools.risk_calculator import risk_score_calculator
+from fastapi.testclient import TestClient
 
 # Seismic zones from the IS 1893 (Part 1):2016 town list; cyclone grades from IMD tables 1.1 and 1.2 (June 2023).
 GOLDEN = [

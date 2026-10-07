@@ -1,9 +1,8 @@
-from fastapi.testclient import TestClient
-from sqlalchemy import select
-
 from app import db, telemetry
 from app.agents.graph import run_graph
 from app.api import main
+from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 
 def test_requests_are_logged_by_route_template_without_inputs():

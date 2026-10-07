@@ -1,14 +1,13 @@
 import os
 import time
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
-from fastapi.testclient import TestClient
-
 from app import budget, config, db, llm
 from app.agents.graph import run_graph
 from app.api import main
+from fastapi.testclient import TestClient
 
 
 @pytest.fixture
@@ -23,9 +22,9 @@ def store(tmp_path, monkeypatch):
 
 
 def test_budget_day_follows_pacific_midnight_like_gemini_quotas():
-    assert budget.budget_day(datetime(2026, 10, 5, 6, 59, tzinfo=timezone.utc)) == "2026-10-04"
-    assert budget.budget_day(datetime(2026, 10, 5, 7, 0, tzinfo=timezone.utc)) == "2026-10-05"
-    assert budget.seconds_until_reset(datetime(2026, 10, 5, 6, 59, tzinfo=timezone.utc)) == 60
+    assert budget.budget_day(datetime(2026, 10, 5, 6, 59, tzinfo=UTC)) == "2026-10-04"
+    assert budget.budget_day(datetime(2026, 10, 5, 7, 0, tzinfo=UTC)) == "2026-10-05"
+    assert budget.seconds_until_reset(datetime(2026, 10, 5, 6, 59, tzinfo=UTC)) == 60
 
 
 def test_visitor_cap_then_global_cap(store):
@@ -103,7 +102,7 @@ def test_generations_follow_google_minute_and_day_limits(store, monkeypatch):
     monkeypatch.setattr(config, "AI_DAILY_CALLS", 100)
     monkeypatch.setattr(config, "AI_DAILY_GENERATIONS", 3)
     monkeypatch.setattr(config, "AI_MINUTE_GENERATIONS", 2)
-    minute = datetime(2026, 10, 7, 10, 0, 15, tzinfo=timezone.utc)
+    minute = datetime(2026, 10, 7, 10, 0, 15, tzinfo=UTC)
     budget.reserve_call("memo", minute)
     budget.reserve_call("vision", minute)
     with pytest.raises(budget.BudgetExceeded) as busy:
@@ -111,9 +110,9 @@ def test_generations_follow_google_minute_and_day_limits(store, monkeypatch):
     assert busy.value.scope == "this minute" and busy.value.retry_after == 45
     for _ in range(5):
         budget.reserve_call("embed", minute)
-    budget.reserve_call("memo", datetime(2026, 10, 7, 10, 1, 0, tzinfo=timezone.utc))
+    budget.reserve_call("memo", datetime(2026, 10, 7, 10, 1, 0, tzinfo=UTC))
     with pytest.raises(budget.BudgetExceeded) as daily:
-        budget.reserve_call("memo", datetime(2026, 10, 7, 10, 2, 0, tzinfo=timezone.utc))
+        budget.reserve_call("memo", datetime(2026, 10, 7, 10, 2, 0, tzinfo=UTC))
     assert daily.value.scope == "AI generations"
     assert budget.remaining(minute)["generations_left"] == 0
 

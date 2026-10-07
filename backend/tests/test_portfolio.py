@@ -1,7 +1,6 @@
-from fastapi.testclient import TestClient
-
 from app import db
 from app.api import main
+from fastapi.testclient import TestClient
 
 
 def seed(tmp_path, monkeypatch):

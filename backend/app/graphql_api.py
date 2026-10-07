@@ -3,8 +3,8 @@
 from enum import Enum
 
 import strawberry
-from strawberry.extensions import MaxAliasesLimiter, MaxTokensLimiter, QueryDepthLimiter
 from starlette.concurrency import run_in_threadpool
+from strawberry.extensions import MaxAliasesLimiter, MaxTokensLimiter, QueryDepthLimiter
 from strawberry.fastapi import GraphQLRouter
 from strawberry.scalars import JSON
 from strawberry.schema.config import StrawberryConfig

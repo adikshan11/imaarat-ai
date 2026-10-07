@@ -58,7 +58,7 @@ def qdrant_search(query_vector: list[float], k: int) -> list[dict]:
         client.create_collection(QDRANT_COLLECTION, vectors_config=VectorParams(size=len(vectors[0]), distance=Distance.COSINE))
         client.upsert(
             QDRANT_COLLECTION,
-            points=[PointStruct(id=i, vector=vector, payload={**section, "version": version}) for i, (section, vector) in enumerate(zip(sections, vectors))],
+            points=[PointStruct(id=i, vector=vector, payload={**section, "version": version}) for i, (section, vector) in enumerate(zip(sections, vectors, strict=False))],
         )
         print(f"[rag_lookup] indexed {len(sections)} guideline sections into Qdrant (version {version})")
     hits = client.query_points(QDRANT_COLLECTION, query=query_vector, limit=k, with_payload=True).points
@@ -66,7 +66,7 @@ def qdrant_search(query_vector: list[float], k: int) -> list[dict]:
 
 
 def cosine(left: list[float], right: list[float]) -> float:
-    dot = sum(a * b for a, b in zip(left, right))
+    dot = sum(a * b for a, b in zip(left, right, strict=False))
     norms = math.sqrt(sum(a * a for a in left)) * math.sqrt(sum(b * b for b in right))
     return dot / norms if norms else 0.0
 
@@ -85,7 +85,7 @@ def index_items() -> list[dict]:
         items = json.loads(stored)
     else:
         vectors = llm.embed([section_document(section) for section in sections], "RETRIEVAL_DOCUMENT")
-        items = [{**section, "vector": vector} for section, vector in zip(sections, vectors)]
+        items = [{**section, "vector": vector} for section, vector in zip(sections, vectors, strict=False)]
         try:
             with engine.begin() as connection:
                 connection.execute(guideline_index.insert().values(version=version, vectors=json.dumps(items)))

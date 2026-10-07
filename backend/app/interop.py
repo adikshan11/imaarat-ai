@@ -17,11 +17,12 @@ from fastapi import FastAPI
 from mcp.server.mcpserver import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
 
+from app import budget
 from app.config import GUIDELINES_MD
 from app.db import fetch_history, fetch_submission_detail
 from app.schemas import decision_from_score, indicative_product_segment
-from app.tools.hazard_lookup import lookup as hazard_lookup, verify_location
-from app import budget
+from app.tools.hazard_lookup import lookup as hazard_lookup
+from app.tools.hazard_lookup import verify_location
 from app.tools.rag_lookup import retrieve
 from app.tools.risk_calculator import risk_score_calculator
 

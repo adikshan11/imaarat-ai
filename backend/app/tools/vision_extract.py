@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import mimetypes
 from pathlib import Path
-from typing import Any
 
 from google.genai import types
 from PIL import Image, UnidentifiedImageError
@@ -55,7 +54,7 @@ def extract_property_features(image_path: str | None, manual_fields: dict, ai_no
                 reason = "invalid image dimensions"
             else:
                 pixels = image.convert("RGB").resize((64, 64)).getdata()
-                channels = list(zip(*pixels))
+                channels = list(zip(*pixels, strict=False))
                 channel_ranges = [max(channel) - min(channel) for channel in channels]
                 reason = "near-uniform pixel content" if max(channel_ranges) <= 3 else ""
     except (UnidentifiedImageError, OSError, ValueError) as exc:

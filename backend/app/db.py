@@ -6,8 +6,8 @@ import csv
 import json
 import os
 import shutil
+from datetime import UTC, datetime
 from operator import itemgetter
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -30,7 +30,8 @@ from sqlalchemy import (
 from sqlalchemy.engine import Engine
 
 from app.config import DB_PATH, DEMO_DB_PATH, PROPERTIES_CSV
-from app.tools.hazard_lookup import hazard_flags, lookup as hazard_lookup
+from app.tools.hazard_lookup import hazard_flags
+from app.tools.hazard_lookup import lookup as hazard_lookup
 
 metadata = MetaData()
 
@@ -252,7 +253,7 @@ def record_review(submission_id: int, final_decision: str, reviewer: str, note: 
             "final_decision": final_decision,
             "reviewer": reviewer,
             "review_note": note,
-            "reviewed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "reviewed_at": datetime.now(UTC).isoformat(timespec="seconds"),
         }
         conn.execute(
             update(submissions)

@@ -7,13 +7,14 @@ import os
 import random
 import statistics
 import time
+from collections.abc import Callable
 from contextvars import ContextVar
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from functools import wraps
 from operator import itemgetter
 from queue import Empty, SimpleQueue
 from threading import Lock, Thread
-from typing import Any, Callable
+from typing import Any
 
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, Table, Text, delete, select, text
 
@@ -117,7 +118,7 @@ def record_request(route: str, method: str, status: int, latency_ms: int, error_
     cold_start = first_request["pending"]
     first_request["pending"] = False
     pending.put(("request", {
-        "created_at": datetime.now(timezone.utc), "route": route[:120], "method": method, "status": status,
+        "created_at": datetime.now(UTC), "route": route[:120], "method": method, "status": status,
         "latency_ms": latency_ms, "cold_start": cold_start, "region": os.getenv("VERCEL_REGION"), "error_type": error_type,
     }, None))
     start_writer()
@@ -128,7 +129,7 @@ def record_trace(trace_id: str, collected: list[dict[str, Any]], memo_status: st
         return
     origin = min(span["started"] for span in collected)
     total_ms = round((max(span["ended"] for span in collected) - origin) * 1000)
-    trace_row = {"trace_id": trace_id, "created_at": datetime.now(timezone.utc), "total_ms": total_ms, "memo_status": memo_status, "decision": decision}
+    trace_row = {"trace_id": trace_id, "created_at": datetime.now(UTC), "total_ms": total_ms, "memo_status": memo_status, "decision": decision}
     span_rows = [
         {"trace_id": trace_id, "name": span["name"], "start_ms": round((span["started"] - origin) * 1000),
          "duration_ms": round((span["ended"] - span["started"]) * 1000), "status": span["status"]}
@@ -179,7 +180,7 @@ def flush() -> None:
 
 
 def prune(connection: Any) -> None:
-    cutoff = datetime.now(timezone.utc) - timedelta(days=RETENTION_DAYS)
+    cutoff = datetime.now(UTC) - timedelta(days=RETENTION_DAYS)
     old = select(traces.c.trace_id).where(traces.c.created_at < cutoff)
     connection.execute(delete(spans).where(spans.c.trace_id.in_(old)))
     connection.execute(delete(traces).where(traces.c.created_at < cutoff))
@@ -195,8 +196,8 @@ def percentile(values: list[int], share: float) -> int | None:
 
 
 def bucket(moment: datetime, hours: int) -> str:
-    moment = moment if moment.tzinfo else moment.replace(tzinfo=timezone.utc)
-    moment = moment.astimezone(timezone.utc)
+    moment = moment if moment.tzinfo else moment.replace(tzinfo=UTC)
+    moment = moment.astimezone(UTC)
     if hours <= 48:
         return moment.strftime("%Y-%m-%dT%H:00Z")
     return moment.strftime("%Y-%m-%d")
@@ -206,7 +207,7 @@ def buckets(since: datetime, hours: int) -> list[str]:
     step = timedelta(hours=1) if hours <= 48 else timedelta(days=1)
     moment = since.replace(minute=0, second=0, microsecond=0) if hours <= 48 else since.replace(hour=0, minute=0, second=0, microsecond=0)
     keys = []
-    while moment <= datetime.now(timezone.utc):
+    while moment <= datetime.now(UTC):
         keys.append(bucket(moment, hours))
         moment += step
     return keys
@@ -226,7 +227,7 @@ def summary(hours: int) -> dict[str, Any]:
     from app import budget
 
     flush()
-    since = datetime.now(timezone.utc) - timedelta(hours=hours)
+    since = datetime.now(UTC) - timedelta(hours=hours)
     with engine().connect() as connection:
         request_rows = connection.execute(
             select(requests.c.created_at, requests.c.route, requests.c.status, requests.c.latency_ms, requests.c.cold_start, requests.c.error_type)
@@ -293,7 +294,7 @@ def summary(hours: int) -> dict[str, Any]:
         "window_hours": hours,
         "ci_runs": ci_runs,
         "storage": storage(),
-        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "process_uptime_s": round(time.time() - process_started),
         "requests": {
             "total": len(request_rows),

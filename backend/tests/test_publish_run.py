@@ -1,8 +1,7 @@
 import json
 
-from fastapi.testclient import TestClient
-
 from app.api import main
+from fastapi.testclient import TestClient
 from ops import publish_run
 
 LOAD_CSV = """Type,Name,Request Count,Failure Count,Median Response Time,Average Response Time,Min Response Time,Max Response Time,Average Content Size,Requests/s,Failures/s,50%,66%,75%,80%,90%,95%,98%,99%,99.9%,99.99%,100%

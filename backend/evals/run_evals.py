@@ -10,7 +10,7 @@ import math
 import os
 import statistics
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from app import config, llm
@@ -22,6 +22,7 @@ from app.schemas import decision_from_score
 from app.tools.comparables import comparable_lookup
 from app.tools.rag_lookup import format_hit, local_search, qdrant_search
 from app.tools.risk_calculator import risk_score_calculator
+
 from evals.golden import golden_cases
 
 RESULTS = Path(__file__).parent / "results"
@@ -270,7 +271,7 @@ def main() -> int:
 
     cases = golden_cases()
     report = empty_report()
-    report.update({"generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"), "run_mode": "live_bounded" if args.live else "deterministic_only", "status": "completed", "deterministic": deterministic(cases)})
+    report.update({"generated_at": datetime.now(UTC).isoformat(timespec="seconds"), "run_mode": "live_bounded" if args.live else "deterministic_only", "status": "completed", "deterministic": deterministic(cases)})
     report["metadata"].update({"synthetic_cases": len(cases), "selected_live_cases": [], "memo_generations": 0})
     report["sections"]["deterministic"] = {"status": "completed" if report["deterministic"]["passed"] else "failed"}
     reason = "live_not_requested" if config.GEMINI_API_KEY else "missing_api_key"

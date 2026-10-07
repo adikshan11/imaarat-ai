@@ -1,7 +1,6 @@
 from queue import Empty
 
 import pytest
-
 from app import db, telemetry
 
 
