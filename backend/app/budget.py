@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -60,11 +60,11 @@ def limits() -> dict[str, int]:
 
 
 def budget_day(now: datetime | None = None) -> str:
-    return (now or datetime.now(timezone.utc)).astimezone(PACIFIC).date().isoformat()
+    return (now or datetime.now(UTC)).astimezone(PACIFIC).date().isoformat()
 
 
 def seconds_until_reset(now: datetime | None = None) -> int:
-    local = (now or datetime.now(timezone.utc)).astimezone(PACIFIC)
+    local = (now or datetime.now(UTC)).astimezone(PACIFIC)
     midnight = datetime.combine(local.date() + timedelta(days=1), datetime.min.time(), tzinfo=PACIFIC)
     return max(1, int((midnight - local).total_seconds()))
 
@@ -132,11 +132,11 @@ def admit(address: str | None, now: datetime | None = None) -> None:
 
 
 def reserve_call(stage: str, now: datetime | None = None) -> int:
-    current = now or datetime.now(timezone.utc)
+    current = now or datetime.now(UTC)
     day = budget_day(current)
     with engine().begin() as connection:
         if stage not in UNCAPPED_STAGES:
-            if not _reserve(connection, day, f"minute:{current.astimezone(timezone.utc):%H:%M}", 1, limits()["minute_generations"]):
+            if not _reserve(connection, day, f"minute:{current.astimezone(UTC):%H:%M}", 1, limits()["minute_generations"]):
                 raise BudgetExceeded("this minute", 60 - current.second)
             if not _reserve(connection, day, "generations", 1, limits()["generations"]):
                 raise BudgetExceeded("AI generations", seconds_until_reset(current))

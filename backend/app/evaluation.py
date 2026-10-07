@@ -12,7 +12,7 @@ def report_metadata() -> dict:
         "corpus_sections": len(sections),
         "corpus_hash": corpus_hash(sections),
         "corpus_characters": sum(lengths),
-        "section_characters": {section["id"]: length for section, length in zip(sections, lengths)},
+        "section_characters": {section["id"]: length for section, length in zip(sections, lengths, strict=False)},
         "corpus_tokens": None,
         "token_availability": "not_measured",
         "prompt_token_scope": "Instruction/evidence prompts only; excludes system text and schema. Not billed generation usage.",

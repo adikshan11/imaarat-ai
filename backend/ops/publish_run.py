@@ -4,7 +4,7 @@ import csv
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from app import telemetry
@@ -67,7 +67,7 @@ def main() -> int:
     summary = SUMMARIES[kind](paths)
     with telemetry.engine().begin() as connection:
         connection.execute(telemetry.runs.insert().values(
-            kind=kind, created_at=datetime.now(timezone.utc), git_sha=os.getenv("GITHUB_SHA", "")[:12],
+            kind=kind, created_at=datetime.now(UTC), git_sha=os.getenv("GITHUB_SHA", "")[:12],
             run_url=f"{os.getenv('GITHUB_SERVER_URL', '')}/{os.getenv('GITHUB_REPOSITORY', '')}/actions/runs/{os.getenv('GITHUB_RUN_ID', '')}",
             summary=json.dumps(summary),
         ))

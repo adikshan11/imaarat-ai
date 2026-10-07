@@ -8,7 +8,7 @@ import json
 import re
 import urllib.request
 from collections import Counter
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import numpy as np
@@ -254,7 +254,7 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
         writer.writerows(records)
     fields = ["district", "state", "district_lgd", "seismic_zone", "seismic_zone_map", "seismic_zone_max", "seismic_source", "flood_area_pct", "urban_flood_points", "urban_flood_source", "cyclone_grade", "cyclone_note"]
     payload = {
-        "built_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "built_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "fields": fields,
         "sources": {name: {key: value for key, value in source.items() if key != "file"} for name, source in SOURCES.items()},
         "pincodes": {record["pincode"]: [record[field] for field in fields] for record in records},
@@ -263,7 +263,7 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
 
     print(f"pincodes {count}, with district {int((district_of >= 0).sum())}")
     changed = sum(1 for r in records if r["seismic_zone"] != r["seismic_zone_map"])
-    print(f"town list: {len(centres)} towns placed, {int((town_zone != None).sum())} pincodes within {TOWN_RADIUS_KM:g} km, {changed} differ from the map")
+    print(f"town list: {len(centres)} towns placed, {int((town_zone != None).sum())} pincodes within {TOWN_RADIUS_KM:g} km, {changed} differ from the map")  # noqa: E711 - elementwise NumPy comparison; "is not None" would compare the whole array
     print("towns skipped:", skipped)
     print("seismic zone", Counter(r["seismic_zone"] for r in records))
     print("cyclone graded pincodes", Counter(r["cyclone_grade"] for r in records))

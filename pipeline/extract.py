@@ -12,9 +12,8 @@ import duckdb
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT.parent / "backend"))
 
-from sqlalchemy import select  # noqa: E402
-
 from app.db import get_engine, init_db, properties, seed_demo_database, submissions  # noqa: E402
+from sqlalchemy import select  # noqa: E402
 
 LAKE = ROOT / "lake"
 

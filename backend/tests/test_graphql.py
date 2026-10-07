@@ -1,7 +1,6 @@
-from fastapi.testclient import TestClient
-
 from app import db
 from app.api import main
+from fastapi.testclient import TestClient
 
 
 def test_one_query_returns_status_hazard_totals_and_a_page(tmp_path, monkeypatch):

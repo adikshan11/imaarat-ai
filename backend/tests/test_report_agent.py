@@ -1,11 +1,10 @@
 import json
 from unittest.mock import Mock
 
-import requests
-from google.genai.errors import ClientError
-
 import app.agents.report_agent as report_agent
 import app.llm as llm
+import requests
+from google.genai.errors import ClientError
 
 
 def test_generate_memo_exposes_resource_exhausted_failure(monkeypatch):

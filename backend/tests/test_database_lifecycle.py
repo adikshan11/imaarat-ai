@@ -1,10 +1,9 @@
 import json
 import sqlite3
 
-from PIL import Image
-
 from app import db
 from app.reports import build_submission_pdf
+from PIL import Image
 
 
 def test_cleanup_is_deterministic_and_retains_canonical_tidell(tmp_path, monkeypatch):

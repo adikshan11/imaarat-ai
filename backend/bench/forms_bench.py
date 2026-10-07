@@ -10,7 +10,6 @@ import time
 from pathlib import Path
 
 import httpx
-
 from app import budget
 from app.tools import form_reader
 

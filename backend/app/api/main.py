@@ -3,28 +3,29 @@ from __future__ import annotations
 import json
 import math
 import time
-from uuid import uuid4
+from contextlib import asynccontextmanager
 from typing import Any, Literal
+from uuid import uuid4
 
 from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
-from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, Response
+from fastapi.responses import Response
+from pydantic import BaseModel
 
-from contextlib import asynccontextmanager
-
-from app import __version__
+from app import __version__, budget, telemetry
 from app.config import DB_PATH, GEMINI_API_KEY, QDRANT_URL
 from app.db import fetch_submission_detail, history_page, init_db, is_postgres, portfolio_summary, record_review, save_submission, seed_demo_database
-from app.interop import add_a2a, mcp, mcp_app
-from app.observability import ENABLED as TRACING_ENABLED, flush
-from app.schemas import decision_from_score, indicative_product_segment
-from app import budget, telemetry
 from app.graphql_api import graphql_router
+from app.interop import add_a2a, mcp, mcp_app
+from app.observability import ENABLED as TRACING_ENABLED
+from app.observability import flush
 from app.reports import build_submission_pdf
+from app.schemas import decision_from_score, indicative_product_segment
 from app.tools.form_reader import read_form
-from app.tools.hazard_lookup import lookup as hazard_lookup, sources as hazard_sources, verify_location
+from app.tools.hazard_lookup import lookup as hazard_lookup
+from app.tools.hazard_lookup import sources as hazard_sources
+from app.tools.hazard_lookup import verify_location
 
 IMAGE_SUFFIXES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
 
@@ -418,9 +419,11 @@ def hazard(pincode: str) -> dict[str, Any]:
 @app.get("/underwrite/analytics")
 def analytics() -> dict[str, Any]:
     """Latest dbt mart snapshot: Postgres when the nightly pipeline has published one, else the bundled file."""
+    from sqlalchemy import inspect as sql_inspect
+    from sqlalchemy import text
+
     from app.config import DATA_DIR
     from app.db import get_engine, is_postgres
-    from sqlalchemy import inspect as sql_inspect, text
 
     if is_postgres() and sql_inspect(get_engine()).has_table("analytics_snapshots"):
         with get_engine().connect() as conn:

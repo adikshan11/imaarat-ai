@@ -14,11 +14,11 @@ from app.agents.state import UWState
 from app.config import AI_REQUEST_SECONDS
 from app.db import database_url, is_postgres
 from app.observability import publish_trace, traced
-from app.telemetry import current_spans, record_trace, timed
 from app.schemas import decision_from_score
+from app.telemetry import current_spans, record_trace, timed
 from app.tools.comparables import comparable_lookup
-from app.tools.rag_lookup import format_hit, retrieve
 from app.tools.hazard_lookup import verify_location
+from app.tools.rag_lookup import format_hit, retrieve
 from app.tools.risk_calculator import risk_score_calculator
 from app.tools.vision_extract import extract_property_features
 

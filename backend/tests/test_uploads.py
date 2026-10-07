@@ -1,10 +1,9 @@
 from pathlib import Path
 
-import pytest
-from fastapi.testclient import TestClient
-
 import app.agents.graph as graph
+import pytest
 from app.api import main
+from fastapi.testclient import TestClient
 
 
 class Stored(Exception):

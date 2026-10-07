@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import duckdb
@@ -12,9 +12,8 @@ import duckdb
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT.parent / "backend"))
 
-from sqlalchemy import Column, Integer, MetaData, Table, Text, insert  # noqa: E402
-
 from app.db import get_engine, is_postgres  # noqa: E402
+from sqlalchemy import Column, Integer, MetaData, Table, Text, insert  # noqa: E402
 
 MARTS = ("mart_cat_exposure", "mart_city_accumulation", "mart_risk_drivers", "mart_review_funnel", "mart_reference_benchmarks", "mart_hazard_verification")
 OUTPUT = ROOT.parent / "backend" / "data" / "analytics" / "latest.json"
@@ -25,10 +24,10 @@ def snapshot() -> dict:
         marts = {}
         for name in MARTS:
             relation = conn.sql(f"select * from {name}")
-            marts[name] = [dict(zip(relation.columns, row)) for row in relation.fetchall()]
+            marts[name] = [dict(zip(relation.columns, row, strict=False)) for row in relation.fetchall()]
         assessments = conn.sql("select count(*), sum(tiv_inr) from fct_assessments").fetchone()
     return {
-        "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "generated_at": datetime.now(UTC).isoformat(timespec="seconds"),
         "assessments": assessments[0],
         "tiv_inr": assessments[1],
         "marts": marts,

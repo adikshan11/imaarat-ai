@@ -1,12 +1,11 @@
 import json
 
 import pytest
-from fastapi.testclient import TestClient
-
 from app import config
 from app.api import main
 from evals import run_evals as runner
 from evals.golden import golden_cases
+from fastapi.testclient import TestClient
 
 
 def test_empty_cases():

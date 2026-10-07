@@ -5,12 +5,12 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any
 
+from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import mm
 from reportlab.platypus import Image as ReportImage
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
-from reportlab.lib import colors
 
 from app.config import BASE_DIR
 

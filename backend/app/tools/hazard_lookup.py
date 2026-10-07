@@ -25,7 +25,7 @@ def lookup(pincode: Any) -> dict[str, Any] | None:
     row = table["pincodes"].get(digits)
     if row is None:
         return None
-    return {"pincode": digits, **dict(zip(table["fields"], row)), "built_at": table["built_at"]}
+    return {"pincode": digits, **dict(zip(table["fields"], row, strict=False)), "built_at": table["built_at"]}
 
 
 def hazard_flags(hazard: dict[str, Any] | None, declared_zone: str | None) -> list[str]:
