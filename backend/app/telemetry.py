@@ -184,7 +184,7 @@ def flush() -> None:
                     if kind == "trace":
                         connection.execute(traces.insert().values(**row))
                         connection.execute(spans.insert(), span_rows)
-                if random.random() < 0.05:
+                if random.random() < 0.05:  # noqa: S311 - sampling when to prune, not security
                     prune(connection)
         except Exception as error:
             print(f"[telemetry] {len(items)} records not written: {type(error).__name__}")

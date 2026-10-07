@@ -2,6 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.34.0] - 2026-10-07
+
+### Added
+- imaarat.ai can run anywhere with one command, docker compose up --build, which starts Postgres, the API and the website. CI builds and smoke-tests that exact stack on every pull request.
+- Every pull request gets its own Vercel preview, which CI smoke-tests before the change can be merged.
+- CI scans the full git history for leaked secrets with gitleaks, and the backend lint now includes the Bandit security rules.
+
+### Changed
+- Production deploys wait for the secret scan and the container check as well, and production, preview and container all share one smoke test: the right version, every public page answering, and the security headers present.
+
 ## [2.33.1] - 2026-10-07
 
 ### Fixed

@@ -120,7 +120,7 @@ def fetch(name: str, raw_dir: Path) -> Path:
     if not path.exists():
         raw_dir.mkdir(parents=True, exist_ok=True)
         print(f"downloading {SOURCES[name]['url']}")
-        urllib.request.urlretrieve(SOURCES[name]["url"], path)
+        urllib.request.urlretrieve(SOURCES[name]["url"], path)  # noqa: S310 - fixed https source URLs
     return path
 
 

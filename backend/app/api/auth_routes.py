@@ -61,7 +61,7 @@ def github_identity(transaction: dict, code: str) -> int:
             client_id=client_id,
             client_secret=secret,
             redirect_uri=callback,
-            token_endpoint_auth_method="client_secret_post",
+            token_endpoint_auth_method="client_secret_post",  # noqa: S106 - the name of an OAuth method, not a password
             timeout=10,
             follow_redirects=False,
             trust_env=False,
