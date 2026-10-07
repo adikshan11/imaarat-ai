@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.37.4] - 2026-10-08
+
+### Changed
+- Renamed the repository to imaarat-ai and pointed the source, issue, build status and data lineage links to the new name.
+
 ## [2.37.3] - 2026-10-07
 
 ### Changed

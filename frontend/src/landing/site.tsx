@@ -1,5 +1,5 @@
 export const APP = '/app/'
-export const REPO = 'https://github.com/adikshan11/uw-risk-assessment'
+export const REPO = 'https://github.com/adikshan11/imaarat-ai'
 export const PORTFOLIO = 'https://adithya-shankaran.vercel.app'
 
 export function Mark({ className = '' }: { className?: string }) {
