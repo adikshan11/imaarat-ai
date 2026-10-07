@@ -8,6 +8,8 @@ from app import auth
 
 router = APIRouter(prefix="/auth")
 NO_STORE = {"Cache-Control": "no-store"}
+# GitHub names itself in the callback (RFC 9207) so a response from another issuer cannot be replayed here.
+GITHUB_ISSUER = "https://github.com/login/oauth"
 COOKIE = {"secure": True, "httponly": True, "samesite": "lax", "path": "/"}
 
 
@@ -81,8 +83,11 @@ def github_identity(transaction: dict, code: str) -> int:
 
 @router.get("/github/callback")
 def github_callback(request: Request):
-    if set(request.query_params) != {"code", "state"} or len(request.query_params.getlist("code")) != 1 or len(request.query_params.getlist("state")) != 1:
+    params = request.query_params
+    if not {"code", "state"} <= set(params) <= {"code", "state", "iss"} or any(len(params.getlist(name)) != 1 for name in params):
         raise HTTPException(400, "oauth_invalid")
+    if "iss" in params and params["iss"] != GITHUB_ISSUER:
+        raise HTTPException(400, "oauth_issuer_invalid")
     transaction = auth.consume_oauth(request.query_params["state"], request.cookies.get(auth.OAUTH_COOKIE, ""))
     grant = auth.create_member(github_identity(transaction, request.query_params["code"]))
     response = RedirectResponse(auth.app_origin() + "/app/", status_code=303, headers={**NO_STORE, "Referrer-Policy": "no-referrer"})

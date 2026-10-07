@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.33.2] - 2026-10-07
+
+### Fixed
+- GitHub sign-in no longer fails with oauth_invalid. GitHub now names itself in the callback with an iss parameter (RFC 9207); the callback accepts it and rejects any other issuer.
+
 ## [2.33.1] - 2026-10-07
 
 ### Fixed
