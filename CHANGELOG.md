@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.35.0] - 2026-10-07
+
+### Changed
+- The AI provider is pluggable. Each vendor has an adapter in app/providers behind one small contract (generate, count tokens, embed), and the AI gateway keeps budgets, retries, the request deadline and tracing the same for every provider. Switching provider or model is configuration: AI_PROVIDER, AI_API_KEY, AI_MODEL and AI_EMBEDDING_MODEL, with the old GEMINI names still read.
+- An architecture test fails the build if a vendor SDK is imported outside the adapters or an adapter breaks the contract. ARCHITECTURE.md explains the layers and how to add a provider such as Amazon Bedrock.
+
 ## [2.34.0] - 2026-10-07
 
 ### Added

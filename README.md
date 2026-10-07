@@ -25,6 +25,8 @@ Built by **Pranjal Jain, Adithya Shankaran and Sanjeev Sharma** as the capstone 
 
 ## Architecture
 
+The layers, the rules CI enforces between them, and how to switch AI providers (for example to Amazon Bedrock) are in [ARCHITECTURE.md](ARCHITECTURE.md).
+
 ```mermaid
 flowchart LR
   UI[React + TypeScript] -->|REST| API[FastAPI on Vercel]
