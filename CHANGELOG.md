@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.32.0] - 2026-10-07
+
+### Changed
+- The landing page now leads with verified property risk decisions for Indian insurers. A new section shows how declared facts are checked against official hazard data, followed by the six-step workflow, the open-source modules, who it is for and why imaarat.ai.
+- The footer has Legal, Product and Connect columns. The legal pages are named Privacy Policy and Terms of Service, and both footers link the MIT License.
+
 ## [2.31.1] - 2026-10-07
 
 ### Fixed

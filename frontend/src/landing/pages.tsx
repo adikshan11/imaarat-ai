@@ -23,7 +23,7 @@ function Document({ title, lead, children }: { title: string; lead: ReactNode; c
 
 export function Privacy() {
   return (
-    <Document title="Privacy policy" lead={`What imaarat.ai collects, why, who handles it and how long it is kept. Last updated ${UPDATED}.`}>
+    <Document title="Privacy Policy" lead={`What imaarat.ai collects, why, who handles it and how long it is kept. Last updated ${UPDATED}.`}>
       <section>
         <h2>Who runs this</h2>
         <p>imaarat.ai is an independent prototype built and run by Adithya Shankaran. It is not an insurer, a broker or an insurance intermediary.</p>
@@ -75,7 +75,7 @@ export function Privacy() {
 
 export function Terms() {
   return (
-    <Document title="Terms of use" lead={`The rules for using imaarat.ai. Last updated ${UPDATED}.`}>
+    <Document title="Terms of Service" lead={`The rules for using imaarat.ai. Last updated ${UPDATED}.`}>
       <section>
         <h2>What imaarat.ai is</h2>
         <p>An independent prototype that shows how property proposals can be assessed with public hazard data, written rules and AI. It is not insurance advice. Its decisions, scores and product segments are indicative and are not an insurer’s offer, quote, rate or tariff. Underwriting decisions stay with a qualified person.</p>
@@ -103,7 +103,7 @@ export function Terms() {
       </section>
       <section>
         <h2>Open source</h2>
-        <p>The source code is published under the <a href={`${REPO}/blob/main/LICENSE`}>MIT licence</a>.</p>
+        <p>The source code is published under the <a href={`${REPO}/blob/main/LICENSE`}>MIT License</a>.</p>
       </section>
       <section>
         <h2>No warranty</h2>

@@ -32,26 +32,32 @@ export function Header() {
 }
 
 export function Footer() {
+  const columns: Array<[string, Array<[string, string]>]> = [
+    ['Legal', [['Privacy Policy', '/privacy/'], ['Terms of Service', '/terms/'], ['MIT License', `${REPO}/blob/main/LICENSE`]]],
+    ['Product', [['Open the app', APP], ['How it works', `${APP}#how`], ['Status', `${APP}#status`], ['Changelog', '/changelog/'], ['FAQ', '/#faq']]],
+    ['Connect', [['GitHub', REPO], ['Report an issue', `${REPO}/issues/new`]]],
+  ]
   return (
     <footer className="border-t border-forest-900/10 bg-white">
-      <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 text-sm text-muted sm:px-6 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-2 font-semibold text-forest-900">
-          <Mark className="size-6" /> imaarat.ai
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[2fr_1fr_1fr_1fr]">
+        <div>
+          <div className="flex items-center gap-2 text-lg font-semibold text-forest-900">
+            <Mark className="size-7" /> imaarat.ai
+          </div>
+          <p className="mt-4 max-w-sm leading-relaxed text-muted">Verified property risk decisions for Indian insurers. Open source, built on India’s public hazard data.</p>
         </div>
-        <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
-          <a href={APP} className="hover:text-forest-900">Open the app</a>
-          <a href={`${APP}#how`} className="hover:text-forest-900">How it works</a>
-          <a href={`${APP}#status`} className="hover:text-forest-900">Status</a>
-          <a href="/changelog/" className="hover:text-forest-900">Changelog</a>
-          <a href="/privacy/" className="hover:text-forest-900">Privacy</a>
-          <a href="/terms/" className="hover:text-forest-900">Terms</a>
-          <a href={`${REPO}/blob/main/LICENSE`} className="hover:text-forest-900">MIT licence</a>
-          <a href={REPO} className="hover:text-forest-900">GitHub</a>
-        </nav>
+        {columns.map(([title, links]) => (
+          <nav key={title} aria-label={title}>
+            <h2 className="text-sm font-semibold text-forest-900">{title}</h2>
+            <ul className="mt-4 space-y-3 text-sm text-muted">
+              {links.map(([label, href]) => <li key={label}><a href={href} className="hover:text-forest-900">{label}</a></li>)}
+            </ul>
+          </nav>
+        ))}
       </div>
-      <div className="mx-auto max-w-6xl space-y-1 px-4 pb-10 text-xs text-muted sm:px-6">
-        <p>Made with <span aria-label="love" className="text-red-600">♥</span> by Adithya Shankaran · © 2026 imaarat.ai</p>
-        <p>Illustrative photographs are generated with AI. Product screenshots are from the live demo with sample data.</p>
+      <div className="mx-auto flex max-w-6xl flex-col gap-2 border-t border-forest-900/10 px-4 py-6 text-xs text-muted sm:px-6 md:flex-row md:justify-between">
+        <p>© 2026 Adithya Shankaran · <a href={`${REPO}/blob/main/LICENSE`} className="hover:text-forest-900">MIT License</a> · Illustrative photographs are generated with AI.</p>
+        <p>Made with <span aria-label="love" className="text-red-600">♥</span> by Adithya Shankaran</p>
       </div>
     </footer>
   )
