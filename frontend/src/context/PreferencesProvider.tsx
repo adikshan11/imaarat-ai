@@ -1,21 +1,10 @@
-import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import en from '@/i18n/locales/en.json'
 import { LANGUAGES } from '@/i18n/languages'
-import type { Language } from '@/i18n/languages'
+import { PreferencesContext, type Vars } from './Preferences'
 
 type Messages = Record<string, string>
-type Vars = Record<string, string | number>
-
-interface Preferences {
-  dark: boolean
-  toggleTheme: () => void
-  language: Language
-  setLanguage: (code: string) => void
-  t: (key: string, vars?: Vars) => string
-  label: (prefix: string, id: string) => string
-  english: (key: string) => string
-}
 
 const english: Messages = en
 const locales = import.meta.glob<Messages>(['../i18n/locales/*.json', '!../i18n/locales/en.json'], { import: 'default' })
@@ -59,8 +48,6 @@ const initialLanguage = () => {
   const browser = navigator.language.split('-')[0]
   return LANGUAGES.some((item) => item.code === browser) ? browser : 'en'
 }
-
-const PreferencesContext = createContext<Preferences | undefined>(undefined)
 
 export function PreferencesProvider({ children }: { children: ReactNode }) {
   const [chosen, setChosen] = useState<'light' | 'dark' | null>(() => {
@@ -135,10 +122,4 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
       {children}
     </PreferencesContext.Provider>
   )
-}
-
-export function usePreferences() {
-  const value = useContext(PreferencesContext)
-  if (!value) throw new Error('usePreferences must be used inside PreferencesProvider')
-  return value
 }

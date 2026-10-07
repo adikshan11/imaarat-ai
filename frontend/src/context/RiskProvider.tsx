@@ -1,27 +1,10 @@
-import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { fetchDashboard, fetchHistoryPage, fetchStatus, fetchSubmissionDetail, submitUnderwriting } from '@/api/underwriting'
 import type { BackendHistoryRow, BackendSubmission, DeploymentStatus, HistoryQuery, PortfolioSummary, SubmissionInput } from '@/types/backend'
+import { RiskContext } from './RiskContext'
 
 const PAGE_SIZE = 20
-
-interface RiskContextState {
-  portfolio: PortfolioSummary | null
-  rows: BackendHistoryRow[]
-  total: number
-  query: HistoryQuery
-  setQuery: (update: Partial<HistoryQuery>) => void
-  selectedSubmission: BackendSubmission | null
-  loading: boolean
-  error: string | null
-  status: DeploymentStatus | null
-  refresh: () => void
-  submit: (input: SubmissionInput, images: File[]) => Promise<BackendSubmission>
-  loadDetail: (submissionId: number) => Promise<BackendSubmission>
-  applyReview: (updated: BackendSubmission) => void
-}
-
-const RiskContext = createContext<RiskContextState | undefined>(undefined)
 
 export function RiskProvider({ children }: { children: ReactNode }) {
   const [portfolio, setPortfolio] = useState<PortfolioSummary | null>(null)
@@ -102,10 +85,4 @@ export function RiskProvider({ children }: { children: ReactNode }) {
       {children}
     </RiskContext.Provider>
   )
-}
-
-export function useRiskContext() {
-  const value = useContext(RiskContext)
-  if (!value) throw new Error('useRiskContext must be used inside RiskProvider')
-  return value
 }
