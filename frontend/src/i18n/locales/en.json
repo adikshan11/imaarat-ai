@@ -398,7 +398,6 @@
   "hzv.understated": "Seismic zone understated in the proposal",
   "hzv.flood": "Flood history at the PIN code",
   "hzv.cyclone": "In an IMD cyclone-prone district (P1–P2)",
-  "hzv.note": "Every proposal's PIN code is checked against official hazard data in the nightly pipeline.",
   "nav.paper": "Paper form",
   "paper.eyebrow": "Paper proposal",
   "paper.title": "Fill on paper, assess online",

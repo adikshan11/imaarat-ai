@@ -70,6 +70,15 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
         </Card>
       </div>
 
+      {portfolio?.hazard_checks && portfolio.submissions > 0 && <Card title={t('hzv.title')}>
+        <div className="risk-stack">
+          <div className="risk-line"><span>{t('hzv.matched')}</span><strong>{portfolio.hazard_checks.pincode_matched} / {portfolio.submissions}</strong></div>
+          <div className="risk-line"><span>{t('hzv.understated')}</span><strong>{portfolio.hazard_checks.declared_seismic_zone_below_official}</strong></div>
+          <div className="risk-line"><span>{t('hzv.flood')}</span><strong>{portfolio.hazard_checks.flood_history_at_pincode}</strong></div>
+          <div className="risk-line"><span>{t('hzv.cyclone')}</span><strong>{portfolio.hazard_checks.imd_cyclone_prone_district}</strong></div>
+        </div>
+      </Card>}
+
       <PortfolioAnalytics />
 
       <Card title={t('card.recent')}>

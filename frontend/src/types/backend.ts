@@ -127,6 +127,7 @@ export interface PortfolioSummary {
   decisions: Record<string, number>
   bands: Record<string, number>
   top_drivers: Array<[string, number]>
+  hazard_checks?: Record<'pincode_matched' | 'declared_seismic_zone_below_official' | 'flood_history_at_pincode' | 'imd_cyclone_prone_district', number>
 }
 
 export interface OpsSpan { name: string; start_ms: number; duration_ms: number; status: string }

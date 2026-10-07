@@ -2,6 +2,17 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.27.0] - 2026-10-07
+
+### Security
+- Every page now sends a content security policy (scripts, styles, fonts, images and connections only from this site and Google Fonts, no framing), plus nosniff, referrer and permissions policies, and the API refuses to be framed. The landing page redirect moved out of an inline script so the policy can stay strict.
+
+### Fixed
+- The dashboard's declared-vs-official hazard counts are now worked out live from each assessment's PIN code, with the same rules the decisions use, so they always match the totals beside them. Before, they came from the nightly analytics snapshot.
+
+### Changed
+- The landing page no longer loads React; its screenshot tabs use a few lines of plain JavaScript, so it ships under 1 KB of script instead of 191 KB.
+
 ## [2.26.1] - 2026-10-07
 
 ### Changed
