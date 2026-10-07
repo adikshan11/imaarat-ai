@@ -20,12 +20,15 @@ jobs:
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r pipeline/requirements.txt
+      - name: Install dependencies
+        run: pip install -r pipeline/requirements.txt
       - name: Extract operational tables to Parquet
         run: python extract.py
         working-directory: pipeline
@@ -38,8 +41,10 @@ jobs:
       - name: Build the dbt docs and lineage site
         run: dbt docs generate --profiles-dir . --static
         working-directory: pipeline/dbt
-      - run: mkdir site && cp pipeline/dbt/target/static_index.html site/index.html
-      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
+      - name: Prepare the docs site
+        run: mkdir site && cp pipeline/dbt/target/static_index.html site/index.html
+      - name: Upload the docs site
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
         with:
           path: site
 
@@ -50,5 +55,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - id: deploy
+      - name: Deploy the docs site
+        id: deploy
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346

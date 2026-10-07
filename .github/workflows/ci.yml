@@ -21,11 +21,14 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - run: git fetch --no-tags --depth=1 origin main
-      - run: python3 .github/scripts/release_check.py
+      - name: Fetch main for comparison
+        run: git fetch --no-tags --depth=1 origin main
+      - name: Check branch name, version bump and changelog
+        run: python3 .github/scripts/release_check.py
 
   backend:
     runs-on: ubuntu-26.04
@@ -40,19 +43,22 @@ jobs:
     env:
       TEST_DATABASE_URL: postgresql+psycopg://postgres:ci-only@localhost:5432/postgres
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt pytest httpx ruff==0.14.0 pytest-timeout==2.4.0
-      - name: Lint (ruff)
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest httpx ruff==0.14.0 pytest-timeout==2.4.0
+      - name: Check Python code style with Ruff
         run: ruff check backend pipeline
-      - name: Format check (ruff)
+      - name: Check Python code formatting with Ruff
         run: ruff format --check backend pipeline
-      - name: Tests (each test stops after 120 s and prints where it was stuck)
+      - name: Run backend tests
         run: pytest -q --timeout=120
         working-directory: backend
 
@@ -60,19 +66,37 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - run: npm ci && npm run check:locales && npm run lint && npm run build && npm test
+      - name: Install dependencies
+        run: npm ci
         working-directory: frontend
-      - run: npm install --prefix "$RUNNER_TEMP/browser-tools" --no-save --package-lock=false --ignore-scripts playwright@1.63.0
-      - run: '"$RUNNER_TEMP/browser-tools/node_modules/.bin/playwright" install --with-deps chromium'
-      - run: npm run test:browser
+      - name: Check translations match English
+        run: npm run check:locales
+        working-directory: frontend
+      - name: Check code style with Oxlint
+        run: npm run lint
+        working-directory: frontend
+      - name: Type-check and build
+        run: npm run build
+        working-directory: frontend
+      - name: Run unit tests
+        run: npm test
+        working-directory: frontend
+      - name: Install Playwright
+        run: npm install --prefix "$RUNNER_TEMP/browser-tools" --no-save --package-lock=false --ignore-scripts playwright@1.63.0
+      - name: Install Chromium for browser tests
+        run: '"$RUNNER_TEMP/browser-tools/node_modules/.bin/playwright" install --with-deps chromium'
+      - name: Run browser tests
+        run: npm run test:browser
         working-directory: frontend
         env:
           PLAYWRIGHT_PATH: ${{ runner.temp }}/browser-tools
@@ -81,28 +105,34 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r pipeline/requirements.txt
-      - run: python extract.py
+      - name: Install dependencies
+        run: pip install -r pipeline/requirements.txt
+      - name: Extract demo tables to Parquet
+        run: python extract.py
         working-directory: pipeline
-      - run: dbt build --profiles-dir .
+      - name: Build and test dbt models
+        run: dbt build --profiles-dir .
         working-directory: pipeline/dbt
 
   secrets:
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Scan every commit for secrets (gitleaks)
+      - name: Scan every commit for secrets with Gitleaks
         run: |
           curl -sSL -o gitleaks.tgz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
           echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tgz" | sha256sum --check
@@ -113,21 +143,23 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
       - name: Build the API and web images
         run: docker compose build
-      - name: Start Postgres, API and web together
+      - name: Start Postgres, API and web
         run: docker compose up -d --wait --wait-timeout 180
-      - name: Smoke test the self-hosted stack
+      - name: Smoke test the stack
         run: .github/scripts/smoke_check.sh http://localhost:8080
-      - name: Image sizes
+      - name: Log image sizes
         run: docker image ls --format "{{.Repository}}:{{.Tag}} {{.Size}}" | grep -i imaarat || true
-      - name: Logs on failure
+      - name: Log containers on failure
         if: failure()
         run: docker compose logs --tail 200
-      - if: always()
+      - name: Stop the stack
+        if: always()
         run: docker compose down -v
 
   preview:
@@ -142,11 +174,13 @@ jobs:
       BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
     steps:
       # Deploy the pull request's own head commit: Vercel blocks the merge commit GitHub creates, which is not authored by the account owner.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
       - name: Deploy a preview
@@ -178,15 +212,17 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       SITE: https://imaarat-ai.vercel.app
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
       - name: Deploy to production
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then echo "::error::Add the VERCEL_TOKEN repository secret to deploy from CI"; exit 1; fi
           npx --yes vercel@62.7.0 deploy --prod --yes --token "$VERCEL_TOKEN"
-      - name: Confirm the live site
+      - name: Smoke test production
         run: .github/scripts/smoke_check.sh "$SITE"

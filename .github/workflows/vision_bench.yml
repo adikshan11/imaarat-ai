@@ -21,40 +21,49 @@ jobs:
     env:
       PROVIDERS: ${{ inputs.providers || 'gemini,sarvam,qwen' }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - run: npm ci && npm run build
+      - name: Install and build the frontend
+        run: npm ci && npm run build
         working-directory: frontend
-      - run: npm install --prefix "$RUNNER_TEMP/browser-tools" --no-save --package-lock=false --ignore-scripts playwright@1.63.0
-      - run: '"$RUNNER_TEMP/browser-tools/node_modules/.bin/playwright" install --with-deps chromium'
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      - name: Install Playwright
+        run: npm install --prefix "$RUNNER_TEMP/browser-tools" --no-save --package-lock=false --ignore-scripts playwright@1.63.0
+      - name: Install Chromium
+        run: '"$RUNNER_TEMP/browser-tools/node_modules/.bin/playwright" install --with-deps chromium'
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt sarvamai==0.1.36 httpx
-      - name: Generate cases
+      - name: Install dependencies
+        run: pip install -r requirements.txt sarvamai==0.1.36 httpx
+      - name: Generate test cases
         working-directory: backend
         run: mkdir -p ../bench_out && python -m bench.form_cases > ../bench_out/cases.json
-      - name: Render forms
+      - name: Render the forms
         env:
           PLAYWRIGHT_PATH: ${{ runner.temp }}/browser-tools
         run: node frontend/scripts/render_forms.mjs bench_out/cases.json bench_out/forms
-      - name: Read forms
+      - name: Read the forms
         working-directory: backend
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SARVAM_API_KEY: ${{ secrets.SARVAM_API_KEY }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: python -m bench.forms_bench ../bench_out/cases.json ../bench_out/forms ../bench_out/results "$PROVIDERS"
-      - if: always() && hashFiles('bench_out/results/forms_summary.md') != ''
+      - name: Write the job summary
+        if: always() && hashFiles('bench_out/results/forms_summary.md') != ''
         run: cat bench_out/results/forms_summary.md >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      - name: Upload the forms and results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
           name: vision-bench-forms

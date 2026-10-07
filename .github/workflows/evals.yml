@@ -28,14 +28,19 @@ jobs:
       DEEPEVAL_TELEMETRY_OPT_OUT: "YES"
       CONFIDENT_TRACE_FLUSH: "NO"
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r backend/evals/requirements.txt
-      - run: pip check
-      - id: evaluate
+      - name: Install dependencies
+        run: pip install -r backend/evals/requirements.txt
+      - name: Check dependency conflicts
+        run: pip check
+      - name: Run the evals
+        id: evaluate
         run: |
           rm -f evals/results/latest.json evals/results/latest.md
           python -m evals.run_evals --memo-cases "$MEMO_CASES" $LIVE_FLAG
@@ -43,15 +48,17 @@ jobs:
         env:
           MEMO_CASES: ${{ inputs.memo_cases || '2' }}
           LIVE_FLAG: ${{ github.event_name == 'workflow_dispatch' && inputs.live && '--live' || '' }}
-      - run: cat backend/evals/results/latest.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Write the job summary
+        run: cat backend/evals/results/latest.md >> "$GITHUB_STEP_SUMMARY"
         if: always() && steps.evaluate.outcome != 'skipped' && hashFiles('backend/evals/results/latest.md') != ''
-      - name: Publish to status page
+      - name: Publish to the status page
         if: always() && github.ref == 'refs/heads/main' && hashFiles('backend/evals/results/latest.json') != ''
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python -m ops.publish_run evals evals/results/latest.json
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      - name: Upload results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always() && steps.evaluate.outcome != 'skipped'
         with:
           name: eval-results
