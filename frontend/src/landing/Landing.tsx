@@ -46,7 +46,7 @@ function Hero() {
           <a href={`${APP}#paper`} className="inline-flex h-12 items-center rounded-full border border-white/40 px-6 font-semibold text-white transition hover:bg-white/10">See a paper proposal</a>
         </div>
         <dl className="mt-14 grid max-w-3xl grid-cols-2 gap-6 border-t border-white/15 pt-8 sm:grid-cols-4">
-          {[['19,312', 'PIN codes covered, metro to rural'], ['11', 'official and public data sources'], ['26', 'Indian languages'], ['MIT', 'open-source licence']].map(([value, label]) => (
+          {[['19,312', 'PIN codes covered, metro to rural'], ['11', 'official and public data sources'], ['26', 'Indian languages'], ['< 1 min', 'from proposal to decision']].map(([value, label]) => (
             <div key={label}>
               <dt className="sr-only">{label}</dt>
               <dd className="text-3xl font-bold tracking-tight">{value}</dd>
@@ -133,13 +133,73 @@ function Journey() {
   )
 }
 
-const modules = [
-  ['Paper reader', 'Turns a photographed proposal into structured fields.', 'backend/app/tools/form_reader.py'],
-  ['Hazard verification', 'Official hazards for any of 19,312 PIN codes, with sources.', 'backend/app/tools/hazard_lookup.py'],
-  ['Rule engine', 'Scores the risk and explains every point.', 'backend/app/tools/risk_calculator.py'],
-  ['AI risk summary', 'Writes the explanation and cites the guideline used.', 'backend/app/agents/report_agent.py'],
-  ['Sign-off and reports', 'Reviewer approval with reasons, then a PDF report.', 'backend/app/reports.py'],
-  ['Open APIs', 'GraphQL, MCP and A2A, so other systems and AI agents can use it.', 'backend/app/interop.py'],
+function Row({ label, value, tone = 'text-white' }: { label: string; value: string; tone?: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-b border-white/10 py-1.5 last:border-0">
+      <span className="text-white/60">{label}</span>
+      <span className={`text-right font-semibold ${tone}`}>{value}</span>
+    </div>
+  )
+}
+
+function Panel({ children }: { children: ReactNode }) {
+  return <div className="mt-5 rounded-2xl bg-forest-950/60 p-4 text-sm ring-1 ring-white/10">{children}</div>
+}
+
+const scoreParts: Array<[string, number]> = [['Natural catastrophe', 20], ['Sum insured at one location', 5], ['Construction', 0], ['Claims history', 0]]
+
+const modules: Array<[string, string, ReactNode]> = [
+  ['Paper reader', 'Reads a photographed proposal into fields that a person confirms.', (
+    <Panel key="paper">
+      <Row label="Construction" value="Non-combustible ✓" />
+      <Row label="Occupancy" value="Office ✓" />
+      <Row label="Sprinklers" value="Yes ✓" />
+      <Row label="PIN code" value="600113 ✓" />
+    </Panel>
+  )],
+  ['Hazard verification', 'Looks up official hazard data for the PIN code, with the source of each fact.', (
+    <Panel key="hazard">
+      <Row label="Earthquake zone (IS 1893)" value="III" />
+      <Row label="Area flooded, 1998–2022" value="7.2%" tone="text-amber-300" />
+      <Row label="City flooding spots" value="16" tone="text-amber-300" />
+      <Row label="IMD cyclone grade" value="P2" tone="text-amber-300" />
+    </Panel>
+  )],
+  ['Rule engine', 'Scores the risk with written rules and shows every point.', (
+    <Panel key="rules">
+      {scoreParts.map(([label, points]) => (
+        <div key={label} className="py-1">
+          <div className="flex justify-between text-white/60"><span>{label}</span><span className="font-semibold text-white">+{points}</span></div>
+          <div className="mt-1 h-1.5 rounded-full bg-white/10"><div className="h-1.5 rounded-full bg-mint-300" style={{ width: `${points * 4}%` }} /></div>
+        </div>
+      ))}
+      <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-3">
+        <span className="font-semibold">25 / 100</span>
+        <span className="rounded-full bg-mint-300 px-3 py-0.5 text-xs font-bold text-forest-950">Accept</span>
+      </div>
+    </Panel>
+  )],
+  ['AI risk summary', 'Explains the decision in plain words, using only the facts above.', (
+    <Panel key="summary">
+      <p className="leading-relaxed text-white/85">“The property is approved with a risk score of 25, which falls within the standard acceptance range of 0–30 … mitigated by its non-combustible construction, office occupancy, and the presence of an active sprinkler system.”</p>
+    </Panel>
+  )],
+  ['Sign-off and reports', 'Referrals wait for a signed-in reviewer; every decision exports as a PDF.', (
+    <Panel key="signoff">
+      <Row label="Rule decision" value="Accept" />
+      <Row label="Reviewer" value="Needed for referrals" />
+      <Row label="Override" value="Needs a written reason" />
+      <Row label="Report" value="PDF, ready to share" />
+    </Panel>
+  )],
+  ['Open APIs', 'Lets other systems and AI agents run the same assessment.', (
+    <Panel key="apis">
+      <Row label="AI assistants" value="MCP" />
+      <Row label="Other AI agents" value="A2A" />
+      <Row label="Your own systems" value="GraphQL and REST" />
+      <Row label="Same rules and limits" value="Yes" />
+    </Panel>
+  )],
 ]
 
 function Modules() {
@@ -147,14 +207,14 @@ function Modules() {
     <section className="bg-forest-950 py-20 text-white sm:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <h2 className="max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">Modular by design.</h2>
-        <p className="mt-4 max-w-2xl text-lg text-white/75">Use the whole workflow, or call one module from your own systems. Every module is open source and covered by tests.</p>
+        <p className="mt-4 max-w-2xl text-lg text-white/75">Six modules, each usable on its own. Shown here on one real assessment from the demo: an office at TIDEL Park, Chennai, PIN code 600113.</p>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map(([name, body, path]) => (
-            <a key={name} href={`${REPO}/blob/main/${path}`} className="group rounded-3xl border border-white/10 bg-white/5 p-7 transition hover:border-mint-300/50 hover:bg-white/10">
+          {modules.map(([name, body, example]) => (
+            <div key={name} className="rounded-3xl border border-white/10 bg-white/5 p-7">
               <h3 className="text-xl font-semibold">{name}</h3>
               <p className="mt-2 leading-relaxed text-white/75">{body}</p>
-              <span className="mt-4 inline-block font-mono text-xs text-mint-300 group-hover:underline">{path.split('/').pop()}</span>
-            </a>
+              {example}
+            </div>
           ))}
         </div>
       </div>
@@ -172,7 +232,7 @@ const reasons = [
   ['Every PIN code, not only metros', 'The same checks run for a taluka town as for Mumbai, because they come from national public datasets.'],
   ['Starts where Indian business starts', 'Proposals filled in by hand, in the proposer’s language, are read by AI and confirmed by a person, so nothing has to be retyped.'],
   ['Decisions you can defend', 'Written rules decide, the AI explains with citations, and a person signs off. Every step is recorded.'],
-  ['Open and inspectable', 'MIT-licensed code, public test runs and a live status page. Run it yourself, or use the hosted demo.'],
+  ['Open and inspectable', 'Open-source code, public test runs and a live status page. Run it yourself with one command, or use the hosted demo.'],
 ]
 
 function Audiences() {

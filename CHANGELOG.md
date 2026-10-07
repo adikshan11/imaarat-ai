@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.36.0] - 2026-10-07
+
+### Changed
+- Each module card on the landing page now shows its part of one real demo assessment (an office at TIDEL Park, Chennai) instead of a link to source code, the licence line is gone from the site footers, and the maker credit links to the portfolio.
+
 ## [2.35.1] - 2026-10-07
 
 ### Fixed

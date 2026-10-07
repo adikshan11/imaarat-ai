@@ -1,5 +1,6 @@
 export const APP = '/app/'
 export const REPO = 'https://github.com/adikshan11/uw-risk-assessment'
+export const PORTFOLIO = 'https://adithya-shankaran.vercel.app'
 
 export function Mark({ className = '' }: { className?: string }) {
   return <img src="/favicon.svg?v=imaarat-2" alt="" width={32} height={32} className={className} />
@@ -33,9 +34,9 @@ export function Header() {
 
 export function Footer() {
   const columns: Array<[string, Array<[string, string]>]> = [
-    ['Legal', [['Privacy Policy', '/privacy/'], ['Terms of Service', '/terms/'], ['MIT License', `${REPO}/blob/main/LICENSE`]]],
+    ['Legal', [['Privacy Policy', '/privacy/'], ['Terms of Service', '/terms/']]],
     ['Product', [['Open the app', APP], ['How it works', `${APP}#how`], ['Status', `${APP}#status`], ['Changelog', '/changelog/'], ['FAQ', '/#faq']]],
-    ['Connect', [['GitHub', REPO], ['LinkedIn', 'https://www.linkedin.com/in/adithya-shankaran'], ['Email', 'mailto:adikshan11@gmail.com'], ['Portfolio', 'https://adithya-shankaran.vercel.app'], ['Report an issue', `${REPO}/issues/new`]]],
+    ['Connect', [['GitHub', REPO], ['LinkedIn', 'https://www.linkedin.com/in/adithya-shankaran'], ['Email', 'mailto:adikshan11@gmail.com'], ['Portfolio', PORTFOLIO], ['Report an issue', `${REPO}/issues/new`]]],
   ]
   return (
     <footer className="border-t border-forest-900/10 bg-white">
@@ -56,8 +57,8 @@ export function Footer() {
         ))}
       </div>
       <div className="mx-auto flex max-w-6xl flex-col gap-2 border-t border-forest-900/10 px-4 py-6 text-xs text-muted sm:px-6 md:flex-row md:justify-between">
-        <p>© 2026 Adithya Shankaran · <a href={`${REPO}/blob/main/LICENSE`} className="hover:text-forest-900">MIT License</a> · Illustrative photographs are generated with AI.</p>
-        <p>Made with <span aria-label="love" className="text-red-600">♥</span> by Adithya Shankaran</p>
+        <p>© 2026 Adithya Shankaran · Illustrative photographs are generated with AI.</p>
+        <p>Made with <span aria-label="love" className="text-red-600">♥</span> by <a href={PORTFOLIO} className="font-semibold text-forest-900 hover:underline">Adithya Shankaran</a></p>
       </div>
     </footer>
   )
