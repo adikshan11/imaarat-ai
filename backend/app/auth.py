@@ -9,6 +9,7 @@ import time
 from dataclasses import dataclass, field
 from hashlib import sha256
 from secrets import token_urlsafe
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 from fastapi import HTTPException, Request
@@ -112,7 +113,8 @@ def csrf_token(token: str) -> str:
 
 
 def app_origin() -> str:
-    return os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
+    parts = urlsplit(os.getenv("PUBLIC_BASE_URL", ""))
+    return f"{parts.scheme}://{parts.netloc}" if parts.scheme and parts.netloc else ""
 
 
 def operator_ids() -> set[int]:
