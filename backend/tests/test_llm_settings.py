@@ -28,3 +28,14 @@ def test_the_memo_keeps_the_model_default_thinking(monkeypatch):
     client = fake_client(monkeypatch)
     llm.generate("memo", ["write"])
     assert client.models.generate_content.call_args.kwargs["config"].thinking_config is None
+
+
+def test_failures_are_explained_the_same_way_for_every_provider():
+    from app.providers import ProviderError
+
+    assert llm.failure_reason(budget.BudgetExceeded("this minute", 30)).startswith("This demo's AI is at its per-minute limit")
+    assert llm.failure_reason(budget.BudgetExceeded("AI generations", 3600)).startswith("This demo has used today's AI allowance")
+    assert llm.failure_reason(ProviderError("quota", code=429, daily_quota=True)).startswith("This demo has used today's AI allowance")
+    for busy in (ProviderError("high demand", code=503), ProviderError("deadline", code=504), TimeoutError("slow")):
+        assert llm.failure_reason(busy).startswith("The AI model is busy")
+    assert llm.failure_reason(ValueError("bad")) == "The AI model returned an error (ValueError)."

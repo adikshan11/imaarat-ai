@@ -42,7 +42,7 @@ def test_generate_memo_exposes_resource_exhausted_failure(monkeypatch):
 
     assert state["ai_memo_status"] == "Unavailable"
     assert "RESOURCE_EXHAUSTED" in state["memo_error"]
-    assert state["ai_memo_reason"].startswith("Google's AI model is busy")
+    assert state["ai_memo_reason"].startswith("The AI model is busy")
     assert state["memo_json"] == {}
     models = [call.kwargs["model"] for call in client.models.generate_content.call_args_list]
     assert models == [llm.config.AI_MODEL] * llm.config.AI_ATTEMPTS
@@ -71,7 +71,7 @@ def test_daily_quota_is_not_retried_and_says_so(monkeypatch):
 
     assert report_agent.generate_memo(state) == {}
     assert client.models.generate_content.call_count == 1 and slept == []
-    assert state["ai_memo_reason"].startswith("This demo has used today's free AI allowance")
+    assert state["ai_memo_reason"].startswith("This demo has used today's AI allowance")
 
 
 def test_minute_limit_says_try_again_in_a_minute(monkeypatch):
