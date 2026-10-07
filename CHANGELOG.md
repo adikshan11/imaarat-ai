@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.33.1] - 2026-10-07
+
+### Fixed
+- The intermittent CI hang. Tests replaced Python's global sleep, so the telemetry writer thread stopped waiting between writes and filled the test's list with millions of entries, which pytest then took minutes to print. Retries now use their own sleep, which tests replace without touching anything else.
+
 ## [2.33.0] - 2026-10-07
 
 ### Added

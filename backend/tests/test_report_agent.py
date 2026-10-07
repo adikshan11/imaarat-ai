@@ -26,7 +26,7 @@ def test_generate_memo_exposes_resource_exhausted_failure(monkeypatch):
     monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
     monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
     slept = []
-    monkeypatch.setattr(llm.time, "sleep", slept.append)
+    monkeypatch.setattr(llm, "sleep", slept.append)
 
     state = {
         "property_id": "MEMO-FAILURE-001",
@@ -65,7 +65,7 @@ def test_daily_quota_is_not_retried_and_says_so(monkeypatch):
     monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
     monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
     slept = []
-    monkeypatch.setattr(llm.time, "sleep", slept.append)
+    monkeypatch.setattr(llm, "sleep", slept.append)
     state = {"property_id": "QUOTA-001", "raw_input": {"city": "Pune"}, "risk_score": 0, "risk_flags": [], "decision": "Accept", "rationale": "x"}
 
     assert report_agent.generate_memo(state) == {}
