@@ -129,20 +129,16 @@ AI features need `GEMINI_API_KEY` in your shell or in a `.env` file next to `com
 
 ## CI/CD and conventions
 
-`.github/workflows/ci.yml` runs in two stages, modelled on the framework repositories' Check and Deploy stages.
+Three workflows, modelled on the framework repositories:
 
-1. **Check**, on every pull request and every push to `main`:
-   - release rules (pull requests only): branch name, one version across `backend/app/__init__.py` and `frontend/package*.json`, a version above `main`'s, and a CHANGELOG entry for it;
-   - backend: ruff lint (including the Bandit security rules) and format check (settings in `ruff.toml`), then pytest against Postgres, with each test stopped after 120 seconds;
-   - frontend: locale check, oxlint, type check and build, unit tests, then Playwright browser tests;
-   - pipeline: extract and `dbt build`;
-   - secrets: gitleaks over the full git history (allowed patterns in `.gitleaks.toml`);
-   - container: build the images, start the compose stack and smoke-test it.
-2. **Deploy**:
-   - on a pull request, a Vercel preview is deployed and smoke-tested through Vercel's automation bypass;
-   - on `main`, after every check passes, production is deployed and smoke-tested.
+- **CI/CD** (`ci-cd.yml`), on every pull request and every push to `main`:
+  1. **Check**: release rules on pull requests (branch name, one version across `backend/app/__init__.py` and `frontend/package*.json`, above `main`'s, with a CHANGELOG entry), gitleaks over the full history (allowed patterns in `.gitleaks.toml`), ruff lint including the Bandit security rules and format check (`ruff.toml`), the locale check and oxlint.
+  2. **Test**, in parallel: backend pytest against Postgres with each test stopped after 120 seconds; frontend type check, build, unit tests and Playwright browser tests; pipeline extract and `dbt build`; container build, compose start and smoke test.
+  3. **Deploy**: a smoke-tested Vercel preview for a pull request, or production for `main`.
+- **Benchmarks** (`benchmarks.yml`): evals and Lighthouse weekly, Lighthouse and the load test on pull requests that change them, and any of evals, Lighthouse, load or the vision benchmark on demand. Results from `main` go to the status page.
+- **Nightly ELT** (`nightly_elt.yml`): the analytics pipeline and the dbt docs site.
 
-The smoke test (`.github/scripts/smoke_check.sh`) is shared by all three: the live `/api/status` must report this checkout's version, every public page must return 200, and the security headers must be present.
+The smoke test (`.github/scripts/smoke_check.sh`) is shared by the container, preview and production: `/api/status` must report this checkout's version, every public page must return 200, and the security headers must be present.
 
 Conventions:
 

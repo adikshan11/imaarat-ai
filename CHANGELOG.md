@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.37.2] - 2026-10-07
+
+### Changed
+- Six GitHub workflows are now three: CI/CD (Check, Test and Deploy), Benchmarks (evals, Lighthouse, load test and vision benchmark from one menu) and Nightly ELT.
+
 ## [2.37.1] - 2026-10-07
 
 ### Changed
