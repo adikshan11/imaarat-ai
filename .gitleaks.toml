@@ -1,0 +1,7 @@
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Evaluation report field whose name contains 'token'; its value is an English sentence, not a credential"
+regexTarget = "match"
+regexes = ['''prompt_token_scope''']

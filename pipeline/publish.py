@@ -23,7 +23,7 @@ def snapshot() -> dict:
     with duckdb.connect(str(ROOT / "warehouse.duckdb"), read_only=True) as conn:
         marts = {}
         for name in MARTS:
-            relation = conn.sql(f"select * from {name}")
+            relation = conn.sql(f"select * from {name}")  # noqa: S608 - name comes from the MARTS constant
             marts[name] = [dict(zip(relation.columns, row, strict=False)) for row in relation.fetchall()]
         assessments = conn.sql("select count(*), sum(tiv_inr) from fct_assessments").fetchone()
     return {
