@@ -455,5 +455,13 @@
   "load.read_title": "राउर फॉर्म पढ़ल जा रहल बा",
   "load.read_hint": "आमतौर पर 5 से 15 सेकेंड। हर मान रउआ के जाँचे खातिर वापस मिली।",
   "load.step_read": "हर फील्ड पढ़ल",
-  "load.step_check": "मान के जाँच"
+  "load.step_check": "मान के जाँच",
+  "auth.sign_in": "GitHub से साइन इन करीं",
+  "auth.sign_out": "साइन आउट करीं",
+  "auth.signed_in": "{role} के रूप में साइन इन बानी",
+  "auth.role.member": "सदस्य",
+  "auth.role.reviewer": "समीक्षक",
+  "auth.role.operator": "ऑपरेटर",
+  "auth.need_reviewer": "खाली साइन इन कइल समीक्षक ई रेफरल मंजूर कर सकेला भा फैसला बदल सकेला।",
+  "auth.need_reviewer_role": "रउरा खाता ई रेफरल देख सकेला, बाकिर खाली समीक्षक एकरा के मंजूर कर सकेला भा फैसला बदल सकेला।"
 }

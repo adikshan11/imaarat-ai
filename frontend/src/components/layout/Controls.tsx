@@ -2,10 +2,13 @@ import { useRef } from 'react'
 import Icon from '@/components/shared/Icon'
 import OpticalLabel from '@/components/shared/OpticalLabel'
 import { usePreferences } from '@/context/Preferences'
+import { useSession } from '@/context/Session'
 import { LANGUAGES } from '@/i18n/languages'
 
 export default function Controls({ compact = false }: { compact?: boolean }) {
   const { t, language, setLanguage, dark, toggleTheme } = usePreferences()
+  const { session, signIn, signOut } = useSession()
+  const account = session ? t('auth.signed_in', { role: t(`auth.role.${session.role}`) }) : t('auth.sign_in')
   const dialog = useRef<HTMLDialogElement>(null)
   const themeLabel = `${t('theme.label')}: ${t(dark ? 'theme.light' : 'theme.dark')}`
 
@@ -17,6 +20,9 @@ export default function Controls({ compact = false }: { compact?: boolean }) {
       </button>
       <button type="button" className="control-button" onClick={toggleTheme} title={themeLabel} aria-label={themeLabel}>
         <Icon name={dark ? 'sun' : 'moon'} />
+      </button>
+      <button type="button" className={session ? 'control-button is-signed-in' : 'control-button'} onClick={() => void (session ? signOut() : signIn())} title={session ? `${account} · ${t('auth.sign_out')}` : account} aria-label={session ? `${account}. ${t('auth.sign_out')}` : account}>
+        <Icon name="user" />
       </button>
 
       <dialog ref={dialog} className="language-dialog" aria-label={t('lang.label')} onKeyDown={(event) => { if (event.key === 'Escape') dialog.current?.close() }} onClick={(event) => { if (event.target === dialog.current) dialog.current?.close() }}>

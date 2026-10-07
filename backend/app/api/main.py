@@ -13,7 +13,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from app import __version__, budget, telemetry
+from app import __version__, auth, budget, telemetry
+from app.api.auth_routes import router as auth_router
 from app.config import DB_PATH, GEMINI_API_KEY, QDRANT_URL
 from app.db import fetch_submission_detail, history_page, init_db, is_postgres, portfolio_summary, record_review, save_submission, seed_demo_database
 from app.graphql_api import graphql_router
@@ -60,6 +61,7 @@ async def record_requests(request: Request, call_next: Any) -> Any:
 
 app.mount("/mcp", mcp_app())
 app.include_router(graphql_router, prefix="/graphql")
+app.include_router(auth_router)
 add_a2a(app)
 
 app.add_middleware(
@@ -363,9 +365,11 @@ class Review(BaseModel):
 
 
 @app.post("/underwrite/history/{submission_id}/review")
-def review_submission(submission_id: int, review: Review) -> dict[str, Any]:
+def review_submission(submission_id: int, review: Review, request: Request) -> dict[str, Any]:
     """Resume a paused referral with the underwriter's decision (LangGraph human-in-the-loop)."""
     from app.agents.graph import REVIEW_DECISIONS, resume_review
+
+    auth.require_reviewer(request)
 
     detail = fetch_submission_detail(submission_id)
     if detail is None:

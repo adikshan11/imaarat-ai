@@ -11,6 +11,7 @@ const PaperForm = lazy(() => import('@/components/paper/PaperForm'))
 const HowItWorks = lazy(() => import('@/components/about/HowItWorks'))
 const StatusPage = lazy(() => import('@/components/status/StatusPage'))
 import { RiskProvider, useRiskContext } from '@/context/RiskContext'
+import { SessionProvider } from '@/context/Session'
 import { PreferencesProvider, usePreferences } from '@/context/Preferences'
 import type { BackendSubmission } from '@/types/backend'
 
@@ -99,5 +100,5 @@ function Application() {
 }
 
 export default function App() {
-  return <PreferencesProvider><RiskProvider><Application /></RiskProvider></PreferencesProvider>
+  return <PreferencesProvider><SessionProvider><RiskProvider><Application /></RiskProvider></SessionProvider></PreferencesProvider>
 }

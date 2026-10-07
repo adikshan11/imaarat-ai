@@ -455,5 +455,13 @@
   "load.read_title": "Reading your form",
   "load.read_hint": "Usually 5 to 15 seconds. Every value comes back for you to check.",
   "load.step_read": "Reading each field",
-  "load.step_check": "Checking the values"
+  "load.step_check": "Checking the values",
+  "auth.sign_in": "Sign in with GitHub",
+  "auth.sign_out": "Sign out",
+  "auth.signed_in": "Signed in as {role}",
+  "auth.role.member": "member",
+  "auth.role.reviewer": "reviewer",
+  "auth.role.operator": "operator",
+  "auth.need_reviewer": "Only a signed-in reviewer can approve or override this referral.",
+  "auth.need_reviewer_role": "Your account can see this referral, but only a reviewer can approve or override it."
 }

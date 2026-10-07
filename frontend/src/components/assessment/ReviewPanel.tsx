@@ -3,12 +3,14 @@ import Card from '@/components/shared/Card'
 import SelectField from '@/components/shared/SelectField'
 import { reviewSubmission } from '@/api/underwriting'
 import { usePreferences } from '@/context/Preferences'
+import { useSession } from '@/context/Session'
 import type { BackendSubmission } from '@/types/backend'
 
 const DECISIONS = ['Accept', 'Refer', 'Decline (mitigation possible)', 'Auto-Decline']
 
 export default function ReviewPanel({ submission, onReviewed }: { submission: BackendSubmission; onReviewed: (updated: BackendSubmission) => void }) {
   const { t, label } = usePreferences()
+  const { session, reviewer: canReview, signIn } = useSession()
   const [finalDecision, setFinalDecision] = useState(submission.decision)
   const [reviewer, setReviewer] = useState('')
   const [note, setNote] = useState('')
@@ -36,11 +38,11 @@ export default function ReviewPanel({ submission, onReviewed }: { submission: Ba
 
   const override = finalDecision !== submission.decision
   const submit = async () => {
-    if (!submission.id) return
+    if (!submission.id || !session) return
     setBusy(true)
     setError(null)
     try {
-      onReviewed(await reviewSubmission(submission.id, { final_decision: finalDecision, reviewer: reviewer.trim(), note: note.trim() }))
+      onReviewed(await reviewSubmission(submission.id, { final_decision: finalDecision, reviewer: reviewer.trim(), note: note.trim() }, session.csrf_token))
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : t('rev.error'))
     } finally {
@@ -65,10 +67,13 @@ export default function ReviewPanel({ submission, onReviewed }: { submission: Ba
         </label>
       </div>
       {error && <div className="error-banner">{error}</div>}
+      {!canReview && <p className="card-footnote">{t(session ? 'auth.need_reviewer_role' : 'auth.need_reviewer')}</p>}
       <div className="form-actions form-gap">
-        <button className="btn btn-primary" disabled={busy || !reviewer.trim() || (override && !note.trim())} onClick={() => void submit()}>
-          {busy ? t('rev.saving') : t(override ? 'rev.override' : 'rev.approve')}
-        </button>
+        {canReview
+          ? <button className="btn btn-primary" disabled={busy || !reviewer.trim() || (override && !note.trim())} onClick={() => void submit()}>
+              {busy ? t('rev.saving') : t(override ? 'rev.override' : 'rev.approve')}
+            </button>
+          : !session && <button className="btn btn-primary" onClick={() => void signIn()}>{t('auth.sign_in')}</button>}
       </div>
     </Card>
   )

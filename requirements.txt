@@ -17,3 +17,5 @@ pypdf==5.4.0
 pillow==12.0.0
 reportlab==4.4.4
 strawberry-graphql==0.331.6
+Authlib==1.8.0
+httpx2==2.13.1
