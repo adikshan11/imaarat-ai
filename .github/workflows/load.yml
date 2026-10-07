@@ -41,38 +41,45 @@ jobs:
       SPAWN_RATE: ${{ inputs.spawn_rate || '5' }}
       DURATION: ${{ inputs.duration || '3m' }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r backend/requirements.txt locust==2.46.7
-      - run: pip check
-      - name: Start API
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt locust==2.46.7
+      - name: Check dependency conflicts
+        run: pip check
+      - name: Start the API
         working-directory: backend
         run: |
           nohup python -m uvicorn app.api.main:app --host 127.0.0.1 --port 8000 > ../server.log 2>&1 &
           for attempt in $(seq 1 30); do curl -sf http://127.0.0.1:8000/health && exit 0; sleep 2; done
           cat ../server.log
           exit 1
-      - id: load
+      - name: Run the load test
+        id: load
         run: >
           locust -f backend/load/locustfile.py --headless
           -u "$USERS" -r "$SPAWN_RATE" -t "$DURATION"
           --host http://127.0.0.1:8000 --csv load --html load.html
-      - if: always() && steps.load.outcome != 'skipped'
+      - name: Write the job summary
+        if: always() && steps.load.outcome != 'skipped'
         run: |
           echo "### $USERS users, $DURATION, AI off, Postgres 17" >> "$GITHUB_STEP_SUMMARY"
           python backend/load/summary.py load_stats.csv >> "$GITHUB_STEP_SUMMARY"
-      - name: Publish to status page
+      - name: Publish to the status page
         if: github.ref == 'refs/heads/main' && steps.load.outcome != 'skipped'
         working-directory: backend
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: python -m ops.publish_run load ../load_stats.csv
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+      - name: Upload results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
           name: load-test

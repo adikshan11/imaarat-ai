@@ -5,7 +5,7 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 ## [2.37.1] - 2026-10-07
 
 ### Changed
-- Each React provider now lives in its own file, which clears the fast-refresh lint warnings, and every workflow runs on Ubuntu 26.04 ahead of GitHub moving its default runner there.
+- Each React provider now lives in its own file, which clears the fast-refresh lint warnings, every workflow runs on Ubuntu 26.04 ahead of GitHub moving its default runner there, and every workflow step has a plain name, with the frontend checks split into separate steps.
 
 ## [2.37.0] - 2026-10-07
 
