@@ -92,7 +92,7 @@ function Application() {
           setCompletedSubmission((current) => current?.id === updated.id ? updated : current)
         }} />}
         </Suspense>
-        <footer className="site-footer">Made with <span className="heart" aria-label="love">♥</span> by <a href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> · © 2026 imaarat.ai · <a href="#status" onClick={(event) => { event.preventDefault(); setView('status') }}>{t('nav.status')}</a></footer>
+        <footer className="site-footer">Made with <span className="heart" aria-label="love">♥</span> by <a href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> · © 2026 imaarat.ai · <a href="#status" onClick={(event) => { event.preventDefault(); setView('status') }}>{t('nav.status')}</a> · <span lang="en"><a href="/changelog/">Changelog</a> · <a href="/privacy/">Privacy</a> · <a href="/terms/">Terms</a></span></footer>
       </main>
     </div>
   )

@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 import time
+from uuid import uuid4
 from typing import Any, Literal
 
 from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile
@@ -24,6 +25,8 @@ from app.graphql_api import graphql_router
 from app.reports import build_submission_pdf
 from app.tools.form_reader import read_form
 from app.tools.hazard_lookup import lookup as hazard_lookup, sources as hazard_sources, verify_location
+
+IMAGE_SUFFIXES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
 
 
 @asynccontextmanager
@@ -242,7 +245,7 @@ async def submit_underwriting(
     if image is not None:
         local_dir = DB_PATH.parent / "images_uploads"
         local_dir.mkdir(parents=True, exist_ok=True)
-        image_path = str(local_dir / f"{property_id}_{image.filename}")
+        image_path = str(local_dir / f"{uuid4().hex}{IMAGE_SUFFIXES.get(image.content_type or '', '.img')}")
         image_bytes = await image.read()
         with open(image_path, "wb") as out:
             out.write(image_bytes)

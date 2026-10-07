@@ -2,6 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.29.0] - 2026-10-07
+
+### Added
+- The code is published under the MIT licence.
+- A privacy policy and terms of use, written from what the app actually does: what is stored and for how long, what is sent to Google, Vercel, Neon and Langfuse, and that decisions are indicative, not an insurer's offer.
+- A changelog page built from this file at every release, linked from the website and app footers.
+
+### Security
+- Uploaded property photos are saved under a random name. Before, the name came from the property ID and the uploaded file name, so a crafted name could write outside the upload folder.
+
 ## [2.28.0] - 2026-10-07
 
 ### Changed
