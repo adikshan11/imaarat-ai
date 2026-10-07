@@ -2,6 +2,15 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.31.0] - 2026-10-07
+
+### Added
+- Sign in with GitHub. Sessions are random tokens stored only as hashes, end after 30 minutes idle or 12 hours, and every change needs a matching CSRF token and the site's own origin. The GitHub app asks for no permissions; only the numeric account ID is read.
+
+### Security
+- Approving or overriding a referral now needs a signed-in reviewer or operator. Before, anyone could do it. Running assessments, reading results and the public APIs stay open as before.
+- The privacy policy and terms describe sign-in: the one cookie it sets, the GitHub numeric ID it stores, and how long a session lasts.
+
 ## [2.30.0] - 2026-10-07
 
 ### Changed

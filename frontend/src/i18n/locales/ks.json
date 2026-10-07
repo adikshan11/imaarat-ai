@@ -455,5 +455,13 @@
   "load.read_title": "توہند فارم پرنہٕ یوان",
   "load.read_hint": "عام طور 5 پیٹھ 15 سیکنڈ۔ ہر قدر یِیہِ توہہِ جانچنہٕ خاطرٕ واپس۔",
   "load.step_read": "ہر خانہٕ پرنہٕ یوان",
-  "load.step_check": "قدرن ہنز جانچ"
+  "load.step_check": "قدرن ہنز جانچ",
+  "auth.sign_in": "GitHub سان سائن اِن کرو",
+  "auth.sign_out": "سائن آؤٹ کرو",
+  "auth.signed_in": "{role} سٕندِ طور سائن اِن",
+  "auth.role.member": "ممبر",
+  "auth.role.reviewer": "جایزہ کار",
+  "auth.role.operator": "آپریٹر",
+  "auth.need_reviewer": "یہ ریفرل ہیکہ صرف سائن اِن کرمت جایزہ کار منظور کٔرِتھ یا فیصلہ بدلٲوِتھ۔",
+  "auth.need_reviewer_role": "توہہِ ہند اکاؤنٹ ہیکہ یہ ریفرل وُچِتھ، مگر صرف جایزہ کار ہیکہ اتھ منظور کٔرِتھ یا فیصلہ بدلٲوِتھ۔"
 }

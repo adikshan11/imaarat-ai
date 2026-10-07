@@ -70,6 +70,7 @@
 .control-button:hover { background: rgba(255, 255, 255, 0.12); }
 .control-button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .control-language { flex: 1 1 auto; justify-content: flex-start; }
+.control-button.is-signed-in { background: rgba(52, 211, 153, 0.22); border-color: rgba(52, 211, 153, 0.6); }
 .language-dialog { width: min(720px, calc(100vw - 32px)); max-height: min(80dvh, 720px); padding: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 16px; background: var(--surface-strong); color: var(--text); box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.3); }
 .language-dialog[open] { display: flex; flex-direction: column; }
 .language-dialog::backdrop { background: rgb(0 0 0 / 0.4); }

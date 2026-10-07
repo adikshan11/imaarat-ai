@@ -89,10 +89,10 @@ export async function downloadSubmissionReport(submissionId: number): Promise<Bl
   return response.blob()
 }
 
-export async function reviewSubmission(submissionId: number, review: ReviewInput): Promise<BackendSubmission> {
+export async function reviewSubmission(submissionId: number, review: ReviewInput, csrf: string): Promise<BackendSubmission> {
   return parseResponse<BackendSubmission>(await fetch(`${API_BASE_URL}/underwrite/history/${submissionId}/review`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
     body: JSON.stringify(review),
   }))
 }

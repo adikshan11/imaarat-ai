@@ -455,5 +455,13 @@
   "load.read_title": "तुंहर फारम पढ़े जावत हे",
   "load.read_hint": "आमतौर ले 5 ले 15 सेकंड। हर मान तुंहला जाँचे बर वापस मिलही।",
   "load.step_read": "हर फील्ड पढ़ना",
-  "load.step_check": "मान मन के जाँच"
+  "load.step_check": "मान मन के जाँच",
+  "auth.sign_in": "GitHub ले साइन इन करव",
+  "auth.sign_out": "साइन आउट करव",
+  "auth.signed_in": "{role} के रूप म साइन इन",
+  "auth.role.member": "सदस्य",
+  "auth.role.reviewer": "समीक्षक",
+  "auth.role.operator": "संचालक",
+  "auth.need_reviewer": "सिरिफ साइन इन करे समीक्षक ही ए रेफरल ल मंजूर कर सकथे या फैसला बदल सकथे।",
+  "auth.need_reviewer_role": "तुँहर खाता ए रेफरल ल देख सकथे, फेर सिरिफ समीक्षक ही एला मंजूर कर सकथे या फैसला बदल सकथे।"
 }

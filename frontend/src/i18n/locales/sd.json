@@ -455,5 +455,13 @@
   "load.read_title": "توهان جو فارم پڙهجي پيو",
   "load.read_hint": "عام طور 5 کان 15 سيڪنڊ. هر قدر توهان کي جاچڻ لاءِ واپس ملندو.",
   "load.step_read": "هر خانو پڙهڻ",
-  "load.step_check": "قدرون جاچڻ"
+  "load.step_check": "قدرون جاچڻ",
+  "auth.sign_in": "GitHub سان سائن ان ڪريو",
+  "auth.sign_out": "سائن آئوٽ ڪريو",
+  "auth.signed_in": "{role} طور سائن ان ٿيل",
+  "auth.role.member": "ميمبر",
+  "auth.role.reviewer": "نظرثاني ڪندڙ",
+  "auth.role.operator": "آپريٽر",
+  "auth.need_reviewer": "صرف سائن ان ٿيل نظرثاني ڪندڙ هن ريفرل کي منظور ڪري سگهي ٿو يا فيصلو مٽائي سگهي ٿو.",
+  "auth.need_reviewer_role": "توهان جو اڪائونٽ هي ريفرل ڏسي سگهي ٿو، پر صرف نظرثاني ڪندڙ ان کي منظور ڪري سگهي ٿو يا فيصلو مٽائي سگهي ٿو."
 }
