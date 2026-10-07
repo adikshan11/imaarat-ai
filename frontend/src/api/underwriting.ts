@@ -97,6 +97,18 @@ export async function reviewSubmission(submissionId: number, review: ReviewInput
   }))
 }
 
+async function changeClaim(submissionId: number, method: 'POST' | 'DELETE', csrf: string): Promise<BackendSubmission> {
+  return parseResponse<BackendSubmission>(await fetch(`${API_BASE_URL}/underwrite/history/${submissionId}/claim`, { method, headers: { 'X-CSRF-Token': csrf } }))
+}
+
+export async function claimSubmission(submissionId: number, csrf: string): Promise<BackendSubmission> {
+  return changeClaim(submissionId, 'POST', csrf)
+}
+
+export async function releaseSubmission(submissionId: number, csrf: string): Promise<BackendSubmission> {
+  return changeClaim(submissionId, 'DELETE', csrf)
+}
+
 export async function fetchAnalytics(): Promise<AnalyticsSnapshot> {
   return parseResponse<AnalyticsSnapshot>(await fetch(`${API_BASE_URL}/underwrite/analytics`))
 }

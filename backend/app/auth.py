@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 from uuid import uuid4
 
 from fastapi import HTTPException, Request
-from sqlalchemy import BigInteger, Column, ForeignKey, Integer, MetaData, String, Table, case, insert, select, update
+from sqlalchemy import BigInteger, Column, ForeignKey, Integer, MetaData, String, Table, case, insert, inspect, select, text, update
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.engine import Engine
@@ -32,6 +32,7 @@ users = Table(
     metadata,
     Column("id", String, primary_key=True),
     Column("github_id", BigInteger, unique=True),
+    Column("name", String),
     Column("role", String, nullable=False),
     Column("created_at", BigInteger, nullable=False),
     Column("disabled_at", BigInteger),
@@ -74,6 +75,7 @@ class Principal:
     role: str
     session_id: str
     github_id: int | None = None
+    name: str | None = None
 
 
 @dataclass(frozen=True)
@@ -96,6 +98,9 @@ def engine() -> Engine:
     current = get_engine()
     if str(current.url) not in _ready_engines:
         metadata.create_all(current)
+        if "name" not in {column["name"] for column in inspect(current).get_columns("users")}:
+            with current.begin() as conn:
+                conn.execute(text("ALTER TABLE users ADD COLUMN name VARCHAR"))
         _ready_engines.add(str(current.url))
     return current
 
@@ -141,13 +146,15 @@ def reserve_identity(conn, key: str, now: int, ceiling: int) -> None:
         raise HTTPException(429, "Too many sign-in attempts; try again in a minute", headers={"Retry-After": "60"})
 
 
-def create_member(github_id: int, now: int | None = None) -> SessionGrant:
+def create_member(github_id: int, now: int | None = None, name: str | None = None) -> SessionGrant:
     if type(github_id) is not int or not 0 < github_id <= 9223372036854775807:
         raise HTTPException(401, "identity_invalid")
     now = clock(now)
     role = "operator" if github_id in operator_ids() else "member"
     with engine().begin() as conn:
-        conn.execute(upsert(conn)(users).values(id=str(uuid4()), github_id=github_id, role=role, created_at=now).on_conflict_do_nothing(index_elements=[users.c.github_id]))
+        conn.execute(upsert(conn)(users).values(id=str(uuid4()), github_id=github_id, name=name, role=role, created_at=now).on_conflict_do_nothing(index_elements=[users.c.github_id]))
+        if name:
+            conn.execute(update(users).where(users.c.github_id == github_id).values(name=name))
         if role == "operator":
             conn.execute(update(users).where(users.c.github_id == github_id).values(role="operator"))
         user = conn.execute(select(users).where(users.c.github_id == github_id)).one()
@@ -157,7 +164,7 @@ def create_member(github_id: int, now: int | None = None) -> SessionGrant:
         csrf = csrf_token(token)
         expires = now + SESSION_SECONDS
         conn.execute(insert(sessions).values(id=digest(token), owner_id=user.id, csrf_hash=digest(csrf), created_at=now, last_seen=now, expires_at=expires, authenticated_at=now))
-        return SessionGrant(Principal(user.id, user.role, digest(token), github_id), token, csrf, expires)
+        return SessionGrant(Principal(user.id, user.role, digest(token), github_id, user.name), token, csrf, expires)
 
 
 def resolve_session(token: str, now: int | None = None) -> Principal:
@@ -165,11 +172,11 @@ def resolve_session(token: str, now: int | None = None) -> Principal:
         raise HTTPException(401, "Sign in to continue")
     now = clock(now)
     with engine().begin() as conn:
-        row = conn.execute(select(sessions, users.c.role, users.c.github_id, users.c.disabled_at).join(users).where(sessions.c.id == digest(token))).first()
+        row = conn.execute(select(sessions, users.c.role, users.c.github_id, users.c.name, users.c.disabled_at).join(users).where(sessions.c.id == digest(token))).first()
         if row is None or row.revoked_at is not None or row.disabled_at is not None or now >= row.expires_at or now - row.last_seen >= IDLE_SECONDS:
             raise HTTPException(401, "Your session has ended; sign in again")
         conn.execute(update(sessions).where(sessions.c.id == row.id).values(last_seen=now))
-        return Principal(row.owner_id, row.role, row.id, row.github_id)
+        return Principal(row.owner_id, row.role, row.id, row.github_id, row.name)
 
 
 def resolve_principal(request: Request) -> Principal:

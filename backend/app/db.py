@@ -5,7 +5,9 @@ from __future__ import annotations
 import csv
 import json
 import os
+import re
 import shutil
+import time
 from datetime import UTC, datetime
 from operator import itemgetter
 from pathlib import Path
@@ -83,6 +85,9 @@ submissions = Table(
     Column("review_note", Text),
     Column("reviewed_at", Text),
     Column("thread_id", Text),
+    Column("claim_owner", Text),
+    Column("claim_name", Text),
+    Column("claim_expires", Integer),
     Column("created_at", Text, server_default=func.current_timestamp()),
 )
 
@@ -93,7 +98,11 @@ REVIEW_COLUMNS = {
     "review_note": "TEXT",
     "reviewed_at": "TEXT",
     "thread_id": "TEXT",
+    "claim_owner": "TEXT",
+    "claim_name": "TEXT",
+    "claim_expires": "INTEGER",
 }
+CLAIM_SECONDS = 1800
 
 _engines: dict[str, Engine] = {}
 _ready: set[str] = set()
@@ -240,18 +249,71 @@ def save_submission(state: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def record_review(submission_id: int, final_decision: str, reviewer: str, note: str, review_status: str) -> None:
+def open_to(owner_id: str, now: int) -> Any:
+    """A referral this reviewer may act on: still pending, and unclaimed, claimed by them, or with an expired claim."""
+    unclaimed = submissions.c.claim_owner.is_(None) | (submissions.c.claim_expires <= now) | (submissions.c.claim_owner == owner_id)
+    return (submissions.c.review_status == "pending_review") & unclaimed
+
+
+def conflict(conn: Any, submission_id: int, now: int) -> str:
+    row = conn.execute(select(submissions.c.review_status, submissions.c.reviewer, submissions.c.claim_name, submissions.c.claim_expires).where(submissions.c.id == submission_id)).one()
+    if row.review_status != "pending_review":
+        return f"This referral was already decided by {row.reviewer or 'another reviewer'}."
+    until = datetime.fromtimestamp(row.claim_expires, UTC).strftime("%H:%M")
+    return f"{row.claim_name or 'Another reviewer'} is reviewing this referral until {until} UTC."
+
+
+def claim_review(submission_id: int, owner_id: str, name: str, now: int) -> str | None:
+    """Hold a pending referral for one reviewer for 30 minutes; returns why not when someone else holds or decided it."""
     with get_engine().begin() as conn:
-        row = conn.execute(select(submissions.c.result_json).where(submissions.c.id == submission_id)).first()
-        detail = _loads(row.result_json if row else None, {})
-        review = {
-            "review_status": review_status,
-            "final_decision": final_decision,
-            "reviewer": reviewer,
-            "review_note": note,
-            "reviewed_at": datetime.now(UTC).isoformat(timespec="seconds"),
-        }
-        conn.execute(update(submissions).where(submissions.c.id == submission_id).values(**review, result_json=json.dumps({**detail, **review}, ensure_ascii=False, default=str)))
+        claim = {"claim_owner": owner_id, "claim_name": name, "claim_expires": now + CLAIM_SECONDS}
+        if conn.execute(update(submissions).where(submissions.c.id == submission_id, open_to(owner_id, now)).values(claim)).rowcount:
+            return None
+        return conflict(conn, submission_id, now)
+
+
+def release_claim(submission_id: int, owner_id: str) -> None:
+    with get_engine().begin() as conn:
+        conn.execute(update(submissions).where(submissions.c.id == submission_id, submissions.c.claim_owner == owner_id).values(claim_owner=None, claim_name=None, claim_expires=None))
+
+
+def record_review(submission_id: int, final_decision: str, owner_id: str, reviewer: str, note: str, review_status: str, now: int) -> str | None:
+    """Save the decision only if the referral is still pending and not held by someone else, in one conditional update."""
+    review = {
+        "review_status": review_status,
+        "final_decision": final_decision,
+        "reviewer": reviewer,
+        "review_note": note,
+        "reviewed_at": datetime.now(UTC).isoformat(timespec="seconds"),
+    }
+    with get_engine().begin() as conn:
+        released = {"claim_owner": None, "claim_name": None, "claim_expires": None}
+        if not conn.execute(update(submissions).where(submissions.c.id == submission_id, open_to(owner_id, now)).values(**review, **released)).rowcount:
+            return conflict(conn, submission_id, now)
+        row = conn.execute(select(submissions.c.result_json).where(submissions.c.id == submission_id)).one()
+        conn.execute(update(submissions).where(submissions.c.id == submission_id).values(result_json=json.dumps({**_loads(row.result_json, {}), **review}, ensure_ascii=False, default=str)))
+    return None
+
+
+def address_key(address: Any) -> str:
+    return re.sub(r"[^a-z0-9]", "", str(address or "").lower())
+
+
+def find_duplicates(address: str | None, zip_code: str | None, limit: int = 5) -> list[dict[str, Any]]:
+    """Earlier assessments of the same address and PIN code, newest first."""
+    key = address_key(address)
+    pin = str(zip_code or "").strip()
+    if not key or not pin:
+        return []
+    query = select(submissions.c.id, submissions.c.property_id, submissions.c.decision, submissions.c.final_decision, submissions.c.raw_input, submissions.c.created_at)
+    with get_engine().connect() as conn:
+        rows = conn.execute(query.order_by(submissions.c.id.desc())).all()
+    matches = []
+    for row in rows:
+        raw_input = _loads(row.raw_input, {})
+        if str(raw_input.get("zip") or "").strip() == pin and address_key(raw_input.get("address")) == key:
+            matches.append({"id": row.id, "property_id": row.property_id, "decision": row.final_decision or row.decision, "created_at": str(row.created_at)})
+    return matches[:limit]
 
 
 def history_row(row: Any) -> dict[str, Any]:
@@ -393,6 +455,9 @@ def fetch_submission_detail(submission_id: int) -> dict[str, Any] | None:
     detail["review_note"] = row.review_note
     detail["reviewed_at"] = row.reviewed_at
     detail["thread_id"] = row.thread_id
+    held = row.review_status == "pending_review" and row.claim_owner and row.claim_expires > time.time()
+    detail["claimed_by"] = row.claim_name if held else None
+    detail["claimed_until"] = datetime.fromtimestamp(row.claim_expires, UTC).isoformat(timespec="seconds") if held else None
     detail["id"] = row.id
     detail["created_at"] = str(row.created_at)
     return detail

@@ -1,6 +1,6 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 
-export type Session = { role: 'member' | 'reviewer' | 'operator'; github_id: number | null; csrf_token: string }
+export type Session = { role: 'member' | 'reviewer' | 'operator'; github_id: number | null; name: string | null; csrf_token: string }
 
 async function detail(response: Response) {
   const body = await response.json().catch(() => null)

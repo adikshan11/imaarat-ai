@@ -505,6 +505,12 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
       </div>
 
       <aside className="right-panel">
+        {preview?.duplicates?.length ? (
+          <div className="notice" role="status">
+            <strong>{t('dup.title')}</strong> {t('dup.body')}
+            <ul>{preview.duplicates.map((match) => <li key={match.id}>#{match.id} · {match.property_id} · {label('decision', match.decision)} · {match.created_at.slice(0, 10)}</li>)}</ul>
+          </div>
+        ) : null}
         <HazardCard hazard={preview?.official_hazard} declaredZone={form.seismic_zone} pincode={form.zip} />
         <div className="form-actions-panel">
           {error && <div className="error-banner">{error}</div>}

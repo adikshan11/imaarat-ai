@@ -59,7 +59,10 @@ export interface MitigationPreview {
   prototype_mitigation_total: number
   positive_factors: { id: string; name: string; benefit: number }[]
   risk_profile: { id: string; name: string; score: number }[]
+  duplicates?: DuplicateProposal[]
 }
+
+export interface DuplicateProposal { id: number; property_id: string; decision: string; created_at: string }
 
 export interface BackendSubmission {
   id?: number
@@ -87,6 +90,8 @@ export interface BackendSubmission {
   reviewer?: string | null
   review_note?: string | null
   reviewed_at?: string | null
+  claimed_by?: string | null
+  claimed_until?: string | null
   created_at?: string
 }
 
@@ -179,7 +184,7 @@ export interface FieldReading {
 }
 export interface FormReading { form_version: string; model?: string; fields: Record<string, FieldReading> }
 
-export interface ReviewInput { final_decision: string; reviewer: string; note: string }
+export interface ReviewInput { final_decision: string; note: string }
 
 export type MartRow = Record<string, string | number | boolean | null>
 export interface AnalyticsSnapshot {
