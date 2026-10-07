@@ -16,20 +16,9 @@ export default function PortfolioAnalytics() {
   if (!snapshot) return null
   const { mart_cat_exposure: cat, mart_city_accumulation: cities } = snapshot.marts
   const time = snapshot.generated_at.slice(0, 16).replace('T', ' ')
-  const verification = snapshot.marts.mart_hazard_verification ?? []
-  const countOf = (column: string) => verification.filter((row) => row[column] === true).length
 
   return (
     <>
-      {verification.length > 0 && <Card title={t('hzv.title')}>
-        <div className="risk-stack">
-          <div className="risk-line"><span>{t('hzv.matched')}</span><strong>{countOf('pincode_matched')} / {verification.length}</strong></div>
-          <div className="risk-line"><span>{t('hzv.understated')}</span><strong>{countOf('seismic_understated')}</strong></div>
-          <div className="risk-line"><span>{t('hzv.flood')}</span><strong>{countOf('flood_history')}</strong></div>
-          <div className="risk-line"><span>{t('hzv.cyclone')}</span><strong>{countOf('cyclone_prone')}</strong></div>
-        </div>
-        <p className="card-footnote">{t('hzv.note')}</p>
-      </Card>}
       <Card title={t(dev ? 'cat.title_dev' : 'cat.title')}>
         <div className="table-wrap">
           <table>

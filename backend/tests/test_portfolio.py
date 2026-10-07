@@ -53,3 +53,12 @@ def test_history_pages_filters_and_sorts_on_the_server(tmp_path, monkeypatch):
     by_value = client.get("/underwrite/history", params={"sort": "value"})
     assert [row["property_id"] for row in by_value.json()] == ["P-2", "P-3", "P-1", "P-4"]
     assert client.get("/underwrite/history", params={"limit": 500}).status_code == 422
+
+
+def test_hazard_checks_are_counted_live_from_each_pincode(tmp_path, monkeypatch):
+    monkeypatch.setattr(db, "PROPERTIES_CSV", tmp_path / "missing.csv")
+    db.init_db()
+    for property_id, zip_code, zone in (("H-1", "600001", "II"), ("H-2", "110001", "IV"), ("H-3", "999999", "III")):
+        db.save_submission({"raw_input": {"property_id": property_id, "zip": zip_code, "seismic_zone": zone, "tiv": 100}, "decision": "Accept", "risk_score": 10, "risk_flags": []})
+    checks = TestClient(main.app).get("/underwrite/portfolio").json()["hazard_checks"]
+    assert checks == {"pincode_matched": 2, "declared_seismic_zone_below_official": 1, "flood_history_at_pincode": 1, "imd_cyclone_prone_district": 1}

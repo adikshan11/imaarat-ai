@@ -16,7 +16,7 @@ export async function fetchOpsSummary(hours: number): Promise<OpsSummary> {
 }
 
 const HISTORY_FIELDS = 'total rows { id property_id decision final_decision risk_score review_status risk_flags total_value_at_risk_inr created_at raw_input prototype_mitigation_model }'
-const PORTFOLIO_FIELDS = 'submissions average_score pending_review total_value_inr with_sprinklers with_fire_alarm with_flood_protection mitigation_benefit decisions bands top_drivers'
+const PORTFOLIO_FIELDS = 'submissions average_score pending_review total_value_inr with_sprinklers with_fire_alarm with_flood_protection mitigation_benefit decisions bands top_drivers hazard_checks'
 
 async function graphql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
   const body = await parseResponse<{ data?: T; errors?: Array<{ message: string }> }>(await fetch(`${API_BASE_URL}/graphql`, {

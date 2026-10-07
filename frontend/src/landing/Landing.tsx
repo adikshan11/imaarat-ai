@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
+import type { ReactNode } from 'react'
 
 const APP = '/app/'
 const REPO = 'https://github.com/adikshan11/uw-risk-assessment'
@@ -145,32 +145,21 @@ function Features() {
 }
 
 function Tour() {
-  const [active, setActive] = useState(0)
-  const tabs = useRef<Array<HTMLButtonElement | null>>([])
-  const move = (event: KeyboardEvent) => {
-    const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0
-    if (!step) return
-    event.preventDefault()
-    const next = (active + step + tour.length) % tour.length
-    setActive(next)
-    tabs.current[next]?.focus()
-  }
   return (
     <section id="tour" className="scroll-mt-20 py-20 sm:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <h2 className="text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">See the product</h2>
         <p className="mt-4 max-w-2xl text-lg text-muted">Screenshots from the live demo, which uses sample properties only.</p>
-        <div role="tablist" aria-label="Product screens" className="mt-10 flex gap-2 overflow-x-auto pb-1" onKeyDown={move}>
+        <div role="tablist" aria-label="Product screens" data-tabs className="mt-10 flex gap-2 overflow-x-auto pb-1">
           {tour.map((item, index) => (
-            <button key={item.id} ref={(node) => { tabs.current[index] = node }} role="tab" id={`tab-${item.id}`} aria-selected={index === active} aria-controls={`panel-${item.id}`} tabIndex={index === active ? 0 : -1}
-              onClick={() => setActive(index)}
-              className={`h-11 shrink-0 rounded-full px-5 text-sm font-semibold transition ${index === active ? 'bg-forest-900 text-white' : 'bg-white text-forest-900 ring-1 ring-forest-900/15 hover:bg-mint-50'}`}>
+            <button key={item.id} type="button" role="tab" id={`tab-${item.id}`} aria-selected={index === 0} aria-controls={`panel-${item.id}`} tabIndex={index === 0 ? 0 : -1}
+              className="h-11 shrink-0 rounded-full bg-white px-5 text-sm font-semibold text-forest-900 ring-1 ring-forest-900/15 transition hover:bg-mint-50 aria-selected:bg-forest-900 aria-selected:text-white aria-selected:ring-0">
               {item.label}
             </button>
           ))}
         </div>
         {tour.map((item, index) => (
-          <div key={item.id} role="tabpanel" id={`panel-${item.id}`} aria-labelledby={`tab-${item.id}`} hidden={index !== active} className="mt-6">
+          <div key={item.id} role="tabpanel" id={`panel-${item.id}`} aria-labelledby={`tab-${item.id}`} hidden={index !== 0} className="mt-6">
             <img src={`/landing/shot-${item.image}-1440.webp`} srcSet={`/landing/shot-${item.image}-720.webp 720w, /landing/shot-${item.image}-1440.webp 1440w`} sizes="(min-width: 1152px) 1104px, 100vw"
               alt={item.alt} width={1440} height={900} loading="lazy" decoding="async" className="w-full rounded-2xl border border-forest-900/10 bg-white shadow-2xl shadow-forest-950/15" />
           </div>

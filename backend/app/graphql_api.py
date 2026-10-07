@@ -41,6 +41,7 @@ class Portfolio:
     decisions: JSON
     bands: JSON
     top_drivers: JSON
+    hazard_checks: JSON
 
 
 @strawberry.type

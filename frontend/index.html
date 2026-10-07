@@ -2,9 +2,7 @@
 <html lang="en-IN">
   <head>
     <meta charset="UTF-8" />
-    <script>
-      if (/^#(new|paper|how|status|quality|integrations)\b/.test(location.hash) || /[?&]dev=/.test(location.search)) location.replace('/app/' + location.search + location.hash)
-    </script>
+    <script src="/redirect.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>imaarat.ai · AI underwriting for Indian commercial property</title>
     <meta name="description" content="Turn a hand-filled fire and property proposal into a clear, cited risk decision. PIN-code hazard checks from government open data, rules that decide, an AI risk summary that explains, and 26 Indian languages." />
@@ -29,6 +27,6 @@
   </head>
   <body>
     <div id="root"><!--landing--></div>
-    <script type="module" src="/src/landing/main.tsx"></script>
+    <script type="module" src="/src/landing/main.ts"></script>
   </body>
 </html>
