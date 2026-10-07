@@ -30,7 +30,7 @@ K = 4
 
 
 def retrieve(query: str, k: int = K) -> list[dict]:
-    vector = llm.embed([query], "RETRIEVAL_QUERY")[0]
+    vector = llm.embed([query], "query")[0]
     hits = qdrant_search(vector, k) if config.QDRANT_URL else local_search(vector, k)
     return hits
 
@@ -106,7 +106,7 @@ def faithfulness_judge():
     from deepeval.metrics import FaithfulnessMetric
     from deepeval.models import GeminiModel
 
-    return FaithfulnessMetric(model=GeminiModel(model=config.GEMINI_FALLBACK_MODEL, api_key=config.GEMINI_API_KEY), threshold=0.7, include_reason=True, async_mode=False, eval_mode="llm")
+    return FaithfulnessMetric(model=GeminiModel(model=config.AI_JUDGE_MODEL, api_key=config.AI_API_KEY), threshold=0.7, include_reason=True, async_mode=False, eval_mode="llm")
 
 
 def judge(metric, state: dict, memo: dict) -> dict:
@@ -120,20 +120,14 @@ def judge(metric, state: dict, memo: dict) -> dict:
     return {"faithfulness": metric.score, "reason": metric.reason}
 
 
-def generation_client():
-    return llm.genai.Client(api_key=config.GEMINI_API_KEY, http_options=llm.types.HttpOptions(timeout=config.GEMINI_TIMEOUT_MS, retry_options=llm.types.HttpRetryOptions(attempts=1)))
-
-
 def generate_once(state: dict) -> dict:
-    previous_client = llm.client
-    previous_fallback = config.GEMINI_FALLBACK_MODEL
+    """Generate one memo with a single attempt, so a bounded evaluation never retries."""
+    previous = config.AI_ATTEMPTS
     try:
-        llm.client = generation_client
-        config.GEMINI_FALLBACK_MODEL = config.GEMINI_MODEL_NAME
+        config.AI_ATTEMPTS = 1
         return generate_memo(state)
     finally:
-        llm.client = previous_client
-        config.GEMINI_FALLBACK_MODEL = previous_fallback
+        config.AI_ATTEMPTS = previous
 
 
 def memos(cases: list[dict]) -> dict:
@@ -296,10 +290,10 @@ def main() -> int:
     )
     report["metadata"].update({"synthetic_cases": len(cases), "selected_live_cases": [], "memo_generations": 0})
     report["sections"]["deterministic"] = {"status": "completed" if report["deterministic"]["passed"] else "failed"}
-    reason = "live_not_requested" if config.GEMINI_API_KEY else "missing_api_key"
+    reason = "live_not_requested" if config.AI_API_KEY else "missing_api_key"
     for name in ("retrieval", "prompt_tokens", "memos"):
         report["sections"][name] = {"status": "skipped", "reason": reason}
-    if args.live and not config.GEMINI_API_KEY:
+    if args.live and not config.AI_API_KEY:
         report.update({"status": "failed", "passed": False})
     elif args.live:
         seed_demo_database()

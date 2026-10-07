@@ -21,18 +21,21 @@ GUIDELINES_PDF = RAW_DIR / "underwriting_guidelines.pdf"
 GUIDELINES_MD = RAW_DIR / "underwriting_guidelines.md"
 HAZARD_JSON = DATA_DIR / "hazard" / "pincode_hazard.json"
 
-GEMINI_MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
-GEMINI_FALLBACK_MODEL = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.5-flash-lite")
+# The AI provider is pluggable: AI_PROVIDER picks the adapter in app/providers/, the rest configure it.
+# The GEMINI_* names are still read so existing deployments keep working.
+AI_PROVIDER = os.getenv("AI_PROVIDER", "gemini")
+AI_API_KEY = os.getenv("AI_API_KEY") or os.getenv("GEMINI_API_KEY", "")
+AI_MODEL = os.getenv("AI_MODEL") or os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+AI_EMBEDDING_MODEL = os.getenv("AI_EMBEDDING_MODEL", "models/gemini-embedding-001")
+AI_JUDGE_MODEL = os.getenv("AI_JUDGE_MODEL") or os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.5-flash-lite")
 PROMPT_FORMAT = os.getenv("PROMPT_FORMAT", "toon")
-GEMINI_EMBEDDING_MODEL_NAME = "models/gemini-embedding-001"
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 QDRANT_URL = os.getenv("QDRANT_URL", "")
 QDRANT_API_KEY = os.getenv("QDRANT_API_KEY", "")
 QDRANT_COLLECTION = "underwriting_guidelines"
-GEMINI_TIMEOUT_MS = 25_000
+AI_TIMEOUT_MS = 25_000
 AI_REQUEST_SECONDS = 50
 STAGE_THINKING = {"paper_form": "LOW", "vision": "LOW"}
-GEMINI_ATTEMPTS = 2
+AI_ATTEMPTS = 2
 AI_DAILY_ADMISSIONS = int(os.getenv("AI_DAILY_ADMISSIONS", "15"))
 AI_CLIENT_DAILY_ADMISSIONS = int(os.getenv("AI_CLIENT_DAILY_ADMISSIONS", "3"))
 AI_DAILY_CALLS = int(os.getenv("AI_DAILY_CALLS", "200"))

@@ -4,12 +4,12 @@ import json
 import mimetypes
 from pathlib import Path
 
-from google.genai import types
 from PIL import Image, UnidentifiedImageError
 
 from app import llm
-from app.config import GEMINI_API_KEY
+from app.config import AI_API_KEY
 from app.observability import traced
+from app.providers import ImageInput
 from app.schemas import VisionObservations
 
 # Keys Vision is permitted to contribute; manual submission fields cannot be overwritten
@@ -79,8 +79,8 @@ def extract_property_features(image_path: str | None, manual_fields: dict, ai_no
             "image_risk_evidence_used": False,
         }
 
-    if not GEMINI_API_KEY:
-        return {**manual_fields, "image_status": "Unavailable", "image_reason": "GEMINI_API_KEY is not set", "image_risk_evidence_used": False}
+    if not AI_API_KEY:
+        return {**manual_fields, "image_status": "Unavailable", "image_reason": "AI_API_KEY is not set", "image_risk_evidence_used": False}
     if ai_note:
         return {**manual_fields, "image_status": "Unavailable", "image_reason": ai_note, "image_risk_evidence_used": False}
 
@@ -112,7 +112,7 @@ def extract_property_features(image_path: str | None, manual_fields: dict, ai_no
         mime_type = mimetypes.guess_type(path)[0] or "image/jpeg"
         with open(path, "rb") as f:
             image_bytes = f.read()
-        image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
+        image_part = ImageInput(image_bytes, mime_type)
         text = llm.generate("vision", [prompt, image_part], schema=VisionObservations)["text"]
         cleaned = text.strip().removeprefix("```json").removesuffix("```").strip()
         if cleaned.startswith("```"):

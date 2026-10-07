@@ -27,7 +27,7 @@ def use_temp_database(tmp_path, monkeypatch):
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "uw_risk.db")
     monkeypatch.delenv("DATABASE_URL", raising=False)
     for module in (report_agent, rag_lookup, vision_extract):
-        monkeypatch.setattr(module, "GEMINI_API_KEY", "")
+        monkeypatch.setattr(module, "AI_API_KEY", "")
     db.init_db()
 
 

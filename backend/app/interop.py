@@ -160,7 +160,7 @@ class UnderwritingAgentExecutor(AgentExecutor):
         else:
             question = context.get_user_input()
             hits = retrieve(question, k=3, ai_note=budget.admission_note("a2a"))
-            text = "\n\n".join(f"[{hit['id']}] {hit['title']}: {hit['text']}" for hit in hits) or "No guidance retrieved (retrieval needs GEMINI_API_KEY)."
+            text = "\n\n".join(f"[{hit['id']}] {hit['title']}: {hit['text']}" for hit in hits) or "No guidance retrieved (retrieval needs AI_API_KEY)."
             reply = new_text_message(text, context_id=context.context_id, task_id=context.task_id)
         await event_queue.enqueue_event(reply)
 

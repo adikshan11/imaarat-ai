@@ -4,6 +4,7 @@ from unittest.mock import Mock
 import app.agents.report_agent as report_agent
 import app.llm as llm
 import requests
+from app.providers import gemini
 from google.genai.errors import ClientError
 
 
@@ -23,8 +24,8 @@ def test_generate_memo_exposes_resource_exhausted_failure(monkeypatch):
 
     client = Mock()
     client.models.generate_content.side_effect = quota_error
-    monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
-    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
+    monkeypatch.setattr(report_agent, "AI_API_KEY", "test-key")
+    monkeypatch.setattr(gemini.genai, "Client", lambda api_key, **kwargs: client)
     slept = []
     monkeypatch.setattr(llm, "sleep", slept.append)
 
@@ -44,8 +45,8 @@ def test_generate_memo_exposes_resource_exhausted_failure(monkeypatch):
     assert state["ai_memo_reason"].startswith("Google's AI model is busy")
     assert state["memo_json"] == {}
     models = [call.kwargs["model"] for call in client.models.generate_content.call_args_list]
-    assert models == [llm.config.GEMINI_MODEL_NAME] * llm.config.GEMINI_ATTEMPTS
-    assert slept == [2**attempt for attempt in range(1, llm.config.GEMINI_ATTEMPTS)]
+    assert models == [llm.config.AI_MODEL] * llm.config.AI_ATTEMPTS
+    assert slept == [2**attempt for attempt in range(1, llm.config.AI_ATTEMPTS)]
 
 
 def test_daily_quota_is_not_retried_and_says_so(monkeypatch):
@@ -62,8 +63,8 @@ def test_daily_quota_is_not_retried_and_says_so(monkeypatch):
     )
     client = Mock()
     client.models.generate_content.side_effect = quota_error
-    monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
-    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
+    monkeypatch.setattr(report_agent, "AI_API_KEY", "test-key")
+    monkeypatch.setattr(gemini.genai, "Client", lambda api_key, **kwargs: client)
     slept = []
     monkeypatch.setattr(llm, "sleep", slept.append)
     state = {"property_id": "QUOTA-001", "raw_input": {"city": "Pune"}, "risk_score": 0, "risk_flags": [], "decision": "Accept", "rationale": "x"}
@@ -77,9 +78,9 @@ def test_minute_limit_says_try_again_in_a_minute(monkeypatch):
     def full(stage):
         raise report_agent.budget.BudgetExceeded("this minute", 30)
 
-    monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(report_agent, "AI_API_KEY", "test-key")
     monkeypatch.setattr(llm.budget, "reserve_call", full)
-    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: Mock())
+    monkeypatch.setattr(gemini.genai, "Client", lambda api_key, **kwargs: Mock())
     state = {"property_id": "MINUTE-001", "raw_input": {"city": "Pune"}, "risk_score": 0, "risk_flags": [], "decision": "Accept", "rationale": "x"}
 
     assert report_agent.generate_memo(state) == {}
@@ -93,8 +94,8 @@ def _valid_state():
 def test_structured_memo_accepts_grounded_response(monkeypatch):
     client = Mock()
     client.models.generate_content.return_value.text = '{"property_summary":["TIDEL"],"key_risk_factors":["high_tiv_concentration"],"coverage_review":["No additional coverage extensions requested."],"decision":"Accept","rationale":"Grounded rationale","suggested_next_steps":["Review concentration"],"guideline_citations":[]}'
-    monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
-    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
+    monkeypatch.setattr(report_agent, "AI_API_KEY", "test-key")
+    monkeypatch.setattr(gemini.genai, "Client", lambda api_key, **kwargs: client)
     state = _valid_state()
     memo = report_agent.generate_memo(state)
     assert memo["decision"] == "Accept"
@@ -105,8 +106,8 @@ def test_structured_memo_accepts_grounded_response(monkeypatch):
 def test_structured_memo_rejects_invalid_contract(monkeypatch):
     client = Mock()
     client.models.generate_content.return_value.text = '{"decision":"Accept"}'
-    monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
-    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
+    monkeypatch.setattr(report_agent, "AI_API_KEY", "test-key")
+    monkeypatch.setattr(gemini.genai, "Client", lambda api_key, **kwargs: client)
     state = _valid_state()
     assert report_agent.generate_memo(state) == {}
     assert state["ai_memo_status"] == "Incomplete"
@@ -115,17 +116,17 @@ def test_structured_memo_rejects_invalid_contract(monkeypatch):
 def test_structured_memo_rejects_returned_score(monkeypatch):
     client = Mock()
     client.models.generate_content.return_value.text = '{"property_summary":["TIDEL"],"key_risk_factors":["high_tiv_concentration"],"coverage_review":["None"],"decision":"Accept","rationale":"x","suggested_next_steps":["x"],"guideline_citations":[],"risk_score":99}'
-    monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
-    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
+    monkeypatch.setattr(report_agent, "AI_API_KEY", "test-key")
+    monkeypatch.setattr(gemini.genai, "Client", lambda api_key, **kwargs: client)
     state = _valid_state()
     assert report_agent.generate_memo(state) == {}
     assert state["ai_memo_status"] == "Incomplete"
 
 
 def test_structured_memo_rejects_decision_flag_and_roof_claims(monkeypatch):
-    monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(report_agent, "AI_API_KEY", "test-key")
     client = Mock()
-    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
+    monkeypatch.setattr(gemini.genai, "Client", lambda api_key, **kwargs: client)
     for response in (
         '{"property_summary":["TIDEL"],"key_risk_factors":["high_tiv_concentration"],"coverage_review":["None"],"decision":"Refer","rationale":"x","suggested_next_steps":["x"],"guideline_citations":[]}',
         '{"property_summary":["TIDEL"],"key_risk_factors":["invented hazard"],"coverage_review":["None"],"decision":"Accept","rationale":"x","suggested_next_steps":["x"],"guideline_citations":[]}',
@@ -139,9 +140,9 @@ def test_structured_memo_rejects_decision_flag_and_roof_claims(monkeypatch):
 
 def test_coverage_review_rejects_invented_quantitative_claims(monkeypatch):
     """coverage_review must not contain invented monetary amounts, rates, or regulatory mandates."""
-    monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(report_agent, "AI_API_KEY", "test-key")
     client = Mock()
-    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
+    monkeypatch.setattr(gemini.genai, "Client", lambda api_key, **kwargs: client)
     invented_claims = [
         '{"property_summary":["TIDEL"],"key_risk_factors":["high_tiv_concentration"],"coverage_review":["A ₹500,000 deductible applies."],"decision":"Accept","rationale":"x","suggested_next_steps":["x"],"guideline_citations":[]}',
         '{"property_summary":["TIDEL"],"key_risk_factors":["high_tiv_concentration"],"coverage_review":["5% loading rate applies."],"decision":"Accept","rationale":"x","suggested_next_steps":["x"],"guideline_citations":[]}',
@@ -156,9 +157,9 @@ def test_coverage_review_rejects_invented_quantitative_claims(monkeypatch):
 
 def test_coverage_review_rejects_unrequested_peril_reference(monkeypatch):
     """coverage_review must not reference a peril not present in the submission's requested coverages."""
-    monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(report_agent, "AI_API_KEY", "test-key")
     client = Mock()
-    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
+    monkeypatch.setattr(gemini.genai, "Client", lambda api_key, **kwargs: client)
     # earthquake_cover not requested (not in raw_input), yet memo mentions earthquake
     client.models.generate_content.return_value.text = (
         '{"property_summary":["TIDEL"],"key_risk_factors":["high_tiv_concentration"],'
@@ -172,9 +173,9 @@ def test_coverage_review_rejects_unrequested_peril_reference(monkeypatch):
 
 def test_coverage_review_accepts_requested_peril_reference(monkeypatch):
     """coverage_review may reference a peril when the corresponding coverage field is True."""
-    monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(report_agent, "AI_API_KEY", "test-key")
     client = Mock()
-    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
+    monkeypatch.setattr(gemini.genai, "Client", lambda api_key, **kwargs: client)
     client.models.generate_content.return_value.text = (
         '{"property_summary":["TIDEL"],"key_risk_factors":["high_tiv_concentration"],'
         '"coverage_review":["Earthquake cover requested; review applicability under selected product."],'
@@ -188,9 +189,9 @@ def test_coverage_review_accepts_requested_peril_reference(monkeypatch):
 
 
 def test_memo_rejects_citation_of_unretrieved_guidance(monkeypatch):
-    monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(report_agent, "AI_API_KEY", "test-key")
     client = Mock()
-    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
+    monkeypatch.setattr(gemini.genai, "Client", lambda api_key, **kwargs: client)
     client.models.generate_content.return_value.text = (
         '{"property_summary":["TIDEL"],"key_risk_factors":["high_tiv_concentration"],"coverage_review":["None"],'
         '"decision":"Accept","rationale":"x","suggested_next_steps":["x"],"guideline_citations":["G9"]}'
@@ -202,9 +203,9 @@ def test_memo_rejects_citation_of_unretrieved_guidance(monkeypatch):
 
 
 def test_memo_accepts_citation_of_retrieved_guidance(monkeypatch):
-    monkeypatch.setattr(report_agent, "GEMINI_API_KEY", "test-key")
+    monkeypatch.setattr(report_agent, "AI_API_KEY", "test-key")
     client = Mock()
-    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: client)
+    monkeypatch.setattr(gemini.genai, "Client", lambda api_key, **kwargs: client)
     client.models.generate_content.return_value.text = (
         '{"property_summary":["TIDEL"],"key_risk_factors":["high_tiv_concentration"],"coverage_review":["None"],'
         '"decision":"Accept","rationale":"x","suggested_next_steps":["x"],"guideline_citations":["G5"]}'

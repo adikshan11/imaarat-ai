@@ -2,6 +2,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 
 from app import budget, llm
+from app.providers import gemini
 
 
 def fake_client(monkeypatch):
@@ -11,7 +12,7 @@ def fake_client(monkeypatch):
     def make(api_key, **kwargs):
         return client
 
-    monkeypatch.setattr(llm.genai, "Client", make)
+    monkeypatch.setattr(gemini.genai, "Client", make)
     return client
 
 

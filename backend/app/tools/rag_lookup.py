@@ -9,7 +9,7 @@ from sqlalchemy import Column, String, Table, Text, select
 from sqlalchemy.exc import IntegrityError
 
 from app import llm
-from app.config import GEMINI_API_KEY, GUIDELINES_MD, QDRANT_API_KEY, QDRANT_COLLECTION, QDRANT_URL
+from app.config import AI_API_KEY, GUIDELINES_MD, QDRANT_API_KEY, QDRANT_COLLECTION, QDRANT_URL
 from app.db import get_engine, metadata
 from app.observability import traced
 
@@ -52,7 +52,7 @@ def qdrant_search(query_vector: list[float], k: int) -> list[dict]:
     version = corpus_hash(sections)
     current = client.collection_exists(QDRANT_COLLECTION) and client.scroll(QDRANT_COLLECTION, limit=1, with_payload=True)[0]
     if not current or current[0].payload.get("version") != version:
-        vectors = llm.embed([section_document(section) for section in sections], "RETRIEVAL_DOCUMENT")
+        vectors = llm.embed([section_document(section) for section in sections], "document")
         if client.collection_exists(QDRANT_COLLECTION):
             client.delete_collection(QDRANT_COLLECTION)
         client.create_collection(QDRANT_COLLECTION, vectors_config=VectorParams(size=len(vectors[0]), distance=Distance.COSINE))
@@ -84,7 +84,7 @@ def index_items() -> list[dict]:
     if stored:
         items = json.loads(stored)
     else:
-        vectors = llm.embed([section_document(section) for section in sections], "RETRIEVAL_DOCUMENT")
+        vectors = llm.embed([section_document(section) for section in sections], "document")
         items = [{**section, "vector": vector} for section, vector in zip(sections, vectors, strict=False)]
         try:
             with engine.begin() as connection:
@@ -109,11 +109,11 @@ def retrieve(query: str, k: int = 4, ai_note: str | None = None) -> list[dict]:
     Returns [] with a logged reason when retrieval is unavailable.
     """
     k = max(_K_MIN, min(_K_MAX, k))
-    if not GEMINI_API_KEY or ai_note:
+    if not AI_API_KEY or ai_note:
         print(f"[rag_lookup] status=unavailable reason={ai_note or 'missing_api_key'}")
         return []
     try:
-        query_vector = llm.embed([query], "RETRIEVAL_QUERY")[0]
+        query_vector = llm.embed([query], "query")[0]
         hits = qdrant_search(query_vector, k) if QDRANT_URL else local_search(query_vector, k)
         print(f"[rag_lookup] status=available store={'qdrant' if QDRANT_URL else 'local'} hits={[hit['id'] for hit in hits]}")
         return hits

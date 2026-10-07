@@ -74,7 +74,7 @@ def shared_store() -> bool:
 
 
 def ai_ready() -> tuple[bool, str | None]:
-    if not config.GEMINI_API_KEY:
+    if not config.AI_API_KEY:
         return False, "AI is not configured on this deployment"
     if not shared_store():
         return False, "AI needs a shared budget database on this deployment"

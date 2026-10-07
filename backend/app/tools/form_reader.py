@@ -5,10 +5,10 @@ import re
 from datetime import date
 from typing import Any, Literal
 
-from google.genai import types
 from pydantic import BaseModel, Field, create_model
 
 from app import llm
+from app.providers import ImageInput
 from app.tools.hazard_lookup import lookup
 
 FORM_VERSION = "IMR-PF-2"
@@ -113,7 +113,7 @@ def validate(reading: dict[str, Any]) -> dict[str, Any]:
 def read_form(image: bytes, mime_type: str) -> dict[str, Any]:
     result = llm.generate(
         "paper_form",
-        ["Transcribe this form page.", types.Part.from_bytes(data=image, mime_type=mime_type)],
+        ["Transcribe this form page.", ImageInput(image, mime_type)],
         schema=PaperFormReading,
         system=SYSTEM,
     )

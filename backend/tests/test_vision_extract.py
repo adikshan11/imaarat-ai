@@ -3,8 +3,8 @@ from __future__ import annotations
 import json
 from unittest.mock import MagicMock
 
-import app.llm as llm
 import app.tools.vision_extract as vision_module
+from app.providers import gemini
 from app.tools.vision_extract import extract_property_features
 
 MANUAL = {"property_id": "TEST-001", "construction_type": "Non-Combustible", "sprinkler_system": "Y", "roof_age_years": None}
@@ -71,7 +71,7 @@ def test_uniform_image_returns_unusable(tmp_path):
 
 
 def test_missing_api_key_returns_unavailable(tmp_path, monkeypatch):
-    monkeypatch.setattr(vision_module, "GEMINI_API_KEY", "")
+    monkeypatch.setattr(vision_module, "AI_API_KEY", "")
     img_path = _make_real_image(tmp_path)  # non-uniform so local validation passes
     result = extract_property_features(img_path, MANUAL)
     assert result["image_status"] == "Unavailable"
@@ -96,8 +96,8 @@ def _patched_client(response_text: str, monkeypatch, tmp_path):
     mock_response.text = response_text
     mock_client = MagicMock()
     mock_client.models.generate_content.return_value = mock_response
-    monkeypatch.setattr(vision_module, "GEMINI_API_KEY", "test-key")
-    monkeypatch.setattr(llm.genai, "Client", lambda api_key, **kwargs: mock_client)
+    monkeypatch.setattr(vision_module, "AI_API_KEY", "test-key")
+    monkeypatch.setattr(gemini.genai, "Client", lambda api_key, **kwargs: mock_client)
     return _make_real_image(tmp_path)
 
 

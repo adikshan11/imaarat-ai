@@ -60,16 +60,16 @@ def test_calls_are_capped_and_recorded(store):
 
 
 def test_ai_is_not_ready_without_key_or_shared_store(store, monkeypatch):
-    monkeypatch.setattr(config, "GEMINI_API_KEY", "")
+    monkeypatch.setattr(config, "AI_API_KEY", "")
     assert budget.admission_note("10.0.0.1") == "AI is not configured on this deployment"
-    monkeypatch.setattr(config, "GEMINI_API_KEY", "set")
+    monkeypatch.setattr(config, "AI_API_KEY", "set")
     monkeypatch.setenv("VERCEL", "1")
     assert budget.admission_note("10.0.0.1") == "AI needs a shared budget database on this deployment"
     assert budget.remaining()["admissions_left"] == 3
 
 
 def test_admission_note_reports_reset_time(store, monkeypatch):
-    monkeypatch.setattr(config, "GEMINI_API_KEY", "set")
+    monkeypatch.setattr(config, "AI_API_KEY", "set")
     assert budget.admission_note("10.0.0.1") is None
     assert budget.admission_note("10.0.0.1") is None
     assert budget.admission_note("10.0.0.1").startswith("Daily AI limit reached for this visitor; resets in ")
@@ -139,9 +139,9 @@ def test_exhausted_budget_stops_the_call_before_it_is_made(store):
 
 
 def test_ai_stages_skip_with_the_reason_shown(store, monkeypatch):
-    monkeypatch.setattr(config, "GEMINI_API_KEY", "set")
+    monkeypatch.setattr(config, "AI_API_KEY", "set")
     for module in ("app.agents.report_agent", "app.tools.vision_extract", "app.tools.rag_lookup"):
-        monkeypatch.setattr(f"{module}.GEMINI_API_KEY", "set")
+        monkeypatch.setattr(f"{module}.AI_API_KEY", "set")
     note = "Daily AI limit reached for this visitor; resets in 3h 0m"
     state = run_graph({"property_id": "B-1", "construction_type": "Frame", "occupancy_type": "Office", "cat_zone": "None", "tiv": 1000000}, ai_note=note)
     assert state["ai_memo_status"] == "Unavailable" and state["ai_memo_reason"] == note
@@ -150,7 +150,7 @@ def test_ai_stages_skip_with_the_reason_shown(store, monkeypatch):
 
 
 def test_read_form_returns_429_with_retry_after(store, monkeypatch):
-    monkeypatch.setattr(config, "GEMINI_API_KEY", "set")
+    monkeypatch.setattr(config, "AI_API_KEY", "set")
     client = TestClient(main.app)
     for _ in range(2):
         budget.admit("testclient")
@@ -203,7 +203,7 @@ def test_retries_stop_when_the_next_attempt_would_overrun(store, monkeypatch):
         calls.append(model)
         raise ApiError(503)
 
-    token = llm.deadline.set(time.perf_counter() + llm.config.GEMINI_TIMEOUT_MS / 1000 + 1)
+    token = llm.deadline.set(time.perf_counter() + llm.config.AI_TIMEOUT_MS / 1000 + 1)
     try:
         with pytest.raises(ApiError):
             llm.budgeted("memo", busy, model="gemini-test")
