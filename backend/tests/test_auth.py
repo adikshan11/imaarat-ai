@@ -49,7 +49,11 @@ def test_github_sign_in_round_trip(client, monkeypatch):
     url = start.json()["authorization_url"]
     query = parse_qs(urlsplit(url).query, keep_blank_values=True)
     assert url.startswith("https://github.com/login/oauth/authorize") and query["code_challenge_method"] == ["S256"] and query["scope"] == [""]
-    callback = client.get("/auth/github/callback", params={"code": "abc", "state": query["state"][0]}, follow_redirects=False)
+    wrong_issuer = client.get("/auth/github/callback", params={"code": "abc", "state": query["state"][0], "iss": "https://evil.test"}, follow_redirects=False)
+    assert wrong_issuer.status_code == 400
+    start = client.post("/auth/github/start", headers={"origin": ORIGIN})
+    query = parse_qs(urlsplit(start.json()["authorization_url"]).query, keep_blank_values=True)
+    callback = client.get("/auth/github/callback", params={"code": "abc", "state": query["state"][0], "iss": "https://github.com/login/oauth"}, follow_redirects=False)
     assert callback.status_code == 303 and callback.headers["location"] == ORIGIN + "/app/"
     session = client.get("/auth/session").json()
     assert session["role"] == "operator" and len(session["csrf_token"]) == 64
