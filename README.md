@@ -111,6 +111,25 @@ One Vercel project: `frontend/` builds to static files, and `api/index.py` serve
 | `QDRANT_URL`, `QDRANT_API_KEY` | RAG vector store |
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | Tracing |
 | `DATABASE_URL` | Postgres for submissions, checkpoints and analytics |
+| `VERCEL_TOKEN` (GitHub only) | Production deploys from CI |
+
+## CI/CD and conventions
+
+`.github/workflows/ci.yml` runs in two stages.
+
+1. **Check**, on every pull request and every push to `main`:
+   - release rules (pull requests only): branch name, one version across `backend/app/__init__.py` and `frontend/package*.json`, a version above `main`'s, and a CHANGELOG entry for it;
+   - backend: ruff lint and format check (settings in `ruff.toml`), then pytest against Postgres;
+   - frontend: locale check, oxlint, type check and build, unit tests, then Playwright browser tests;
+   - pipeline: extract and `dbt build`.
+2. **Deploy**, only from `main` and only after every check passes: Vercel production deploy, then a check that the live `/api/status` reports the new version, every public page returns 200 and the security headers are present.
+
+Conventions:
+
+- Branches: `feature/`, `fix/`, `ci/`, `docs/` or `chore/` plus a snake_case name, for example `feature/react_landing`.
+- One version bump and one CHANGELOG line per branch, in plain English. The CHANGELOG also feeds the public changelog page.
+- Commit messages of two or three words; pull request bodies follow the template.
+- Files and functions get short plain names (`hazard_lookup.py`, `portfolio_summary`).
 
 ## Hazard data sources
 
