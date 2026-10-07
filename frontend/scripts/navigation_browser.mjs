@@ -36,7 +36,7 @@ export async function verifyCompletion(page) {
         return original(input, options)
       }
     }, { result, history })
-    await page.goto(APP_URL + '/app/?dev=0#new')
+    await page.goto(APP_URL + '/app/#new')
     const tabs = page.locator('.tab-item')
     const active = () => page.locator('.tab-item.active').getAttribute('data-view')
     const submit = async () => {
@@ -94,7 +94,7 @@ export async function verifyNavigation(page) {
     checks++
   }
   await page.setViewportSize({ width: 390, height: 844 })
-  await page.goto(APP_URL + '/app/?dev=0')
+  await page.goto(APP_URL + '/app/')
   await page.evaluate(() => localStorage.setItem('imaarat.lang', 'en'))
   await page.reload()
   const tabs = page.locator('.tab-item')
@@ -146,25 +146,15 @@ export async function verifyNavigation(page) {
   check(await tabs.nth(0).evaluate(node => node === document.activeElement), 'RTL keyboard direction')
   await drag(1, 3)
   check(await active() === 'how', 'RTL release target')
-  for (const code of ['en', 'ur']) {
-    await page.evaluate(code => localStorage.setItem('imaarat.lang', code), code)
-    await page.goto(APP_URL + '/app/?dev=1')
+  for (const view of ['quality', 'integrations']) {
+    await page.goto(APP_URL + `/app/#${view}`)
     await page.reload()
-    check(await tabs.count() === 6, 'developer tabs missing')
-    await tabs.nth(0).focus()
-    await page.keyboard.press('End')
-    check(await tabs.nth(5).evaluate(node => {
-      const rect = node.getBoundingClientRect()
-      const nav = node.closest('nav').getBoundingClientRect()
-      return node === document.activeElement && rect.left >= nav.left && rect.right <= nav.right
-    }), 'last developer action unreachable')
-    await page.keyboard.press('Enter')
-    check(await active() === 'integrations', 'developer keyboard activation')
-    check(await page.locator('.tabbar').evaluate(node => getComputedStyle(node).scrollbarWidth === 'none'), 'scrollbar track visible')
-    check(await page.locator('.tabbar').evaluate(node => ['auto', 'manipulation', 'pan-x pan-y pinch-zoom'].includes(getComputedStyle(node).touchAction)), 'developer native touch scrolling disabled')
+    await page.locator(`#${view}`).waitFor({ timeout: 15000 })
+    check(await page.locator('.ops-page').count() === 1, `#${view} opens the status page`)
   }
   await page.evaluate(() => localStorage.setItem('imaarat.lang', 'en'))
-  await page.goto(APP_URL + '/app/?dev=0#new')
+  await page.goto(APP_URL + '/app/#new')
+  await page.reload()
   const field = page.locator('input').first()
   await field.fill('Field drag draft')
   const bounds = await field.boundingBox()
@@ -197,7 +187,7 @@ export async function verifyLabels(page) {
   const failures = []
   for (const code of codes) {
     await page.evaluate(code => localStorage.setItem('imaarat.lang', code), code)
-    await page.goto(APP_URL + '/app/?dev=0#how')
+    await page.goto(APP_URL + '/app/#how')
     await page.reload()
     await page.waitForFunction(code => document.documentElement.lang === code, code)
     await page.evaluate(() => document.fonts.ready)
@@ -277,21 +267,13 @@ export async function verifyTouch(page) {
     await session.send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 1 })
     for (const code of ['en', 'ur']) {
       await page.evaluate(code => localStorage.setItem('imaarat.lang', code), code)
-      await page.goto(APP_URL + '/app/?dev=0')
+      await page.goto(APP_URL + '/app/')
       await page.reload()
       await page.locator('.tab-item').nth(0).click()
       const start = await page.locator('.tab-item').nth(0).boundingBox()
       const end = await page.locator('.tab-item').nth(3).boundingBox()
       await swipe(start.x + start.width / 2, end.x + end.width / 2, start.y + start.height / 2)
       check(await page.locator('.tab-item.active').getAttribute('data-view') === 'how', `${code} native touch release`)
-      await page.goto(APP_URL + '/app/?dev=1')
-      await page.reload()
-      const nav = await page.locator('.tabbar').boundingBox()
-      await swipe(code === 'en' ? nav.x + nav.width - 30 : nav.x + 30, code === 'en' ? nav.x + 30 : nav.x + nav.width - 30, nav.y + nav.height / 2)
-      check(await page.locator('.tabbar').evaluate(node => Math.abs(node.scrollLeft) > 100 && !node.classList.contains('is-scrubbing')), `${code} native developer scrolling`)
-      await page.locator('.tab-item').nth(5).focus()
-      await page.keyboard.press('Enter')
-      check(await page.locator('.tab-item.active').getAttribute('data-view') === 'integrations', `${code} last action after touch scroll`)
     }
   } finally {
     await session.send('Emulation.setTouchEmulationEnabled', { enabled: false })
@@ -302,7 +284,7 @@ export async function verifyTouch(page) {
 
 export async function verifyDesktop(page) {
   await page.evaluate(() => localStorage.setItem('imaarat.lang', 'ml'))
-  await page.goto(APP_URL + '/app/?dev=0')
+  await page.goto(APP_URL + '/app/')
   await page.reload()
   await page.setViewportSize({ width: 1024, height: 900 })
   await page.evaluate(() => document.fonts.ready)

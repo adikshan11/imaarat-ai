@@ -8,7 +8,7 @@ import type { BackendSubmission } from '@/types/backend'
 const DECISIONS = ['Accept', 'Refer', 'Decline (mitigation possible)', 'Auto-Decline']
 
 export default function ReviewPanel({ submission, onReviewed }: { submission: BackendSubmission; onReviewed: (updated: BackendSubmission) => void }) {
-  const { t, label, dev } = usePreferences()
+  const { t, label } = usePreferences()
   const [finalDecision, setFinalDecision] = useState(submission.decision)
   const [reviewer, setReviewer] = useState('')
   const [note, setNote] = useState('')
@@ -50,7 +50,7 @@ export default function ReviewPanel({ submission, onReviewed }: { submission: Ba
 
   return (
     <Card title={t('rev.title')} className="card-attention">
-      <p>{t(dev ? 'rev.lead_dev' : 'rev.lead', { score: submission.risk_score })}</p>
+      <p>{t('rev.lead', { score: submission.risk_score })}</p>
       <div className="form-grid form-gap">
         <div className="form-row form-row-2">
           <SelectField label={t('rev.final_label')} value={finalDecision} onChange={setFinalDecision} options={DECISIONS.map((decision) => ({ value: decision, label: label('decision', decision) }))} />

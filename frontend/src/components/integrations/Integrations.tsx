@@ -10,9 +10,9 @@ export default function Integrations() {
   const mcpUrl = `${apiBaseUrl}/mcp/`
   const cardUrl = `${apiBaseUrl}/.well-known/agent-card.json`
   return (
-    <div>
+    <section id="integrations" className="status-section">
       <div className="page-subtitle">{t('int.eyebrow')}</div>
-      <h1 className="page-title">{t('int.title')}</h1>
+      <h2 className="page-title">{t('int.title')}</h2>
       <p className="page-lead">{t('int.lead')}</p>
 
       <div className="dashboard-grid">
@@ -40,6 +40,6 @@ export default function Integrations() {
       "cat_zone": "Flood", "roof_age_years": 32, "sprinkler_system": "N", "tiv": 30000000}}]}}
 }'`}</pre>
       </Card>
-    </div>
+    </section>
   )
 }

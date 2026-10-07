@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import Card from '@/components/shared/Card'
 import { PageSkeleton } from '@/components/shared/Loader'
 import { fetchOpsSummary } from '@/api/underwriting'
 import { useRiskContext } from '@/context/RiskContext'
 import type { OpsSpan, OpsSummary } from '@/types/backend'
 import './StatusPage.css'
+
+const AIQuality = lazy(() => import('@/components/quality/AIQuality'))
+const Integrations = lazy(() => import('@/components/integrations/Integrations'))
 
 const WINDOWS = [{ hours: 24, label: '24 hours' }, { hours: 168, label: '7 days' }]
 
@@ -183,6 +186,10 @@ export default function StatusPage() {
 
         <p className="card-footnote">Generated {new Date(summary.generated_at).toLocaleString('en-IN')} · refreshes every 30 seconds while this tab is open.</p>
       </>}
+      <Suspense fallback={null}>
+        <AIQuality />
+        <Integrations />
+      </Suspense>
     </div>
   )
 }

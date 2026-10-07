@@ -101,12 +101,12 @@ export default function AIQuality() {
   }, [])
 
   return (
-    <div>
+    <section id="quality" className="status-section">
       <div className="page-subtitle">{t('q.eyebrow')}</div>
-      <h1 className="page-title">{t('q.title')}</h1>
+      <h2 className="page-title">{t('q.title')}</h2>
       {loading && <p role="status" lang="en">Loading evaluation evidence…</p>}
       {error && <div className="error-banner" role="alert" lang="en">{error}</div>}
       {!loading && <QualityResults report={report} />}
-    </div>
+    </section>
   )
 }
