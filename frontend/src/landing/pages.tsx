@@ -26,7 +26,7 @@ export function Privacy() {
     <Document title="Privacy Policy" lead={`What imaarat.ai collects, why, who handles it and how long it is kept. Last updated ${UPDATED}.`}>
       <section>
         <h2>Who runs this</h2>
-        <p>imaarat.ai is an independent prototype built and run by Adithya Shankaran. It is not an insurer, a broker or an insurance intermediary.</p>
+        <p>imaarat.ai is an independent prototype built and run by Adithya Shankaran. It is not an insurer, a broker or an insurance intermediary. This policy covers the hosted demo at imaarat-ai.vercel.app. If you run your own copy of the open-source code, you decide what your copy collects.</p>
       </section>
       <section>
         <h2>Please use sample data</h2>
@@ -39,7 +39,7 @@ export function Privacy() {
           <li><strong>Photos.</strong> A property photo is kept in temporary server storage while the assessment runs and disappears when the server restarts. A photo of the paper form is read and not stored.</li>
           <li><strong>Request records:</strong> for each request, the page or API route, the result code and how long it took. Not what you typed. Kept for 14 days.</li>
           <li><strong>A daily visitor count.</strong> To share the daily AI allowance fairly, requests are counted per visitor using a one-way code made from the IP address that changes every day. The address itself is not stored.</li>
-          <li><strong>Signing in</strong> is optional and only needed to review referrals. If you sign in with GitHub, we store your GitHub account’s numeric ID, your role and a hashed copy of your session. We do not receive your name, email address or repositories.</li>
+          <li><strong>Signing in</strong> is optional and only needed to review referrals. If you sign in with GitHub, we store your GitHub account’s numeric ID and username, your role and a hashed copy of your session. When you start reviewing or decide a referral, your username is shown with it to anyone who opens that assessment. We do not receive your email address or repositories.</li>
           <li><strong>Your browser</strong> keeps your language and light or dark choice in local storage. If you sign in, one cookie keeps you signed in; it is removed when you sign out. There are no analytics or advertising trackers.</li>
         </ul>
       </section>
@@ -86,7 +86,7 @@ export function Terms() {
           <li>Use sample data only; do not enter personal or confidential information.</li>
           <li>Do not try to overload the service, get around its limits or attack it. The public APIs (GraphQL, MCP and A2A) follow the same limits as the app.</li>
           <li>The demo has a small daily AI allowance shared by everyone. When it runs out, the rules still decide and the page says so.</li>
-          <li>Signing in with GitHub is optional. Approving or overriding a referral needs a reviewer account, and you are responsible for what is done with yours.</li>
+          <li>Signing in with GitHub is optional. Approving or overriding a referral needs a reviewer account, and you are responsible for what is done with yours. A reviewer who starts a review holds that referral for 30 minutes, and the first decision saved is the one that counts.</li>
         </ul>
       </section>
       <section>
@@ -103,7 +103,7 @@ export function Terms() {
       </section>
       <section>
         <h2>Open source</h2>
-        <p>The source code is published under the <a href={`${REPO}/blob/main/LICENSE`}>MIT License</a>.</p>
+        <p>These terms cover the hosted demo at imaarat-ai.vercel.app. Its <a href={REPO}>source code</a> is published under the <a href={`${REPO}/blob/main/LICENSE`}>MIT License</a>, which lets anyone use, copy, change and share it, including commercially, as long as the copyright and licence notice are kept. If you run your own copy, the MIT License governs it, not these terms.</p>
       </section>
       <section>
         <h2>No warranty</h2>

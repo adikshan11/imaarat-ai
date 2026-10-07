@@ -29,7 +29,7 @@ def oauth_configuration() -> tuple[str, str, str]:
 @router.get("/session")
 def session(request: Request):
     principal = auth.resolve_principal(request)
-    return JSONResponse({"role": principal.role, "github_id": principal.github_id, "csrf_token": auth.csrf_token(request.cookies[auth.SESSION_COOKIE])}, headers=NO_STORE)
+    return JSONResponse({"role": principal.role, "github_id": principal.github_id, "name": principal.name, "csrf_token": auth.csrf_token(request.cookies[auth.SESSION_COOKIE])}, headers=NO_STORE)
 
 
 @router.post("/logout")
@@ -54,7 +54,7 @@ def github_start(request: Request):
     return response
 
 
-def github_identity(transaction: dict, code: str) -> int:
+def github_identity(transaction: dict, code: str) -> dict:
     client_id, secret, callback = oauth_configuration()
     if transaction["callback"] != callback or not 1 <= len(code) <= 512:
         raise HTTPException(400, "oauth_invalid")
@@ -74,7 +74,7 @@ def github_identity(transaction: dict, code: str) -> int:
                 raise HTTPException(400, "oauth_scope_invalid")
             response = client.get("https://api.github.com/user")
             response.raise_for_status()
-            return response.json().get("id")
+            return response.json()
     except HTTPException:
         raise
     except Exception:
@@ -89,7 +89,8 @@ def github_callback(request: Request):
     if "iss" in params and params["iss"] != GITHUB_ISSUER:
         raise HTTPException(400, "oauth_issuer_invalid")
     transaction = auth.consume_oauth(request.query_params["state"], request.cookies.get(auth.OAUTH_COOKIE, ""))
-    grant = auth.create_member(github_identity(transaction, request.query_params["code"]))
+    identity = github_identity(transaction, request.query_params["code"])
+    grant = auth.create_member(identity.get("id"), name=identity.get("login"))
     response = RedirectResponse(auth.app_origin() + "/app/", status_code=303, headers={**NO_STORE, "Referrer-Policy": "no-referrer"})
     response.set_cookie(auth.SESSION_COOKIE, grant.token, max_age=auth.SESSION_SECONDS, **COOKIE)
     response.delete_cookie(auth.OAUTH_COOKIE, **COOKIE)

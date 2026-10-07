@@ -16,7 +16,19 @@ from pydantic import BaseModel
 from app import __version__, auth, budget, llm, telemetry
 from app.api.auth_routes import router as auth_router
 from app.config import AI_API_KEY, DB_PATH, QDRANT_URL
-from app.db import fetch_submission_detail, history_page, init_db, is_postgres, portfolio_summary, record_review, save_submission, seed_demo_database
+from app.db import (
+    claim_review,
+    fetch_submission_detail,
+    find_duplicates,
+    history_page,
+    init_db,
+    is_postgres,
+    portfolio_summary,
+    record_review,
+    release_claim,
+    save_submission,
+    seed_demo_database,
+)
 from app.graphql_api import graphql_router
 from app.interop import add_a2a, mcp, mcp_app
 from app.observability import ENABLED as TRACING_ENABLED
@@ -355,13 +367,43 @@ async def preview_underwriting(request: Request) -> dict[str, Any]:
         "prototype_mitigation_total": model["mitigation_benefit"],
         "positive_factors": model["positive_factors"],
         "risk_profile": model["risk_profile"],
+        "duplicates": find_duplicates(text("address"), text("zip")),
     }
 
 
 class Review(BaseModel):
     final_decision: str
-    reviewer: str
     note: str = ""
+
+
+def existing_submission(submission_id: int) -> dict[str, Any]:
+    detail = fetch_submission_detail(submission_id)
+    if detail is None:
+        raise HTTPException(status_code=404, detail="Submission not found")
+    return detail
+
+
+def reviewer_name(principal: auth.Principal) -> str:
+    return f"@{principal.name}" if principal.name else "a reviewer"
+
+
+@app.post("/underwrite/history/{submission_id}/claim")
+def claim_submission(submission_id: int, request: Request) -> dict[str, Any]:
+    """Hold a pending referral for 30 minutes so a second reviewer sees who is on it."""
+    principal = auth.require_reviewer(request)
+    existing_submission(submission_id)
+    conflict = claim_review(submission_id, principal.owner_id, reviewer_name(principal), int(time.time()))
+    if conflict:
+        raise HTTPException(status_code=409, detail=conflict)
+    return existing_submission(submission_id)
+
+
+@app.delete("/underwrite/history/{submission_id}/claim")
+def release_submission(submission_id: int, request: Request) -> dict[str, Any]:
+    principal = auth.require_reviewer(request)
+    existing_submission(submission_id)
+    release_claim(submission_id, principal.owner_id)
+    return existing_submission(submission_id)
 
 
 @app.post("/underwrite/history/{submission_id}/review")
@@ -369,25 +411,23 @@ def review_submission(submission_id: int, review: Review, request: Request) -> d
     """Resume a paused referral with the underwriter's decision (LangGraph human-in-the-loop)."""
     from app.agents.graph import REVIEW_DECISIONS, resume_review
 
-    auth.require_reviewer(request)
-
-    detail = fetch_submission_detail(submission_id)
-    if detail is None:
-        raise HTTPException(status_code=404, detail="Submission not found")
-    if detail.get("review_status") != "pending_review":
-        raise HTTPException(status_code=409, detail="This submission is not awaiting review")
+    principal = auth.require_reviewer(request)
+    detail = existing_submission(submission_id)
     if review.final_decision not in REVIEW_DECISIONS:
         raise HTTPException(status_code=422, detail=f"final_decision must be one of {', '.join(REVIEW_DECISIONS)}")
     if review.final_decision != detail["decision"] and not review.note.strip():
         raise HTTPException(status_code=422, detail="An override needs a note explaining why")
     status = "overridden" if review.final_decision != detail["decision"] else "approved"
+    reviewer = reviewer_name(principal)
+    conflict = record_review(submission_id, review.final_decision, principal.owner_id, reviewer, review.note, status, int(time.time()))
+    if conflict:
+        raise HTTPException(status_code=409, detail=conflict)
     try:
-        resume_review(detail["thread_id"], review.final_decision, review.reviewer, review.note)
+        resume_review(detail["thread_id"], review.final_decision, reviewer, review.note)
     except Exception as exc:
         print(f"[review] {submission_id} graph resume unavailable: {type(exc).__name__}: {exc}")
-    record_review(submission_id, review.final_decision, review.reviewer, review.note, status)
     flush()
-    return fetch_submission_detail(submission_id) or {}
+    return existing_submission(submission_id)
 
 
 @app.post("/underwrite/read-form")

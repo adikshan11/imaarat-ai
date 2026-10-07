@@ -7,7 +7,7 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 ORIGIN = "https://imaarat.test"
-REVIEW = {"final_decision": "Accept", "reviewer": "Reviewer", "note": ""}
+REVIEW = {"final_decision": "Accept", "note": ""}
 
 
 @pytest.fixture
@@ -44,7 +44,7 @@ def test_operator_passes_the_check_but_needs_csrf_and_origin(client):
 def test_github_sign_in_round_trip(client, monkeypatch):
     monkeypatch.setenv("GITHUB_CLIENT_ID", "client")
     monkeypatch.setenv("GITHUB_CLIENT_SECRET", "secret")
-    monkeypatch.setattr(auth_routes, "github_identity", lambda transaction, code: 7)
+    monkeypatch.setattr(auth_routes, "github_identity", lambda transaction, code: {"id": 7, "login": "octocat"})
     start = client.post("/auth/github/start", headers={"origin": ORIGIN})
     url = start.json()["authorization_url"]
     query = parse_qs(urlsplit(url).query, keep_blank_values=True)
@@ -56,7 +56,7 @@ def test_github_sign_in_round_trip(client, monkeypatch):
     callback = client.get("/auth/github/callback", params={"code": "abc", "state": query["state"][0], "iss": "https://github.com/login/oauth"}, follow_redirects=False)
     assert callback.status_code == 303 and callback.headers["location"] == ORIGIN + "/app/"
     session = client.get("/auth/session").json()
-    assert session["role"] == "operator" and len(session["csrf_token"]) == 64
+    assert session["role"] == "operator" and session["name"] == "octocat" and len(session["csrf_token"]) == 64
     replay = client.get("/auth/github/callback", params={"code": "abc", "state": query["state"][0]}, follow_redirects=False)
     assert replay.status_code == 400
 

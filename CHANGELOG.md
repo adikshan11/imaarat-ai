@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.37.0] - 2026-10-07
+
+### Added
+- Two reviewers can no longer decide the same referral: starting a review holds it for 30 minutes and shows others who has it, only the first saved decision counts, and the new-assessment form warns when the same address and PIN code were assessed before. Decisions are signed with the reviewer's GitHub username, and the Privacy Policy and Terms of Service now say so and explain the open-source licence.
+
 ## [2.36.0] - 2026-10-07
 
 ### Changed

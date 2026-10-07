@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Card from '@/components/shared/Card'
 import SelectField from '@/components/shared/SelectField'
-import { reviewSubmission } from '@/api/underwriting'
+import { claimSubmission, fetchSubmissionDetail, releaseSubmission, reviewSubmission } from '@/api/underwriting'
 import { usePreferences } from '@/context/Preferences'
 import { useSession } from '@/context/Session'
 import type { BackendSubmission } from '@/types/backend'
@@ -9,10 +9,9 @@ import type { BackendSubmission } from '@/types/backend'
 const DECISIONS = ['Accept', 'Refer', 'Decline (mitigation possible)', 'Auto-Decline']
 
 export default function ReviewPanel({ submission, onReviewed }: { submission: BackendSubmission; onReviewed: (updated: BackendSubmission) => void }) {
-  const { t, label } = usePreferences()
+  const { t, label, language } = usePreferences()
   const { session, reviewer: canReview, signIn } = useSession()
   const [finalDecision, setFinalDecision] = useState(submission.decision)
-  const [reviewer, setReviewer] = useState('')
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -37,14 +36,19 @@ export default function ReviewPanel({ submission, onReviewed }: { submission: Ba
   }
 
   const override = finalDecision !== submission.decision
-  const submit = async () => {
+  const holder = submission.claimed_by ?? null
+  const mine = Boolean(holder && session?.name && holder === `@${session.name}`)
+  const heldByOther = Boolean(holder && !mine)
+  const until = submission.claimed_until ? new Date(submission.claimed_until).toLocaleTimeString(language.code, { hour: '2-digit', minute: '2-digit' }) : ''
+  const act = async (call: (id: number, csrf: string) => Promise<BackendSubmission>) => {
     if (!submission.id || !session) return
     setBusy(true)
     setError(null)
     try {
-      onReviewed(await reviewSubmission(submission.id, { final_decision: finalDecision, reviewer: reviewer.trim(), note: note.trim() }, session.csrf_token))
+      onReviewed(await call(submission.id, session.csrf_token))
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : t('rev.error'))
+      onReviewed(await fetchSubmissionDetail(submission.id).catch(() => submission))
     } finally {
       setBusy(false)
     }
@@ -53,24 +57,22 @@ export default function ReviewPanel({ submission, onReviewed }: { submission: Ba
   return (
     <Card title={t('rev.title')} className="card-attention">
       <p>{t('rev.lead', { score: submission.risk_score })}</p>
+      {holder && <p className="notice" role="status">{mine ? t('rev.claimed_you', { time: until }) : t('rev.claimed', { who: holder, time: until })}</p>}
       <div className="form-grid form-gap">
-        <div className="form-row form-row-2">
-          <SelectField label={t('rev.final_label')} value={finalDecision} onChange={setFinalDecision} options={DECISIONS.map((decision) => ({ value: decision, label: label('decision', decision) }))} />
-          <label>
-            <span className="field-label-text">{t('rev.reviewer')}</span>
-            <input value={reviewer} onChange={(event) => setReviewer(event.target.value)} />
-          </label>
-        </div>
+        <SelectField label={t('rev.final_label')} value={finalDecision} onChange={setFinalDecision} options={DECISIONS.map((decision) => ({ value: decision, label: label('decision', decision) }))} />
         <label>
           <span className="field-label-text">{t('rev.note_label')} {t(override ? 'rev.note_required' : 'rev.note_optional')}</span>
           <input value={note} onChange={(event) => setNote(event.target.value)} placeholder={t('rev.note_ph')} />
         </label>
       </div>
+      {canReview && session?.name && <p className="card-footnote">{t('rev.signing_as', { who: `@${session.name}` })}</p>}
       {error && <div className="error-banner">{error}</div>}
       {!canReview && <p className="card-footnote">{t(session ? 'auth.need_reviewer_role' : 'auth.need_reviewer')}</p>}
       <div className="form-actions form-gap">
+        {canReview && !holder && <button className="btn btn-secondary" disabled={busy} onClick={() => void act(claimSubmission)}>{t('rev.claim')}</button>}
+        {canReview && mine && <button className="btn btn-secondary" disabled={busy} onClick={() => void act(releaseSubmission)}>{t('rev.release')}</button>}
         {canReview
-          ? <button className="btn btn-primary" disabled={busy || !reviewer.trim() || (override && !note.trim())} onClick={() => void submit()}>
+          ? <button className="btn btn-primary" disabled={busy || heldByOther || (override && !note.trim())} onClick={() => void act((id, csrf) => reviewSubmission(id, { final_decision: finalDecision, note: note.trim() }, csrf))}>
               {busy ? t('rev.saving') : t(override ? 'rev.override' : 'rev.approve')}
             </button>
           : !session && <button className="btn btn-primary" onClick={() => void signIn()}>{t('auth.sign_in')}</button>}
