@@ -35,7 +35,7 @@ export function Footer() {
   const columns: Array<[string, Array<[string, string]>]> = [
     ['Legal', [['Privacy Policy', '/privacy/'], ['Terms of Service', '/terms/'], ['MIT License', `${REPO}/blob/main/LICENSE`]]],
     ['Product', [['Open the app', APP], ['How it works', `${APP}#how`], ['Status', `${APP}#status`], ['Changelog', '/changelog/'], ['FAQ', '/#faq']]],
-    ['Connect', [['GitHub', REPO], ['Report an issue', `${REPO}/issues/new`]]],
+    ['Connect', [['GitHub', REPO], ['LinkedIn', 'https://www.linkedin.com/in/adithya-shankaran'], ['Email', 'mailto:adikshan11@gmail.com'], ['Portfolio', 'https://adithya-shankaran.vercel.app'], ['Report an issue', `${REPO}/issues/new`]]],
   ]
   return (
     <footer className="border-t border-forest-900/10 bg-white">
