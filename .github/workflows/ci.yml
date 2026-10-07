@@ -47,12 +47,13 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - run: pip install -r requirements.txt pytest httpx ruff==0.14.0
+      - run: pip install -r requirements.txt pytest httpx ruff==0.14.0 pytest-timeout==2.4.0
       - name: Lint (ruff)
         run: ruff check backend pipeline
       - name: Format check (ruff)
         run: ruff format --check backend pipeline
-      - run: pytest -q
+      - name: Tests (each test stops after 120 s and prints where it was stuck)
+        run: pytest -q --timeout=120
         working-directory: backend
 
   frontend:
