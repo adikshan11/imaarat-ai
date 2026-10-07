@@ -30,19 +30,19 @@ function Hero() {
       <img {...hero} sizes="100vw" alt="" width={2560} height={1440} fetchPriority="high" decoding="async" className="absolute inset-0 -z-20 size-full object-cover object-[70%_center]" />
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-forest-950 via-forest-950/85 to-forest-950/10" />
       <div className="mx-auto max-w-6xl px-4 pt-20 pb-16 sm:px-6 sm:pt-28 sm:pb-24 lg:pt-32">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-mint-300">Commercial property insurance · India</p>
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-mint-300">Property risk underwriting · India</p>
         <h1 className="mt-4 max-w-2xl text-4xl font-bold leading-[1.1] tracking-tight text-balance sm:text-5xl lg:text-6xl">
-          From a hand-filled proposal to a clear, cited risk decision.
+          Verified property risk decisions for Indian insurers.
         </h1>
         <p className="mt-6 max-w-xl text-lg leading-relaxed text-white/85">
-          imaarat.ai checks the property’s PIN code against government hazard data, applies written underwriting rules and explains the result in plain words. You stay in charge of every decision.
+          imaarat.ai reads hand-filled proposals in Indian languages, checks what each one declares against official hazard data for its PIN code, and gives your underwriter a scored, explained decision to sign off.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <a href={`${APP}#new`} className="inline-flex h-12 items-center rounded-full bg-mint-300 px-6 font-semibold text-forest-950 shadow-lg shadow-black/20 transition hover:bg-white">Try the free demo</a>
-          <a href={`${APP}#paper`} className="inline-flex h-12 items-center rounded-full border border-white/40 px-6 font-semibold text-white transition hover:bg-white/10">See the paper form</a>
+          <a href={`${APP}#new`} className="inline-flex h-12 items-center rounded-full bg-mint-300 px-6 font-semibold text-forest-950 shadow-lg shadow-black/20 transition hover:bg-white">Try the live demo</a>
+          <a href={`${APP}#paper`} className="inline-flex h-12 items-center rounded-full border border-white/40 px-6 font-semibold text-white transition hover:bg-white/10">See a paper proposal</a>
         </div>
-        <dl className="mt-14 grid max-w-2xl grid-cols-1 gap-6 border-t border-white/15 pt-8 sm:grid-cols-3">
-          {[['19,312', 'PIN codes with hazard data'], ['26', 'Indian languages'], ['1 page', 'paper proposal, read by AI']].map(([value, label]) => (
+        <dl className="mt-14 grid max-w-3xl grid-cols-2 gap-6 border-t border-white/15 pt-8 sm:grid-cols-4">
+          {[['19,312', 'PIN codes covered, metro to rural'], ['11', 'official and public data sources'], ['26', 'Indian languages'], ['MIT', 'open-source licence']].map(([value, label]) => (
             <div key={label}>
               <dt className="sr-only">{label}</dt>
               <dd className="text-3xl font-bold tracking-tight">{value}</dd>
@@ -55,26 +55,131 @@ function Hero() {
   )
 }
 
-function Steps() {
-  const steps = [
-    ['Enter or photograph the proposal', 'Type the details, or print the one-page form, let the business owner fill it by hand and take a photo. AI reads it and a person confirms every value.'],
-    ['Check hazards and apply the rules', 'The PIN code brings in earthquake zone, flood history and cyclone exposure. Written rules score the risk and show the points behind the decision.'],
-    ['Read the summary and approve', 'An AI risk summary explains the decision and cites the guideline used. Referrals wait for an underwriter, and every override is noted.'],
-  ]
+const checks = [
+  ['Earthquake zone', 'If a proposal states a lower zone than the IS 1893 map gives for its PIN code, the official zone is scored and the case is flagged.'],
+  ['Flood history', 'Satellite-observed flooding from 1998 to 2022, and flooding spots published by city corporations, are added even when the proposal is silent.'],
+  ['Cyclone exposure', 'Properties in districts that the India Meteorological Department lists as cyclone-prone are flagged automatically.'],
+]
+
+function Verified() {
   return (
-    <section id="steps" className="scroll-mt-20 py-20 sm:py-28">
+    <section id="verify" className="scroll-mt-20 py-20 sm:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">Rules decide. AI explains. You approve.</h2>
-        <p className="mt-4 max-w-2xl text-lg text-muted">Three steps from proposal to decision, each one visible and checkable.</p>
-        <ol className="mt-12 grid gap-6 md:grid-cols-3">
-          {steps.map(([title, body], index) => (
-            <li key={title} className="rounded-3xl border border-forest-900/10 bg-white p-7 shadow-sm">
-              <span className="flex size-10 items-center justify-center rounded-full bg-mint-100 font-bold text-forest-900">{index + 1}</span>
-              <h3 className="mt-5 text-xl font-semibold text-forest-900">{title}</h3>
+        <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">Declared is not the same as verified.</h2>
+        <p className="mt-4 max-w-2xl text-lg text-muted">Proposals are filled in by the people asking for cover. imaarat.ai checks what they declare against sources they do not control.</p>
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {checks.map(([title, body]) => (
+            <div key={title} className="rounded-3xl border border-forest-900/10 bg-white p-7 shadow-sm">
+              <h3 className="text-xl font-semibold text-forest-900">{title}</h3>
               <p className="mt-3 leading-relaxed text-muted">{body}</p>
-            </li>
+            </div>
           ))}
-        </ol>
+        </div>
+        <p className="mt-6 text-sm text-muted">The live portfolio shows how many proposals understate their hazards.</p>
+      </div>
+    </section>
+  )
+}
+
+const stages = [
+  ['intake', 'Intake', 'Type the proposal, or photograph the one-page paper form. AI reads the fields in the proposer’s language, and a person confirms each value before it is used.'],
+  ['hazard', 'Verification', 'The PIN code brings in the official earthquake zone, flood history, cyclone exposure and known city flooding spots, each with its source.'],
+  ['rules', 'Scoring', 'Written underwriting rules score the risk and show every point: which hazards added risk and which protections took it away.'],
+  ['summary', 'Explanation', 'An AI risk summary explains the decision in plain words and cites the guideline it relied on. If the AI is unavailable, the rules still decide and the page says so.'],
+  ['review', 'Sign-off', 'Referrals wait for a signed-in reviewer. An override needs a written reason, and every decision can be downloaded as a PDF report.'],
+  ['portfolio', 'Portfolio', 'See exposure across every assessment, live: decisions, risk bands, the most common risk drivers and how many proposals understate their hazards.'],
+]
+
+function Journey() {
+  return (
+    <section id="steps" className="scroll-mt-20 bg-white py-20 sm:py-28">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">From paper proposal to signed-off decision.</h2>
+        <p className="mt-4 max-w-2xl text-lg text-muted">Six steps. Each one is recorded and can be inspected later.</p>
+        <div role="tablist" aria-label="Underwriting steps" data-tabs className="mt-10 flex gap-2 overflow-x-auto pb-1">
+          {stages.map(([id, label], index) => (
+            <button key={id} type="button" role="tab" id={`stage-tab-${id}`} aria-selected={index === 0} aria-controls={`stage-${id}`} tabIndex={index === 0 ? 0 : -1}
+              className="group h-11 shrink-0 rounded-full bg-sand-50 px-5 text-sm font-semibold text-forest-900 ring-1 ring-forest-900/15 transition hover:bg-mint-50 aria-selected:bg-forest-900 aria-selected:text-white aria-selected:ring-0">
+              <span className="mr-2 text-forest-700 group-aria-selected:text-mint-300">{index + 1}</span>{label}
+            </button>
+          ))}
+        </div>
+        {stages.map(([id, label, body], index) => (
+          <div key={id} role="tabpanel" id={`stage-${id}`} aria-labelledby={`stage-tab-${id}`} hidden={index !== 0} className="mt-6 rounded-3xl border border-forest-900/10 bg-sand-50 p-8 sm:p-10">
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-forest-700">Step {index + 1} of {stages.length}</p>
+            <h3 className="mt-2 text-2xl font-bold tracking-tight text-forest-900">{label}</h3>
+            <p className="mt-3 max-w-3xl text-lg leading-relaxed text-muted">{body}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+const modules = [
+  ['Paper reader', 'Turns a photographed proposal into structured fields.', 'backend/app/tools/form_reader.py'],
+  ['Hazard verification', 'Official hazards for any of 19,312 PIN codes, with sources.', 'backend/app/tools/hazard_lookup.py'],
+  ['Rule engine', 'Scores the risk and explains every point.', 'backend/app/tools/risk_calculator.py'],
+  ['AI risk summary', 'Writes the explanation and cites the guideline used.', 'backend/app/agents/report_agent.py'],
+  ['Sign-off and reports', 'Reviewer approval with reasons, then a PDF report.', 'backend/app/reports.py'],
+  ['Open APIs', 'GraphQL, MCP and A2A, so other systems and AI agents can use it.', 'backend/app/interop.py'],
+]
+
+function Modules() {
+  return (
+    <section className="bg-forest-950 py-20 text-white sm:py-28">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <h2 className="max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">Modular by design.</h2>
+        <p className="mt-4 max-w-2xl text-lg text-white/75">Use the whole workflow, or call one module from your own systems. Every module is open source and covered by tests.</p>
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {modules.map(([name, body, path]) => (
+            <a key={name} href={`${REPO}/blob/main/${path}`} className="group rounded-3xl border border-white/10 bg-white/5 p-7 transition hover:border-mint-300/50 hover:bg-white/10">
+              <h3 className="text-xl font-semibold">{name}</h3>
+              <p className="mt-2 leading-relaxed text-white/75">{body}</p>
+              <span className="mt-4 inline-block font-mono text-xs text-mint-300 group-hover:underline">{path.split('/').pop()}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+const audiences = [
+  ['Underwriters at insurers', 'Spend time on judgement, not data entry. The hazard facts, the score breakdown and a draft explanation are ready before you start.'],
+  ['Brokers and agents', 'Collect a proposal on paper at the shop counter, photograph it, and see an indicative decision in under a minute, in the client’s language.'],
+  ['Business owners', 'See why a property is rated the way it is, and how protections such as sprinklers, fire alarms or flood barriers change the picture.'],
+]
+
+const reasons = [
+  ['Every PIN code, not only metros', 'The same checks run for a taluka town as for Mumbai, because they come from national public datasets.'],
+  ['Starts where Indian business starts', 'Proposals filled in by hand, in the proposer’s language, are read by AI and confirmed by a person, so nothing has to be retyped.'],
+  ['Decisions you can defend', 'Written rules decide, the AI explains with citations, and a person signs off. Every step is recorded.'],
+  ['Open and inspectable', 'MIT-licensed code, public test runs and a live status page. Run it yourself, or use the hosted demo.'],
+]
+
+function Audiences() {
+  return (
+    <section className="py-20 sm:py-28">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">Who it is for.</h2>
+        <div className="mt-12 grid gap-6 md:grid-cols-3">
+          {audiences.map(([title, body]) => (
+            <div key={title} className="rounded-3xl border border-forest-900/10 bg-white p-7 shadow-sm">
+              <h3 className="text-xl font-semibold text-forest-900">{title}</h3>
+              <p className="mt-3 leading-relaxed text-muted">{body}</p>
+            </div>
+          ))}
+        </div>
+        <h2 className="mt-24 max-w-2xl text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">Why imaarat.ai.</h2>
+        <dl className="mt-10 grid gap-x-12 gap-y-8 sm:grid-cols-2">
+          {reasons.map(([title, body]) => (
+            <div key={title} className="border-l-4 border-mint-300 pl-5">
+              <dt className="text-lg font-semibold text-forest-900">{title}</dt>
+              <dd className="mt-2 leading-relaxed text-muted">{body}</dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   )
@@ -200,8 +305,11 @@ export default function Landing() {
       <Header />
       <main id="main">
         <Hero />
-        <Steps />
+        <Verified />
+        <Journey />
+        <Modules />
         <Features />
+        <Audiences />
         <Tour />
         <Checked />
         <Faq />
