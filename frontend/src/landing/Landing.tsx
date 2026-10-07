@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { version } from '../../package.json'
 import { APP, Footer, Header, REPO, SkipLink } from './site.tsx'
 
 
@@ -30,7 +31,10 @@ function Hero() {
       <img {...hero} sizes="100vw" alt="" width={2560} height={1440} fetchPriority="high" decoding="async" className="absolute inset-0 -z-20 size-full object-cover object-[70%_center]" />
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-forest-950 via-forest-950/85 to-forest-950/10" />
       <div className="mx-auto max-w-6xl px-4 pt-20 pb-16 sm:px-6 sm:pt-28 sm:pb-24 lg:pt-32">
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-mint-300">Property risk underwriting · India</p>
+        <a href="/changelog/" className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-white/90 transition hover:bg-white/20">
+          <span className="rounded-full bg-mint-300 px-2 py-0.5 font-semibold text-forest-950">v{version.split('.').slice(0, 2).join('.')}</span> See what’s new →
+        </a>
+        <p className="mt-6 text-sm font-semibold uppercase tracking-[0.18em] text-mint-300">Property risk underwriting · India</p>
         <h1 className="mt-4 max-w-2xl text-4xl font-bold leading-[1.1] tracking-tight text-balance sm:text-5xl lg:text-6xl">
           Verified property risk decisions for Indian insurers.
         </h1>
@@ -60,6 +64,19 @@ const checks = [
   ['Flood history', 'Satellite-observed flooding from 1998 to 2022, and flooding spots published by city corporations, are added even when the proposal is silent.'],
   ['Cyclone exposure', 'Properties in districts that the India Meteorological Department lists as cyclone-prone are flagged automatically.'],
 ]
+
+const stack = ['Google Gemini', 'LangGraph', 'PostgreSQL', 'Langfuse', 'GraphQL', 'MCP', 'A2A', 'Vercel']
+
+function WorksWith() {
+  return (
+    <section aria-label="Works with" className="border-b border-forest-900/10 bg-white py-8">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 gap-y-3 px-4 text-sm font-semibold text-muted sm:px-6">
+        <span className="text-xs uppercase tracking-[0.16em] text-forest-700">Works with</span>
+        {stack.map((name) => <span key={name}>{name}</span>)}
+      </div>
+    </section>
+  )
+}
 
 function Verified() {
   return (
@@ -228,20 +245,25 @@ function Tour() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <h2 className="text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">See the product</h2>
         <p className="mt-4 max-w-2xl text-lg text-muted">Screenshots from the live demo, which uses sample properties only.</p>
-        <div role="tablist" aria-label="Product screens" data-tabs className="mt-10 flex gap-2 overflow-x-auto pb-1">
+        <div data-tabs-region>
+          <div className="mt-10 flex items-center gap-2">
+            <div role="tablist" aria-label="Product screens" id="tour-tabs" data-tabs data-tabs-auto="6000" className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1">
+              {tour.map((item, index) => (
+                <button key={item.id} type="button" role="tab" id={`tab-${item.id}`} aria-selected={index === 0} aria-controls={`panel-${item.id}`} tabIndex={index === 0 ? 0 : -1}
+                  className="h-11 shrink-0 rounded-full bg-white px-5 text-sm font-semibold text-forest-900 ring-1 ring-forest-900/15 transition hover:bg-mint-50 aria-selected:bg-forest-900 aria-selected:text-white aria-selected:ring-0">
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <button type="button" data-tabs-toggle hidden className="h-11 shrink-0 rounded-full px-4 text-sm font-semibold text-forest-900 ring-1 ring-forest-900/15 hover:bg-mint-50">Pause</button>
+          </div>
           {tour.map((item, index) => (
-            <button key={item.id} type="button" role="tab" id={`tab-${item.id}`} aria-selected={index === 0} aria-controls={`panel-${item.id}`} tabIndex={index === 0 ? 0 : -1}
-              className="h-11 shrink-0 rounded-full bg-white px-5 text-sm font-semibold text-forest-900 ring-1 ring-forest-900/15 transition hover:bg-mint-50 aria-selected:bg-forest-900 aria-selected:text-white aria-selected:ring-0">
-              {item.label}
-            </button>
+            <div key={item.id} role="tabpanel" id={`panel-${item.id}`} aria-labelledby={`tab-${item.id}`} hidden={index !== 0} className="mt-6">
+              <img src={`/landing/shot-${item.image}-1440.webp`} srcSet={`/landing/shot-${item.image}-720.webp 720w, /landing/shot-${item.image}-1440.webp 1440w`} sizes="(min-width: 1152px) 1104px, 100vw"
+                alt={item.alt} width={1440} height={900} loading="lazy" decoding="async" className="w-full rounded-2xl border border-forest-900/10 bg-white shadow-2xl shadow-forest-950/15" />
+            </div>
           ))}
         </div>
-        {tour.map((item, index) => (
-          <div key={item.id} role="tabpanel" id={`panel-${item.id}`} aria-labelledby={`tab-${item.id}`} hidden={index !== 0} className="mt-6">
-            <img src={`/landing/shot-${item.image}-1440.webp`} srcSet={`/landing/shot-${item.image}-720.webp 720w, /landing/shot-${item.image}-1440.webp 1440w`} sizes="(min-width: 1152px) 1104px, 100vw"
-              alt={item.alt} width={1440} height={900} loading="lazy" decoding="async" className="w-full rounded-2xl border border-forest-900/10 bg-white shadow-2xl shadow-forest-950/15" />
-          </div>
-        ))}
       </div>
     </section>
   )
@@ -305,6 +327,7 @@ export default function Landing() {
       <Header />
       <main id="main">
         <Hero />
+        <WorksWith />
         <Verified />
         <Journey />
         <Modules />
