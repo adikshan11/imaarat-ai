@@ -25,7 +25,7 @@ def export(table, name: str) -> int:
     with tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False, encoding="utf-8") as handle:
         for row in rows:
             handle.write(json.dumps(row, default=str) + "\n")
-    duckdb.sql(f"COPY (SELECT * FROM read_json_auto('{handle.name}', format='newline_delimited')) TO '{LAKE / name}.parquet' (FORMAT parquet)")
+    duckdb.sql(f"COPY (SELECT * FROM read_json_auto('{handle.name}', format='newline_delimited')) TO '{LAKE / name}.parquet' (FORMAT parquet)")  # noqa: S608 - paths come from a temp file and a constant table name
     Path(handle.name).unlink()
     return len(rows)
 

@@ -1,0 +1,40 @@
+# Run imaarat.ai yourself: docker compose up --build, then open http://localhost:8080
+# AI features need GEMINI_API_KEY in your shell or in a .env file next to this one; without it the rules still decide.
+services:
+  db:
+    image: postgres:17@sha256:e31e3d5327d1806f6177827c9710643e4f35f7ab3f14d26d05332753d3e95ee0
+    environment:
+      POSTGRES_USER: imaarat
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-imaarat}
+      POSTGRES_DB: imaarat
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U imaarat"]
+      interval: 5s
+      retries: 20
+
+  api:
+    build:
+      context: .
+      dockerfile: deploy/docker/api.Dockerfile
+    environment:
+      DATABASE_URL: postgresql+psycopg://imaarat:${POSTGRES_PASSWORD:-imaarat}@db:5432/imaarat
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080/api}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: deploy/docker/web.Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  db-data:

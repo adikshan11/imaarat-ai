@@ -1,7 +1,7 @@
 name: CI/CD
 
-# Stage 1 checks every pull request and every push to main.
-# Stage 2 deploys to production only from main, only after every check passes, then confirms the live version.
+# Stage 1 checks every pull request and every push to main: rules, lint, tests, secrets and the container build.
+# Stage 2 on a pull request deploys a preview and smoke-tests it; on main it deploys production and smoke-tests that.
 
 on:
   push:
@@ -94,9 +94,73 @@ jobs:
       - run: dbt build --profiles-dir .
         working-directory: pipeline/dbt
 
+  secrets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Scan every commit for secrets (gitleaks)
+        run: |
+          curl -sSL -o gitleaks.tgz https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  gitleaks.tgz" | sha256sum --check
+          tar -xzf gitleaks.tgz gitleaks
+          ./gitleaks git --redact --no-banner --config .gitleaks.toml --exit-code 1 .
+
+  container:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Build the API and web images
+        run: docker compose build
+      - name: Start Postgres, API and web together
+        run: docker compose up -d --wait --wait-timeout 180
+      - name: Smoke test the self-hosted stack
+        run: .github/scripts/smoke_check.sh http://localhost:8080
+      - name: Image sizes
+        run: docker image ls --format "{{.Repository}}:{{.Tag}} {{.Size}}" | grep -i imaarat || true
+      - name: Logs on failure
+        if: failure()
+        run: docker compose logs --tail 200
+      - if: always()
+        run: docker compose down -v
+
+  preview:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    needs: [backend, frontend, pipeline]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      VERCEL_ORG_ID: team_IjFtm7aRrxcQ8mlUKZGG864P
+      VERCEL_PROJECT_ID: prj_KG8CVLdeu5KR5eyJnuPWTHyS12zT
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 22
+      - name: Deploy a preview
+        id: preview
+        run: |
+          url=$(npx --yes vercel@62.7.0 deploy --yes --token "$VERCEL_TOKEN")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "Preview: $url" >> "$GITHUB_STEP_SUMMARY"
+      - name: Smoke test the preview
+        run: |
+          if [ -z "$BYPASS" ]; then echo "::error::Add the VERCEL_AUTOMATION_BYPASS_SECRET repository secret so CI can open protected previews"; exit 1; fi
+          .github/scripts/smoke_check.sh "${{ steps.preview.outputs.url }}"
+
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [backend, frontend, pipeline]
+    needs: [backend, frontend, pipeline, secrets, container]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     concurrency:
@@ -121,18 +185,5 @@ jobs:
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then echo "::error::Add the VERCEL_TOKEN repository secret to deploy from CI"; exit 1; fi
           npx --yes vercel@62.7.0 deploy --prod --yes --token "$VERCEL_TOKEN"
-      - name: Confirm the live version
-        run: |
-          expected=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' backend/app/__init__.py)
-          for attempt in $(seq 1 20); do
-            live=$(curl -fsS "$SITE/api/status" | python3 -c 'import json,sys; print(json.load(sys.stdin)["version"])' || true)
-            [ "$live" = "$expected" ] && break
-            sleep 6
-          done
-          if [ "$live" != "$expected" ]; then echo "::error::Live version is '$live', expected $expected"; exit 1; fi
-          for path in / /app/ /privacy/ /terms/ /changelog/; do
-            code=$(curl -s -o /dev/null -w "%{http_code}" "$SITE$path")
-            [ "$code" = "200" ] || { echo "::error::$path returned $code"; exit 1; }
-          done
-          curl -sI "$SITE/app/" | grep -qi "^content-security-policy:" || { echo "::error::Security headers missing on /app/"; exit 1; }
-          echo "Live: $expected, all pages 200, security headers present"
+      - name: Confirm the live site
+        run: .github/scripts/smoke_check.sh "$SITE"

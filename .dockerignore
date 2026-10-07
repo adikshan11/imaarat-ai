@@ -1,0 +1,11 @@
+**/.env
+**/.env.*
+.git
+.github
+.vercel
+.ruff_cache
+**/__pycache__
+**/node_modules
+frontend/dist
+backend/data/db
+learning_arch.md

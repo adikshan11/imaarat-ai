@@ -111,18 +111,36 @@ One Vercel project: `frontend/` builds to static files, and `api/index.py` serve
 | `QDRANT_URL`, `QDRANT_API_KEY` | RAG vector store |
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | Tracing |
 | `DATABASE_URL` | Postgres for submissions, checkpoints and analytics |
-| `VERCEL_TOKEN` (GitHub only) | Production deploys from CI |
+| `VERCEL_TOKEN` (GitHub only) | Preview and production deploys from CI |
+| `VERCEL_AUTOMATION_BYPASS_SECRET` (GitHub only) | Smoke-testing protected previews |
+
+## Run it yourself
+
+Everything runs in Docker with one command: Postgres, the API and the website.
+
+```bash
+docker compose up --build
+# open http://localhost:8080
+```
+
+AI features need `GEMINI_API_KEY` in your shell or in a `.env` file next to `compose.yaml`; without it the rules still decide every assessment. Images are defined in `deploy/docker/`, and CI builds and smoke-tests this exact stack on every pull request.
 
 ## CI/CD and conventions
 
-`.github/workflows/ci.yml` runs in two stages.
+`.github/workflows/ci.yml` runs in two stages, modelled on the framework repositories' Check and Deploy stages.
 
 1. **Check**, on every pull request and every push to `main`:
    - release rules (pull requests only): branch name, one version across `backend/app/__init__.py` and `frontend/package*.json`, a version above `main`'s, and a CHANGELOG entry for it;
-   - backend: ruff lint and format check (settings in `ruff.toml`), then pytest against Postgres;
+   - backend: ruff lint (including the Bandit security rules) and format check (settings in `ruff.toml`), then pytest against Postgres, with each test stopped after 120 seconds;
    - frontend: locale check, oxlint, type check and build, unit tests, then Playwright browser tests;
-   - pipeline: extract and `dbt build`.
-2. **Deploy**, only from `main` and only after every check passes: Vercel production deploy, then a check that the live `/api/status` reports the new version, every public page returns 200 and the security headers are present.
+   - pipeline: extract and `dbt build`;
+   - secrets: gitleaks over the full git history (allowed patterns in `.gitleaks.toml`);
+   - container: build the images, start the compose stack and smoke-test it.
+2. **Deploy**:
+   - on a pull request, a Vercel preview is deployed and smoke-tested through Vercel's automation bypass;
+   - on `main`, after every check passes, production is deployed and smoke-tested.
+
+The smoke test (`.github/scripts/smoke_check.sh`) is shared by all three: the live `/api/status` must report this checkout's version, every public page must return 200, and the security headers must be present.
 
 Conventions:
 
