@@ -125,7 +125,7 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
           <Brand sub={t('brand.sub')} onHome={() => onNavigate('dashboard')} />
           <nav className="nav" aria-label={t('nav.section')}>{items.map((item) => link(item, 'nav-item', items))}</nav>
           <div className="sidebar-footer">
-            <Controls />
+            <Controls onAccount={() => onNavigate('account')} />
             <div className="sidebar-tagline">{t('footer.underwriter')}</div>
           </div>
         </div>
@@ -133,7 +133,7 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
 
       <header className="topbar">
         <Brand sub={t('brand.sub')} onHome={() => onNavigate('dashboard')} />
-        <Controls compact />
+        <Controls compact onAccount={() => onNavigate('account')} />
       </header>
       <nav ref={tabbar} className={`tabbar${scrubbing ? ' is-scrubbing' : ''}`} aria-label={t('nav.section')} onPointerDown={(event) => {
         blockClick.current = false

@@ -39,7 +39,8 @@ export function Privacy() {
           <li><strong>Photos.</strong> A property photo is kept in temporary server storage while the assessment runs and disappears when the server restarts. A photo of the paper form is read and not stored.</li>
           <li><strong>Request records:</strong> for each request, the page or API route, the result code and how long it took. Not what you typed. Kept for 14 days.</li>
           <li><strong>A daily visitor count.</strong> To share the daily AI allowance fairly, requests are counted per visitor using a one-way code made from the IP address that changes every day. The address itself is not stored.</li>
-          <li><strong>Signing in</strong> is optional. The demo, including its AI features, works without it; reviewing referrals needs it. If you sign in with GitHub, we store your GitHub account’s numeric ID and username, your role and a hashed copy of your session. If you sign in with Google, we store only your Google account’s numeric ID, your role and a hashed copy of your session. When you start reviewing or decide a referral, your username is shown with it to anyone who opens that assessment. We do not receive your email address, contacts or repositories.</li>
+          <li><strong>Signing in</strong> is optional. The demo, including its AI features, works without it; reviewing referrals needs it. If you sign in with GitHub, we store your GitHub account’s numeric ID and username, your role and a hashed copy of your session. If you sign in with Google, we store only your Google account’s numeric ID, your role and a hashed copy of your session. We do not receive your email address, contacts or repositories.</li>
+          <li><strong>Your profile.</strong> After signing in you add your full name and mobile number before using the app, and you can add a photo. The photo is resized to a small square and its camera details are removed. Your name is shown with the referrals you start reviewing or decide, to anyone who opens that assessment. Your mobile number and photo are shown only to you.</li>
           <li><strong>Your browser</strong> keeps your language and light or dark choice in local storage. If you sign in, one cookie keeps you signed in; it is removed when you sign out. There are no analytics or advertising trackers.</li>
         </ul>
       </section>
@@ -55,7 +56,7 @@ export function Privacy() {
       </section>
       <section>
         <h2>How long it is kept</h2>
-        <p>Assessments stay until they are removed. Request records are deleted after 14 days. AI quality records are available for 30 days. A sign-in session ends after 30 minutes without activity or 12 hours at most; your account record stays until you ask for it to be removed.</p>
+        <p>Assessments stay until they are removed. Request records are deleted after 14 days. AI quality records are available for 30 days. A sign-in session ends after 30 minutes without activity or 12 hours at most; your account record and profile stay until you ask for them to be removed.</p>
       </section>
       <section>
         <h2>Your choices</h2>
@@ -86,7 +87,7 @@ export function Terms() {
           <li>Use sample data only; do not enter personal or confidential information.</li>
           <li>Do not try to overload the service, get around its limits or attack it. The public APIs (GraphQL, MCP and A2A) follow the same limits as the app.</li>
           <li>The demo has a small daily AI allowance shared by everyone. When it runs out, the rules still decide and the page says so.</li>
-          <li>Signing in with GitHub is optional. Approving or overriding a referral needs a reviewer account, and you are responsible for what is done with yours. A reviewer who starts a review holds that referral for 30 minutes, and the first decision saved is the one that counts.</li>
+          <li>Signing in with GitHub or Google is optional. After signing in you add your real full name and a mobile number you can be reached on before using the app. Approving or overriding a referral needs a reviewer account, and you are responsible for what is done with yours. A reviewer who starts a review holds that referral for 30 minutes, and the first decision saved is the one that counts.</li>
         </ul>
       </section>
       <section>

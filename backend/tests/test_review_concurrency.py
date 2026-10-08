@@ -3,7 +3,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
-from app import auth, db
+from app import auth, db, profile
 from app.api import main
 from fastapi.testclient import TestClient
 from sqlalchemy import update
@@ -27,6 +27,7 @@ def pending_referral() -> int:
 
 def reviewer(github_id: int, name: str) -> tuple[TestClient, dict]:
     grant = auth.create_member(github_id, name=name)
+    profile.save(grant.principal.owner_id, name.capitalize(), "9876543210")
     with auth.engine().begin() as conn:
         conn.execute(update(auth.users).where(auth.users.c.github_id == github_id).values(role="reviewer"))
     client = TestClient(main.app, base_url="https://testserver")
@@ -41,21 +42,21 @@ def test_a_claimed_referral_tells_the_second_reviewer_who_has_it(app_db):
 
     claimed = ana.post(f"/underwrite/history/{submission_id}/claim", headers=ana_headers)
     assert claimed.status_code == 200
-    assert claimed.json()["claimed_by"] == "@ana"
+    assert claimed.json()["claimed_by"] == "Ana"
 
     blocked = bea.post(f"/underwrite/history/{submission_id}/claim", headers=bea_headers)
     assert blocked.status_code == 409
-    assert blocked.json()["detail"].startswith("@ana is reviewing this referral until")
+    assert blocked.json()["detail"].startswith("Ana is reviewing this referral until")
     assert bea.post(f"/underwrite/history/{submission_id}/review", json={"final_decision": "Refer"}, headers=bea_headers).status_code == 409
 
     decided = ana.post(f"/underwrite/history/{submission_id}/review", json={"final_decision": "Refer"}, headers=ana_headers)
     assert decided.status_code == 200
-    assert decided.json()["reviewer"] == "@ana"
+    assert decided.json()["reviewer"] == "Ana"
     assert decided.json()["claimed_by"] is None
 
     late = bea.post(f"/underwrite/history/{submission_id}/review", json={"final_decision": "Accept", "note": "x"}, headers=bea_headers)
     assert late.status_code == 409
-    assert late.json()["detail"] == "This referral was already decided by @ana."
+    assert late.json()["detail"] == "This referral was already decided by Ana."
 
 
 def test_a_released_or_expired_claim_frees_the_referral(app_db):
