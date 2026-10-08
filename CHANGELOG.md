@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.38.2] - 2026-10-08
+
+### Changed
+- Personal study notes kept in the project folder are no longer picked up by git.
+
 ## [2.38.1] - 2026-10-08
 
 ### Changed
