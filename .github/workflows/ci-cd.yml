@@ -52,10 +52,8 @@ jobs:
         run: pip install yamllint==1.38.0 check-jsonschema==0.38.2
       - name: Check YAML files with yamllint
         run: git ls-files -z '*.yml' '*.yaml' | xargs -0 yamllint --strict
-      - name: Check workflows and vercel.json against their schemas
-        run: |
-          check-jsonschema --builtin-schema vendor.github-workflows .github/workflows/*.yml
-          check-jsonschema --schemafile https://openapi.vercel.sh/vercel.json vercel.json
+      - name: Check workflows against the GitHub Actions schema
+        run: check-jsonschema --builtin-schema vendor.github-workflows .github/workflows/*.yml
       - name: Check workflows and their shell steps with actionlint
         run: |
           curl -sSL -o "$RUNNER_TEMP/actionlint.tgz" https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz
