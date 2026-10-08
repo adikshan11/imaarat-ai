@@ -108,9 +108,21 @@ class Query:
         return await run_in_threadpool(fetch_submission_detail, id)
 
 
+def depth_limit() -> QueryDepthLimiter:
+    return QueryDepthLimiter(max_depth=4)
+
+
+def alias_limit() -> MaxAliasesLimiter:
+    return MaxAliasesLimiter(max_alias_count=2)
+
+
+def token_limit() -> MaxTokensLimiter:
+    return MaxTokensLimiter(max_token_count=1000)
+
+
 schema = strawberry.Schema(
     query=Query,
     config=StrawberryConfig(auto_camel_case=False),
-    extensions=[QueryDepthLimiter(max_depth=4), MaxAliasesLimiter(max_alias_count=2), MaxTokensLimiter(max_token_count=1000)],
+    extensions=[depth_limit, alias_limit, token_limit],
 )
 graphql_router = GraphQLRouter(schema)

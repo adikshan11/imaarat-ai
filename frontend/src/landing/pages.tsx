@@ -56,7 +56,7 @@ export function Privacy() {
       </section>
       <section>
         <h2>How long it is kept</h2>
-        <p>Assessments stay until they are removed. Request records are deleted after 14 days. AI quality records are available for 30 days. A sign-in session ends after 30 minutes without activity or 12 hours at most; your account record and profile stay until you ask for them to be removed.</p>
+        <p>Assessments stay until they are removed. Request records are deleted after 14 days. AI quality records are available for 30 days. A sign-in session ends after 15 minutes without activity or 8 hours at most, and the app warns you two minutes before; your account record and profile stay until you ask for them to be removed.</p>
       </section>
       <section>
         <h2>Your choices</h2>

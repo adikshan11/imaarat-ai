@@ -11,7 +11,7 @@ export default function Onboarding() {
       <div className="signin-controls"><Controls compact /></div>
       <section className="signin-card card profile-card" aria-labelledby="profile-title">
         <a href="/" className="signin-brand">
-          <img src="/favicon.svg" alt="" width="36" height="36" />
+          <img src="/favicon.svg?v=imaarat-3" alt="" width="36" height="36" />
           <span>imaarat.ai</span>
         </a>
         <h1 id="profile-title">{t('profile.title')}</h1>

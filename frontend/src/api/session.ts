@@ -1,7 +1,8 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 
 export type Profile = { full_name: string | null; phone: string | null; has_photo: boolean; complete: boolean }
-export type Session = { role: 'member' | 'reviewer' | 'operator'; github_id: number | null; name: string | null; csrf_token: string; profile: Profile }
+export type Timing = { now: number; idle_seconds: number; max_seconds: number; expires_at: number }
+export type Session = { role: 'member' | 'reviewer' | 'operator'; github_id: number | null; name: string | null; csrf_token: string; profile: Profile; timing: Timing }
 export type Provider = 'github' | 'google'
 export type Providers = Record<Provider, boolean>
 

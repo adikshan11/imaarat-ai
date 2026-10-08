@@ -46,12 +46,12 @@ def test_endpoint_is_off_without_a_key(monkeypatch):
     assert response.status_code == 503
 
 
-def test_endpoint_returns_checked_reading(monkeypatch):
+def test_endpoint_returns_checked_reading(monkeypatch, photo):
     monkeypatch.setattr(config, "AI_API_KEY", "set")
     monkeypatch.setattr(auth, "signed_in", lambda request: True)
     monkeypatch.setattr(budget, "admit", lambda address: None)
     monkeypatch.setattr(form_reader.llm, "generate", lambda *args, **kwargs: {"text": json.dumps(reading(zip="700001", city="Kolkata")), "model": "test-model"})
-    response = TestClient(main.app).post("/underwrite/read-form", files={"image": ("page.jpg", b"x", "image/jpeg")})
+    response = TestClient(main.app).post("/underwrite/read-form", files={"image": ("page.jpg", photo(), "image/jpeg")})
     body = response.json()
     assert response.status_code == 200
     assert body["fields"]["zip"]["value"] == "700001"
@@ -59,16 +59,18 @@ def test_endpoint_returns_checked_reading(monkeypatch):
     assert body["model"] == "test-model"
 
 
-def test_endpoint_rejects_other_file_types(monkeypatch):
+def test_endpoint_rejects_other_file_types(monkeypatch, photo):
     monkeypatch.setattr(config, "AI_API_KEY", "set")
     response = TestClient(main.app).post("/underwrite/read-form", files={"image": ("page.pdf", b"x", "application/pdf")})
     assert response.status_code == 415
+    disguised = TestClient(main.app).post("/underwrite/read-form", files={"image": ("page.jpg", photo("PNG"), "image/jpeg")})
+    assert disguised.status_code == 415
 
 
-def test_reading_a_form_can_require_sign_in(monkeypatch):
+def test_reading_a_form_can_require_sign_in(monkeypatch, photo):
     monkeypatch.setattr(config, "AI_API_KEY", "set")
     monkeypatch.setattr(config, "AI_SIGN_IN_REQUIRED", True)
-    response = TestClient(main.app).post("/underwrite/read-form", files={"image": ("page.jpg", b"x", "image/jpeg")})
+    response = TestClient(main.app).post("/underwrite/read-form", files={"image": ("page.jpg", photo(), "image/jpeg")})
     assert response.status_code == 401
 
 

@@ -1,11 +1,12 @@
 import os
+import time
 
 from authlib.integrations.httpx_client import OAuth2Client
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 from pydantic import BaseModel, Field
 
-from app import auth, profile
+from app import auth, images, profile
 
 router = APIRouter(prefix="/auth")
 NO_STORE = {"Cache-Control": "no-store"}
@@ -52,6 +53,7 @@ def session(request: Request):
     principal = auth.resolve_principal(request)
     token = auth.csrf_token(request.cookies[auth.SESSION_COOKIE])
     body = {"role": principal.role, "github_id": principal.github_id, "name": principal.name, "csrf_token": token, "profile": profile.read(principal.owner_id)}
+    body["timing"] = {"now": int(time.time()), "idle_seconds": auth.IDLE_SECONDS, "max_seconds": auth.SESSION_SECONDS, "expires_at": principal.expires_at}
     return JSONResponse(body, headers=NO_STORE)
 
 
@@ -66,7 +68,7 @@ def save_profile(form: ProfileForm, request: Request):
 def save_photo(request: Request, photo: UploadFile = File(...)):
     principal = auth.resolve_principal(request)
     auth.require_csrf(request, principal)
-    data = profile.clean_photo(photo.file.read(profile.PHOTO_BYTES + 1), photo.content_type)
+    data = profile.clean_photo(photo.file.read(images.PROFILE.max_bytes + 1), photo.content_type)
     return JSONResponse(profile.save_photo(principal.owner_id, data), headers=NO_STORE)
 
 
@@ -90,7 +92,7 @@ def logout(request: Request):
     principal = auth.resolve_principal(request)
     auth.require_csrf(request, principal)
     auth.revoke_session(principal)
-    response = Response(status_code=204, headers=NO_STORE)
+    response = Response(status_code=204, headers={**NO_STORE, "Clear-Site-Data": '"cache"'})
     response.delete_cookie(auth.SESSION_COOKIE, **COOKIE)
     return response
 

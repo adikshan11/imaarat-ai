@@ -12,7 +12,7 @@ const NAMES = [
 
 export function BrandMark({ size = 40 }: { size?: number }) {
   return (
-    <img className="brand-mark" src="/favicon.svg?v=imaarat-2" width={size} height={size} alt="" aria-hidden="true" />
+    <img className="brand-mark" src="/favicon.svg?v=imaarat-3" width={size} height={size} alt="" aria-hidden="true" />
   )
 }
 

@@ -26,6 +26,7 @@
   html {
     scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   body {
     @apply bg-sand-50 text-ink font-sans antialiased;
@@ -47,6 +48,7 @@
     display: flex;
     min-width: 0;
     overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
     mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
   }
 
@@ -87,6 +89,7 @@
     transition: none;
   }
   .marquee {
+    -webkit-mask-image: none;
     mask-image: none;
   }
   .marquee-group {

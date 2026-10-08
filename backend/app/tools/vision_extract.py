@@ -63,9 +63,8 @@ def extract_property_features(image_path: str | None, manual_fields: dict, ai_no
             if width <= 0 or height <= 0:
                 reason = "invalid image dimensions"
             else:
-                pixels = image.convert("RGB").resize((64, 64)).getdata()
-                channels = list(zip(*pixels, strict=False))
-                channel_ranges = [max(channel) - min(channel) for channel in channels]
+                extrema = image.convert("RGB").resize((64, 64)).getextrema()
+                channel_ranges = [high - low for low, high in extrema]
                 reason = "near-uniform pixel content" if max(channel_ranges) <= 3 else ""
     except (UnidentifiedImageError, OSError, ValueError) as exc:
         reason = f"image could not be decoded: {type(exc).__name__}"
