@@ -80,7 +80,7 @@ jobs:
         id: evaluate
         run: |
           rm -f evals/results/latest.json evals/results/latest.md
-          python -m evals.run_evals --memo-cases "$MEMO_CASES" $LIVE_FLAG
+          python -m evals.run_evals --memo-cases "$MEMO_CASES" ${LIVE_FLAG:+"$LIVE_FLAG"}
         working-directory: backend
         env:
           MEMO_CASES: ${{ inputs.memo_cases || '2' }}
@@ -124,11 +124,11 @@ jobs:
         run: |
           mkdir -p reports
           LH="$RUNNER_TEMP/lighthouse/node_modules/.bin/lighthouse"
-          FLAGS='--only-categories=performance,accessibility,best-practices,seo --output=json --output=html --chrome-flags=--headless=new --quiet'
+          FLAGS=(--only-categories=performance,accessibility,best-practices,seo --output=json --output=html --chrome-flags=--headless=new --quiet)
           for url in $AUDIT_URLS; do
             name=$(echo "$url" | grep -q "/app/" && echo app- || true)
-            $LH "$url" $FLAGS --form-factor=mobile --screenEmulation.mobile --output-path=reports/${name}mobile
-            $LH "$url" $FLAGS --preset=desktop --output-path=reports/${name}desktop
+            "$LH" "$url" "${FLAGS[@]}" --form-factor=mobile --screenEmulation.mobile --output-path="reports/${name}mobile"
+            "$LH" "$url" "${FLAGS[@]}" --preset=desktop --output-path="reports/${name}desktop"
           done
       - name: Write the job summary
         run: node .github/scripts/lighthouse_summary.mjs reports/*.report.json >> "$GITHUB_STEP_SUMMARY"
@@ -192,7 +192,7 @@ jobs:
         working-directory: backend
         run: |
           nohup python -m uvicorn app.api.main:app --host 127.0.0.1 --port 8000 > ../server.log 2>&1 &
-          for attempt in $(seq 1 30); do curl -sf http://127.0.0.1:8000/health && exit 0; sleep 2; done
+          for _ in $(seq 1 30); do curl -sf http://127.0.0.1:8000/health && exit 0; sleep 2; done
           cat ../server.log
           exit 1
       - name: Run the load test
