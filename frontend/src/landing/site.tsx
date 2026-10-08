@@ -1,4 +1,5 @@
 export const APP = '/app/'
+export const DEMO = '/app/?demo'
 export const REPO = 'https://github.com/adikshan11/imaarat-ai'
 export const PORTFOLIO = 'https://adithya-shankaran.vercel.app'
 
@@ -35,7 +36,7 @@ export function Header() {
 export function Footer() {
   const columns: Array<[string, Array<[string, string]>]> = [
     ['Legal', [['Privacy Policy', '/privacy/'], ['Terms of Service', '/terms/']]],
-    ['Product', [['Open the app', APP], ['How it works', `${APP}#how`], ['Status', `${APP}#status`], ['Changelog', '/changelog/'], ['FAQ', '/#faq']]],
+    ['Product', [['Open the app', APP], ['How it works', `${DEMO}#how`], ['Status', `${DEMO}#status`], ['Changelog', '/changelog/'], ['FAQ', '/#faq']]],
     ['Connect', [['GitHub', REPO], ['LinkedIn', 'https://www.linkedin.com/in/adithya-shankaran'], ['Email', 'mailto:adikshan11@gmail.com'], ['Portfolio', PORTFOLIO], ['Report an issue', `${REPO}/issues/new`]]],
   ]
   return (

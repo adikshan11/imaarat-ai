@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.41.1] - 2026-10-08
+
+### Fixed
+- Try the live demo, See a paper proposal, How it works and Status on the home page now open the demo directly instead of the sign-in page.
+
 ## [2.41.0] - 2026-10-08
 
 ### Changed

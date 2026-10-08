@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import changelog from '../../../CHANGELOG.md?raw'
-import { APP, Footer, Header, REPO, SkipLink } from './site.tsx'
+import { DEMO, Footer, Header, REPO, SkipLink } from './site.tsx'
 
 const UPDATED = '8 October 2026'
 
@@ -99,7 +99,7 @@ export function Terms() {
       </section>
       <section>
         <h2>Data and credits</h2>
-        <p>Hazard data comes from public sources under their own licences, listed in the app’s <a href={`${APP}#how`}>How it works</a> page. The photographs on the website are generated with AI.</p>
+        <p>Hazard data comes from public sources under their own licences, listed in the app’s <a href={`${DEMO}#how`}>How it works</a> page. The photographs on the website are generated with AI.</p>
       </section>
       <section>
         <h2>Open source</h2>

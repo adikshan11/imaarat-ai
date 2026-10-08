@@ -112,7 +112,13 @@ const DEMO_KEY = 'imaarat.demo'
 
 function Gate() {
   const { session, ready } = useSession()
-  const [demo, setDemo] = useState(() => sessionStorage.getItem(DEMO_KEY) === '1')
+  const [demo, setDemo] = useState(() => {
+    if (new URLSearchParams(window.location.search).has('demo')) {
+      sessionStorage.setItem(DEMO_KEY, '1')
+      window.history.replaceState(null, '', window.location.pathname + window.location.hash)
+    }
+    return sessionStorage.getItem(DEMO_KEY) === '1'
+  })
   const [asked, setAsked] = useState(() => window.location.hash === '#signin')
   useEffect(() => {
     const follow = () => setAsked(window.location.hash === '#signin')

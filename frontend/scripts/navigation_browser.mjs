@@ -23,6 +23,10 @@ export async function verifySignIn(page) {
   await page.evaluate(() => { location.hash = 'signin' })
   await page.locator('.signin-page').waitFor()
   check(await page.getByRole('button', { name: 'Try the demo' }).isVisible(), 'sign-in page not reachable from the demo')
+  await page.evaluate(() => sessionStorage.clear())
+  await page.goto(APP_URL + '/app/?demo#how')
+  await page.locator('.tab-item').first().waitFor()
+  check(await page.locator('.signin-page').count() === 0 && await page.evaluate(() => location.search) === '', 'landing demo link asked for sign-in')
   return { checks }
 }
 
