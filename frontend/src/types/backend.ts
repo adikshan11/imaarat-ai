@@ -159,7 +159,7 @@ export interface OpsSummary {
     error_types: Record<string, number>
   }
   ai: {
-    budget: { admissions_left: number; calls_left: number; generations_left?: number; per_visitor_admissions: number; resets_in_seconds: number; tokens_today: { input: number; output: number } }
+    budget: { admissions_left: number; calls_left: number; generations_left?: number; per_visitor_admissions: number; resets_in_seconds: number; tokens_today: { input: number; output: number }; limits?: { admissions: number; client_admissions: number; calls: number; generations: number; minute_generations: number } }
     stages: Record<string, { calls: number; succeeded: number; failed: number; input_tokens: number; output_tokens: number; p50_ms: number | null; p95_ms: number | null }>
     timeline: Array<{ bucket: string; calls: number; failed: number; tokens: number }>
     memo_outcomes: Record<string, number>

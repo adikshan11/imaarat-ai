@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.42.0] - 2026-10-08
+
+### Added
+- The status page shows today's Gemini free-tier quota (generations, calls, AI assessments and tokens) and how long until it resets at midnight Pacific time.
+
 ## [2.41.2] - 2026-10-08
 
 ### Fixed
