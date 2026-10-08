@@ -8,6 +8,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, Field, create_model
 
 from app import llm
+from app.observability import traced
 from app.providers import ImageInput
 from app.tools.hazard_lookup import lookup
 
@@ -110,6 +111,7 @@ def validate(reading: dict[str, Any]) -> dict[str, Any]:
     return {"form_version": FORM_VERSION, "fields": fields}
 
 
+@traced("read_form", as_type="chain", capture_input=False)
 def read_form(image: bytes, mime_type: str) -> dict[str, Any]:
     result = llm.generate(
         "paper_form",

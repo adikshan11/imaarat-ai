@@ -2,6 +2,14 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.45.0] - 2026-10-09
+
+### Added
+- Each assessment links to its Langfuse trace, which now shows every pipeline step, the hazard lookup, paper form reading and embeddings, with real AI call times and failed calls marked as errors.
+
+### Fixed
+- The AI risk summary now falls back to a lighter Gemini model when the main model is busy, instead of failing.
+
 ## [2.44.0] - 2026-10-08
 
 ### Added

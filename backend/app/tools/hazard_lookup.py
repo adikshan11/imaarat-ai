@@ -6,6 +6,7 @@ from functools import lru_cache
 from typing import Any
 
 from app.config import HAZARD_JSON
+from app.observability import traced
 
 ZONE_ORDER = ["II", "III", "IV", "V"]
 FLOOD_FLAG_PCT = 10.0
@@ -42,6 +43,7 @@ def hazard_flags(hazard: dict[str, Any] | None, declared_zone: str | None) -> li
     return flags
 
 
+@traced("hazard lookup", as_type="tool")
 def verify_location(features: dict[str, Any]) -> dict[str, Any]:
     hazard = lookup(features.get("zip"))
     if hazard is None:
