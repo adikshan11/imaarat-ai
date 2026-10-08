@@ -1,4 +1,4 @@
-"""Pull request rules: branch name, one version across files, a version above main's, and a CHANGELOG entry for it."""
+"""Pull request rules: feature branches into preprod, only preprod into main, one version above the base branch's, and a CHANGELOG entry for it."""
 
 import json
 import os
@@ -19,9 +19,12 @@ def as_tuple(version: str) -> tuple[int, ...]:
     return tuple(int(part) for part in version.split("."))
 
 
-def problems(branch: str, files: dict[str, str], main_backend: str) -> list[str]:
+def problems(branch: str, files: dict[str, str], base_backend: str, base: str = "preprod") -> list[str]:
     found = []
-    if not BRANCH.match(branch):
+    if base == "main":
+        if branch != "preprod":
+            found.append(f"open '{branch}' against preprod; only preprod is released to main")
+    elif not BRANCH.match(branch):
         found.append(f"branch '{branch}' should look like feature/short_name (feature, fix, ci, docs or chore, then snake_case)")
     version = backend_version(files["backend/app/__init__.py"])
     package = json.loads(files["frontend/package.json"])["version"]
@@ -29,9 +32,9 @@ def problems(branch: str, files: dict[str, str], main_backend: str) -> list[str]
     for name, value in (("frontend/package.json", package), ("package-lock.json", lock["version"]), ("package-lock.json packages['']", lock["packages"][""]["version"])):
         if value != version:
             found.append(f"{name} has {value}, backend/app/__init__.py has {version}")
-    main_version = backend_version(main_backend)
-    if as_tuple(version) <= as_tuple(main_version):
-        found.append(f"version {version} must be above main's {main_version}; bump it once per branch")
+    base_version = backend_version(base_backend)
+    if as_tuple(version) <= as_tuple(base_version):
+        found.append(f"version {version} must be above {base}'s {base_version}; bump it once per branch")
     if f"## [{version}] - " not in files["CHANGELOG.md"]:
         found.append(f"CHANGELOG.md has no '## [{version}] - <date>' entry")
     return found
@@ -40,8 +43,9 @@ def problems(branch: str, files: dict[str, str], main_backend: str) -> list[str]
 def main() -> int:
     paths = ["backend/app/__init__.py", "frontend/package.json", "frontend/package-lock.json", "CHANGELOG.md"]
     files = {path: (ROOT / path).read_text(encoding="utf-8") for path in paths}
-    main_backend = subprocess.run(["git", "show", "origin/main:backend/app/__init__.py"], cwd=ROOT, capture_output=True, text=True, check=True).stdout
-    found = problems(os.environ.get("GITHUB_HEAD_REF", ""), files, main_backend)
+    base = os.environ.get("GITHUB_BASE_REF") or "preprod"
+    base_backend = subprocess.run(["git", "show", f"origin/{base}:backend/app/__init__.py"], cwd=ROOT, capture_output=True, text=True, check=True).stdout
+    found = problems(os.environ.get("GITHUB_HEAD_REF", ""), files, base_backend, base)
     for problem in found:
         print(f"::error::{problem}")
     if not found:

@@ -195,7 +195,7 @@ jobs:
       - name: Run the load test
         id: load
         run: >
-          locust -f backend/load/locustfile.py --headless
+          locust -f backend/load/locustfile.py Underwriter --headless
           -u "$USERS" -r "$SPAWN_RATE" -t "$DURATION"
           --host http://127.0.0.1:8000 --csv load --html load.html
       - name: Write the job summary

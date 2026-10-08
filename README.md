@@ -198,11 +198,17 @@ Without `DATABASE_URL` the API uses SQLite; without `QDRANT_*` guideline search 
 
 Three workflows, in the same shape as our other repositories:
 
-- **CI/CD** on every pull request and every push to `main`: **Check** (release rules, secret scan, Ruff, Oxlint, translations), four parallel **Test** jobs (backend on Postgres, frontend with browser tests, pipeline, the Docker stack), then **Deploy**: a smoke-tested preview for a pull request, production for `main`.
+- **CI/CD** on every pull request and every push to `preprod` or `main`: **Check** (release rules, secret scan, Ruff, Oxlint, translations), four parallel **Test** jobs (backend on Postgres, frontend with browser tests, pipeline, the Docker stack), then **Deploy**: a smoke-tested preview for a pull request, [imaarat-ai-preprod.vercel.app](https://imaarat-ai-preprod.vercel.app) for `preprod` followed by a read-only **Stress test**, and production for `main`.
 - **Benchmarks**: evals and Lighthouse every week, and Lighthouse, the load test or the vision benchmark on demand. Results appear on the app's status page.
 - **Nightly ELT**: the analytics pipeline and the published data lineage.
 
-Conventions: branches `feature/`, `fix/`, `ci/`, `docs/` or `chore/` with a snake_case name; one version bump and one plain-English CHANGELOG line per branch; commit messages of two or three words.
+Branching: work goes into `preprod` first, and only `preprod` is released to `main`, so production changes only after preprod has been deployed and tested.
+
+- Open each `feature/`, `fix/`, `ci/`, `docs/` or `chore/` branch (snake_case name) against `preprod`.
+- Release by opening one pull request from `preprod` into `main`.
+- After a release, reset `preprod` to `main` (`git push --force-with-lease origin origin/main:preprod`; only the repository admin may) so the two never drift.
+
+Conventions: one version bump above the target branch and one plain-English CHANGELOG line per branch; commit messages of two or three words.
 
 ### Configuration
 

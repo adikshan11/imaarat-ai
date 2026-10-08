@@ -25,5 +25,10 @@ def test_each_rule_reports_its_own_problem():
     found = release_check.problems("Feature/ARCEC-1", files("2.29.0", package="2.28.0", changelog=""), '__version__ = "2.29.0"')
     assert len(found) == 6
     assert any("branch" in item for item in found)
-    assert any("above main" in item for item in found)
+    assert any("above preprod" in item for item in found)
     assert any("CHANGELOG" in item for item in found)
+
+
+def test_only_preprod_releases_to_main():
+    assert release_check.problems("preprod", files("2.30.0"), '__version__ = "2.29.0"', "main") == []
+    assert any("against preprod" in item for item in release_check.problems("feature/react_landing", files("2.30.0"), '__version__ = "2.29.0"', "main"))
