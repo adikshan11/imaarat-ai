@@ -210,7 +210,8 @@ Conventions: branches `feature/`, `fix/`, `ci/`, `docs/` or `chore/` with a snak
 |---|---|
 | `GEMINI_API_KEY` (or `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`) | Reading forms, photo review, guideline search, summaries |
 | `DATABASE_URL` | Postgres for assessments, checkpoints, sessions and budgets |
-| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `OPERATOR_GITHUB_IDS` | Reviewer sign-in |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `OPERATOR_GITHUB_IDS` | GitHub sign-in, which unlocks the AI and reviewing |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional Google sign-in; the button appears only when both are set |
 | `QDRANT_URL`, `QDRANT_API_KEY` | Optional hosted vector store |
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | Optional AI tracing |
 | `VERCEL_TOKEN`, `VERCEL_AUTOMATION_BYPASS_SECRET` (GitHub only) | Deploys and preview smoke tests |

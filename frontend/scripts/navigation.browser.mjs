@@ -30,8 +30,9 @@ const ready = async () => {
   throw new Error('preview server did not start')
 }
 
-const { verifyCompletion, verifyDesktop, verifyLabels, verifyNavigation, verifyTouch } = await import('./navigation_browser.mjs')
+const { verifyCompletion, verifyDesktop, verifyLabels, verifyNavigation, verifySignIn, verifyTouch } = await import('./navigation_browser.mjs')
 const checks = [
+  { name: 'verifySignIn', run: verifySignIn, touch: false, fresh: true },
   { name: 'verifyNavigation', run: verifyNavigation, touch: false },
   { name: 'verifyLabels', run: verifyLabels, touch: false },
   { name: 'verifyDesktop', run: verifyDesktop, touch: false },
@@ -42,9 +43,14 @@ let failed = 0
 try {
   await ready()
   const browser = await chromium.launch(process.env.BROWSER_CHANNEL ? { channel: process.env.BROWSER_CHANNEL } : {})
-  const shared = await (await browser.newContext()).newPage()
+  const demo = async (options) => {
+    const context = await browser.newContext(options)
+    await context.addInitScript(() => sessionStorage.setItem('imaarat.demo', '1'))
+    return context.newPage()
+  }
+  const shared = await demo()
   for (const check of checks) {
-    const page = check.touch || check.name === 'verifyCompletion' ? await (await browser.newContext({ hasTouch: check.touch, viewport: check.touch ? { width: 390, height: 844 } : undefined })).newPage() : shared
+    const page = check.fresh ? await (await browser.newContext()).newPage() : check.touch || check.name === 'verifyCompletion' ? await demo({ hasTouch: check.touch, viewport: check.touch ? { width: 390, height: 844 } : undefined }) : shared
     try {
       if (check.open) await page.goto(`${process.env.APP_URL}/app/`)
       await check.run(page)

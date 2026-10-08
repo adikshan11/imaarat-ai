@@ -357,3 +357,21 @@ input::placeholder { color: var(--text-soft); }
   .table-search, .table-filter { flex-basis: 100%; min-width: 0; }
   .table-wide { min-width: 680px; }
 }
+
+/* Sign-in */
+.signin-page { position: relative; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 76px 16px 32px; isolation: isolate; }
+.signin-page::before { content: ''; position: fixed; z-index: -1; width: 52vw; height: 52vw; top: -14vw; right: -10vw; border-radius: 50%; filter: blur(80px); background: radial-gradient(circle, var(--blob-1), transparent 70%); pointer-events: none; }
+.signin-controls { position: absolute; top: 16px; inset-inline-end: 16px; }
+.signin-card { width: min(100%, 420px); margin: 0; padding: 32px 28px; border-radius: 20px; text-align: center; }
+.signin-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--heading); font-size: 18px; font-weight: 800; text-decoration: none; }
+.signin-card h1 { margin: 20px 0 8px; color: var(--heading); font-size: 24px; line-height: 1.25; }
+.signin-lead { margin: 0 0 22px; color: var(--text-muted); line-height: 1.55; }
+.signin-error { margin: 0 0 14px; padding: 10px 12px; border: 1px solid var(--danger-border); border-radius: 10px; background: var(--danger-bg); color: var(--danger-fg); font-size: 14px; }
+.signin-actions { display: grid; gap: 10px; }
+.signin-provider { width: 100%; min-height: 46px; border-color: var(--border-strong); background: var(--surface-strong); color: var(--text); font-weight: 600; }
+.signin-mark { width: 20px; height: 20px; flex: none; }
+.signin-divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; color: var(--text-soft); font-size: 13px; }
+.signin-divider::before, .signin-divider::after { content: ''; flex: 1; height: 1px; background: var(--border-strong); }
+.signin-demo { width: 100%; min-height: 46px; border-style: dashed; background: transparent; }
+.signin-note { margin: 10px 0 0; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+.signin-privacy { margin: 22px 0 0; color: var(--text-soft); font-size: 12px; line-height: 1.5; }

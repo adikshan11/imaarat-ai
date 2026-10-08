@@ -66,6 +66,33 @@ def test_sign_in_is_off_until_configured(client, monkeypatch):
     assert client.post("/auth/github/start", headers={"origin": ORIGIN}).status_code == 503
 
 
+def test_providers_list_only_configured_sign_in(client, monkeypatch):
+    monkeypatch.setenv("GITHUB_CLIENT_ID", "client")
+    monkeypatch.setenv("GITHUB_CLIENT_SECRET", "secret")
+    monkeypatch.delenv("GOOGLE_CLIENT_ID", raising=False)
+    assert client.get("/auth/providers").json() == {"github": True, "google": False}
+
+
+def test_google_sign_in_round_trip(client, monkeypatch):
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "client")
+    monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "secret")
+    monkeypatch.setattr(auth_routes, "google_identity", lambda transaction, code: {"sub": "1234567890"})
+    url = client.post("/auth/google/start", headers={"origin": ORIGIN}).json()["authorization_url"]
+    query = parse_qs(urlsplit(url).query)
+    assert url.startswith("https://accounts.google.com/o/oauth2/v2/auth") and query["scope"] == ["openid"] and query["code_challenge_method"] == ["S256"]
+    wrong_issuer = client.get("/auth/google/callback", params={"code": "abc", "state": query["state"][0], "iss": "https://evil.test"}, follow_redirects=False)
+    assert wrong_issuer.status_code == 400
+    callback = client.get("/auth/google/callback", params={"code": "abc", "state": query["state"][0], "scope": "openid", "iss": "https://accounts.google.com"}, follow_redirects=False)
+    assert callback.status_code == 303 and callback.headers["location"] == ORIGIN + "/app/"
+    session = client.get("/auth/session").json()
+    assert session["role"] == "member" and session["github_id"] is None
+
+
+def test_google_cancel_returns_to_sign_in(client):
+    response = client.get("/auth/google/callback", params={"error": "access_denied"}, follow_redirects=False)
+    assert response.status_code == 303 and response.headers["location"] == ORIGIN + "/app/#signin"
+
+
 def test_idle_sessions_expire(client):
     grant = auth.create_member(42, now=1_000_000)
     assert auth.resolve_session(grant.token, now=1_000_000 + 60).role == "member"

@@ -32,6 +32,7 @@ users = Table(
     metadata,
     Column("id", String, primary_key=True),
     Column("github_id", BigInteger, unique=True),
+    Column("google_id", String, unique=True),
     Column("name", String),
     Column("role", String, nullable=False),
     Column("created_at", BigInteger, nullable=False),
@@ -98,9 +99,15 @@ def engine() -> Engine:
     current = get_engine()
     if str(current.url) not in _ready_engines:
         metadata.create_all(current)
-        if "name" not in {column["name"] for column in inspect(current).get_columns("users")}:
+        existing = {column["name"] for column in inspect(current).get_columns("users")}
+        if "name" not in existing:
             with current.begin() as conn:
                 conn.execute(text("ALTER TABLE users ADD COLUMN name VARCHAR"))
+        if "google_id" not in existing:
+            guard = " IF NOT EXISTS" if current.dialect.name == "postgresql" else ""
+            with current.begin() as conn:
+                conn.execute(text(f"ALTER TABLE users ADD COLUMN{guard} google_id VARCHAR"))
+                conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS users_google_id ON users (google_id)"))
         _ready_engines.add(str(current.url))
     return current
 
@@ -149,22 +156,31 @@ def reserve_identity(conn, key: str, now: int, ceiling: int) -> None:
 def create_member(github_id: int, now: int | None = None, name: str | None = None) -> SessionGrant:
     if type(github_id) is not int or not 0 < github_id <= 9223372036854775807:
         raise HTTPException(401, "identity_invalid")
-    now = clock(now)
     role = "operator" if github_id in operator_ids() else "member"
+    return open_session(users.c.github_id, github_id, role, clock(now), name)
+
+
+def create_google_member(google_id: str, now: int | None = None) -> SessionGrant:
+    if not isinstance(google_id, str) or not re.fullmatch(r"[0-9]{1,255}", google_id):
+        raise HTTPException(401, "identity_invalid")
+    return open_session(users.c.google_id, google_id, "member", clock(now), None)
+
+
+def open_session(column, value, role: str, now: int, name: str | None) -> SessionGrant:
     with engine().begin() as conn:
-        conn.execute(upsert(conn)(users).values(id=str(uuid4()), github_id=github_id, name=name, role=role, created_at=now).on_conflict_do_nothing(index_elements=[users.c.github_id]))
+        conn.execute(upsert(conn)(users).values(id=str(uuid4()), **{column.name: value}, name=name, role=role, created_at=now).on_conflict_do_nothing(index_elements=[column]))
         if name:
-            conn.execute(update(users).where(users.c.github_id == github_id).values(name=name))
+            conn.execute(update(users).where(column == value).values(name=name))
         if role == "operator":
-            conn.execute(update(users).where(users.c.github_id == github_id).values(role="operator"))
-        user = conn.execute(select(users).where(users.c.github_id == github_id)).one()
+            conn.execute(update(users).where(column == value).values(role="operator"))
+        user = conn.execute(select(users).where(column == value)).one()
         if user.disabled_at is not None:
             raise HTTPException(401, "identity_disabled")
         token = token_urlsafe(32)
         csrf = csrf_token(token)
         expires = now + SESSION_SECONDS
         conn.execute(insert(sessions).values(id=digest(token), owner_id=user.id, csrf_hash=digest(csrf), created_at=now, last_seen=now, expires_at=expires, authenticated_at=now))
-        return SessionGrant(Principal(user.id, user.role, digest(token), github_id, user.name), token, csrf, expires)
+        return SessionGrant(Principal(user.id, user.role, digest(token), user.github_id, user.name), token, csrf, expires)
 
 
 def resolve_session(token: str, now: int | None = None) -> Principal:
@@ -181,6 +197,14 @@ def resolve_session(token: str, now: int | None = None) -> Principal:
 
 def resolve_principal(request: Request) -> Principal:
     return resolve_session(request.cookies.get(SESSION_COOKIE, ""))
+
+
+def signed_in(request: Request) -> bool:
+    try:
+        resolve_principal(request)
+    except HTTPException:
+        return False
+    return True
 
 
 def require_origin(request: Request) -> None:

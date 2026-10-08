@@ -87,7 +87,8 @@ Nothing else changes: the components, workflow, budgets, retries, tracing and st
 
 Every AI call is paid for from a daily budget before it is made, so the public demo cannot exhaust the provider quota or run up a bill.
 
-- **Admission:** an assessment, form reading, A2A request or MCP guideline search takes one slot from a global daily cap (`AI_DAILY_ADMISSIONS`, 15) and a per-visitor cap (`AI_CLIENT_DAILY_ADMISSIONS`, 3). Visitors are counted by a daily-rotating hash of their address, never the address itself.
+- **Sign-in first:** live AI runs only for a signed-in browser session. Anonymous visitors, MCP and A2A get the same rule-engine decision with the AI stages skipped and a note saying why, so they never take a budget slot.
+- **Admission:** a signed-in assessment or form reading takes one slot from a global daily cap (`AI_DAILY_ADMISSIONS`, 15) and a per-visitor cap (`AI_CLIENT_DAILY_ADMISSIONS`, 3). Visitors are counted by a daily-rotating hash of their address, never the address itself.
 - **Calls:** every attempt, including retries, takes one call from `AI_DAILY_CALLS` (200). Text and image generations also count against `AI_DAILY_GENERATIONS` (20) and `AI_MINUTE_GENERATIONS` (5), matched to the free tier of gemini-3.8-flash.
 - **Atomic:** a reservation is one `UPDATE … SET used = used + n WHERE used + n <= cap`, so concurrent servers never overspend; CI proves it with 20 parallel requests on real Postgres.
 - **Fail closed:** on Vercel, AI runs only when the budget lives in Postgres. `/api/status` shows what is left.

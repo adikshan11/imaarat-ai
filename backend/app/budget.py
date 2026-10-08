@@ -17,6 +17,7 @@ from app.db import get_engine, is_postgres, metadata
 
 PACIFIC = ZoneInfo("America/Los_Angeles")
 UNCAPPED_STAGES = {"embed", "count_tokens"}
+SIGN_IN_NOTE = "Sign in to use the AI; the demo runs the rule engine only"
 _ready_engines: set[str] = set()
 
 counters = Table(

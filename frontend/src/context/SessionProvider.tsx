@@ -1,18 +1,25 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { fetchSession, signOut, startSignIn, type Session } from '@/api/session'
+import { fetchProviders, fetchSession, signOut, startSignIn, type Providers, type Session } from '@/api/session'
 import { SessionContext, type SessionState } from './Session'
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
+  const [ready, setReady] = useState(false)
+  const [providers, setProviders] = useState<Providers>({ github: true, google: false })
   const [error, setError] = useState<string | null>(null)
-  useEffect(() => { fetchSession().then(setSession).catch(() => setSession(null)) }, [])
+  useEffect(() => {
+    fetchSession().then(setSession).catch(() => setSession(null)).finally(() => setReady(true))
+    fetchProviders().then(setProviders).catch(() => undefined)
+  }, [])
   const value: SessionState = {
     session,
+    ready,
+    providers,
     reviewer: session?.role === 'reviewer' || session?.role === 'operator',
     error,
-    signIn: async () => {
+    signIn: async (provider) => {
       setError(null)
-      try { await startSignIn() } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)) }
+      try { await startSignIn(provider) } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)) }
     },
     signOut: async () => {
       if (session) await signOut(session.csrf_token).catch(() => undefined)

@@ -1,7 +1,7 @@
 {
   "name": "imaarat",
   "private": true,
-  "version": "2.37.4",
+  "version": "2.38.0",
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",

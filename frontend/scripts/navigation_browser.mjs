@@ -1,5 +1,31 @@
 const APP_URL = process.env.APP_URL ?? 'http://127.0.0.1:3000'
 
+export async function verifySignIn(page) {
+  let checks = 0
+  const check = (value, name) => {
+    if (!value) throw new Error(name)
+    checks++
+  }
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(APP_URL + '/app/#new')
+  await page.evaluate(() => localStorage.setItem('imaarat.lang', 'en'))
+  await page.reload()
+  await page.locator('.signin-page').waitFor()
+  check(await page.locator('.tab-item').count() === 0, 'app opened before choosing sign-in or the demo')
+  check(await page.getByRole('button', { name: 'Continue with GitHub' }).isVisible(), 'GitHub sign-in missing')
+  check(await page.getByRole('button', { name: 'Continue with Google' }).count() === 0, 'unconfigured Google sign-in shown')
+  await page.getByRole('button', { name: 'Try the demo' }).click()
+  await page.locator('.tab-item').first().waitFor()
+  check(await page.evaluate(() => location.hash) === '#new', 'demo lost the requested page')
+  await page.reload()
+  await page.locator('.tab-item').first().waitFor()
+  check(await page.locator('.signin-page').count() === 0, 'demo choice not kept for the tab')
+  await page.evaluate(() => { location.hash = 'signin' })
+  await page.locator('.signin-page').waitFor()
+  check(await page.getByRole('button', { name: 'Try the demo' }).isVisible(), 'sign-in page not reachable from the demo')
+  return { checks }
+}
+
 export async function verifyCompletion(page) {
   let checks = 0
   const check = (value, name) => {
