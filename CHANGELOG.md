@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.45.1] - 2026-10-09
+
+### Fixed
+- When the main Gemini model is busy, the AI risk summary now switches to the lighter model straight away instead of retrying first, so the request still has time for it.
+
 ## [2.45.0] - 2026-10-09
 
 ### Added
