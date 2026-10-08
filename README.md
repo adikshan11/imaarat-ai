@@ -161,7 +161,7 @@ sequenceDiagram
 | API | FastAPI, Strawberry GraphQL, MCP and A2A SDKs | One backend for people, agents and other systems |
 | Workflow | LangGraph with Postgres checkpoints | Fixed steps and a resumable human review |
 | AI | Gemini through a provider adapter | Switch to Bedrock or another provider with configuration; see [ARCHITECTURE.md](ARCHITECTURE.md) |
-| Data | Postgres on Neon, dbt on DuckDB | Transactions for the app, a tested nightly pipeline for analytics |
+| Data | Postgres on Neon, dbt on DuckDB | Transactions for the app, a tested nightly medallion pipeline (raw Parquet, cleaned staging, marts) for analytics |
 | Quality | pytest, Playwright, DeepEval, Lighthouse, Locust | Every layer measured, with results on the status page |
 | Delivery | GitHub Actions, Docker Compose, Vercel | Checked, tested and smoke-tested before every deploy |
 
@@ -208,7 +208,7 @@ Branching: work goes into `preprod` first, and only `preprod` is released to `ma
 - Release by opening one pull request from `preprod` into `main`.
 - After a release, reset `preprod` to `main` (`git push --force-with-lease origin origin/main:preprod`; only the repository admin may) so the two never drift.
 
-Conventions: one version bump above the target branch and one plain-English CHANGELOG line per branch; commit messages of two or three words.
+Conventions: each `feature/` or `fix/` branch bumps the version once and adds one plain-English CHANGELOG line about what users will notice; `ci/`, `docs/` and `chore/` branches bump nothing and stay out of the changelog; commit messages of two or three words.
 
 ### Configuration
 
@@ -216,8 +216,9 @@ Conventions: one version bump above the target branch and one plain-English CHAN
 |---|---|
 | `GEMINI_API_KEY` (or `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`) | Reading forms, photo review, guideline search, summaries |
 | `DATABASE_URL` | Postgres for assessments, checkpoints, sessions and budgets |
-| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `OPERATOR_GITHUB_IDS` | GitHub sign-in, which unlocks the AI and reviewing |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `OPERATOR_GITHUB_IDS` | GitHub sign-in, needed for reviewing |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional Google sign-in; the button appears only when both are set |
+| `AI_SIGN_IN_REQUIRED` | Set to `true` to limit live AI to signed-in visitors; off by default, so the demo uses AI too |
 | `QDRANT_URL`, `QDRANT_API_KEY` | Optional hosted vector store |
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | Optional AI tracing |
 | `VERCEL_TOKEN`, `VERCEL_AUTOMATION_BYPASS_SECRET` (GitHub only) | Deploys and preview smoke tests |

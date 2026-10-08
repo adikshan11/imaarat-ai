@@ -2,25 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.41.0] - 2026-10-08
+
+### Changed
+- The demo uses the AI again, from the free daily allowance shared by all visitors; signing in is needed only to review referrals.
+- The home page shows the tools it is built with in grey, in colour on hover, each linked to its official site, and the product screenshots now fade into each other without flashing.
+
 ## [2.40.0] - 2026-10-08
 
 ### Changed
 - The home page shows the official coloured logos, the app logo returns to the dashboard, the mobile tab highlight follows the bar's rounded shape, slow actions show a loader, and the status page is shorter and shows Gemini token use and the latest AI evaluation.
-
-## [2.39.1] - 2026-10-08
-
-### Fixed
-- Preprod deploys now get their stable preprod address.
-
-## [2.39.0] - 2026-10-08
-
-### Changed
-- Changes now reach a preprod site first, where they are deployed and stress-tested, and only preprod is released to production.
-
-## [2.38.2] - 2026-10-08
-
-### Changed
-- Personal study notes kept in the project folder are no longer picked up by git.
 
 ## [2.38.1] - 2026-10-08
 
@@ -34,26 +25,6 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 
 ### Security
 - The AI features now need a signed-in user; anonymous visitors, MCP and A2A get the rule-engine decision with a note saying why.
-
-## [2.37.4] - 2026-10-08
-
-### Changed
-- Renamed the repository to imaarat-ai and pointed the source, issue, build status and data lineage links to the new name.
-
-## [2.37.3] - 2026-10-07
-
-### Changed
-- The README now opens with a banner, a quick start and architecture diagrams, and the deeper engineering notes moved to the architecture guide with outdated details corrected.
-
-## [2.37.2] - 2026-10-07
-
-### Changed
-- Six GitHub workflows are now three: CI/CD (Check, Test and Deploy), Benchmarks (evals, Lighthouse, load test and vision benchmark from one menu) and Nightly ELT.
-
-## [2.37.1] - 2026-10-07
-
-### Changed
-- Each React provider now lives in its own file, which clears the fast-refresh lint warnings, every workflow runs on Ubuntu 26.04 ahead of GitHub moving its default runner there, and every workflow step has a plain name, with the frontend checks split into separate steps.
 
 ## [2.37.0] - 2026-10-07
 
@@ -90,11 +61,6 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 ### Fixed
 - GitHub sign-in no longer fails with oauth_invalid. GitHub now names itself in the callback with an iss parameter (RFC 9207); the callback accepts it and rejects any other issuer.
 
-## [2.33.1] - 2026-10-07
-
-### Fixed
-- The intermittent CI hang. Tests replaced Python's global sleep, so the telemetry writer thread stopped waiting between writes and filled the test's list with millions of entries, which pytest then took minutes to print. Retries now use their own sleep, which tests replace without touching anything else.
-
 ## [2.33.0] - 2026-10-07
 
 ### Added
@@ -120,12 +86,6 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 ### Security
 - Approving or overriding a referral now needs a signed-in reviewer or operator. Before, anyone could do it. Running assessments, reading results and the public APIs stay open as before.
 - The privacy policy and terms describe sign-in: the one cookie it sets, the GitHub numeric ID it stores, and how long a session lasts.
-
-## [2.30.0] - 2026-10-07
-
-### Changed
-- CI now runs in two stages. The check stage tests every pull request: branch name, a version bump above main with a CHANGELOG entry, ruff lint and format checks on the backend, the backend and frontend tests, browser tests and the dbt build. The deploy stage runs only on main after every check passes, deploys to Vercel and confirms the live version, the public pages and the security headers.
-- The backend code is formatted and linted with ruff; the fixes change no behaviour.
 
 ## [2.29.0] - 2026-10-07
 
@@ -155,11 +115,6 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 
 ### Changed
 - The landing page no longer loads React; its screenshot tabs use a few lines of plain JavaScript, so it ships under 1 KB of script instead of 191 KB.
-
-## [2.26.1] - 2026-10-07
-
-### Changed
-- The weekly Lighthouse audit now checks the app at /app/ as well as the landing page, on mobile and desktop, and the status page lists the app's results separately.
 
 ## [2.26.0] - 2026-10-07
 
@@ -207,12 +162,6 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 
 ### Changed
 - The AI write-up is now called the "AI risk summary" in every language instead of a "memo", matching how insurance AI tools name a decision-ready summary and the words Indian proposers and underwriters use; the status page step is renamed to match.
-
-## [2.22.0] - 2026-10-06
-
-### Added
-- A form-reading benchmark that renders the app's own printed form in seven languages with handwriting fonts and photo-like blur, then compares the app's Gemini reader, Sarvam Extract and Qwen3-VL field by field with the app's own checks, reporting accuracy, wrong-but-filled values, latency and tokens. It runs on demand in GitHub Actions so the API keys stay in GitHub.
-- Printed form fields carry a field name, so tests can fill and read them reliably.
 
 ## [2.21.1] - 2026-10-06
 
@@ -280,17 +229,8 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 
 ## [2.15.0] - 2026-10-06
 
-### Added
-- A load test that runs the API against Postgres with simulated underwriters looking up PIN-code hazards, previewing, submitting and browsing history, and reports throughput and response times per endpoint. It runs on demand and on changes to the test itself.
-
 ### Fixed
-- The backend development requirements install again: the web server pin was older than the MCP library allows.
 - Assessments and form reading no longer stall the server: the rule engine, AI calls and database writes run off the request loop, so one slow assessment does not delay every other visitor.
-
-## [2.14.1] - 2026-10-06
-
-### Changed
-- The nightly data pipeline workflow now pins every GitHub action to a release commit, like the other workflows, so a moved tag cannot change what runs.
 
 ## [2.14.0] - 2026-10-06
 

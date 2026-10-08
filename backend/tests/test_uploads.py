@@ -2,7 +2,7 @@ from pathlib import Path
 
 import app.agents.graph as graph
 import pytest
-from app import auth, budget
+from app import auth, budget, config
 from app.api import main
 from fastapi.testclient import TestClient
 
@@ -46,8 +46,9 @@ def test_uploaded_photo_gets_a_random_name_inside_the_upload_folder(tmp_path, mo
     assert path.read_bytes() == b"\x89PNG"
 
 
-@pytest.mark.parametrize(("member", "note"), [(False, budget.SIGN_IN_NOTE), (True, None)])
-def test_live_ai_needs_sign_in(monkeypatch, member, note):
+@pytest.mark.parametrize(("required", "member", "note"), [(False, False, None), (True, False, budget.SIGN_IN_NOTE), (True, True, None)])
+def test_live_ai_sign_in_switch(monkeypatch, required, member, note):
+    monkeypatch.setattr(config, "AI_SIGN_IN_REQUIRED", required)
     monkeypatch.setattr(auth, "signed_in", lambda request: member)
     monkeypatch.setattr(budget, "admission_note", lambda address: None)
 

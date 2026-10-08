@@ -53,13 +53,26 @@
   .marquee-group {
     display: flex;
     flex-shrink: 0;
-    gap: 0.75rem;
-    padding-right: 0.75rem;
+    gap: 2rem;
+    padding-right: 2rem;
     animation: marquee 32s linear infinite;
   }
 
   .marquee:hover .marquee-group {
     animation-play-state: paused;
+  }
+
+  .tour-stage {
+    display: grid;
+  }
+
+  .tour-stage > [role='tabpanel'] {
+    grid-area: 1 / 1;
+    transition: opacity 700ms ease;
+  }
+
+  .tour-stage > [data-inactive] {
+    opacity: 0;
   }
 }
 
@@ -70,6 +83,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .tour-stage > [role='tabpanel'] {
+    transition: none;
+  }
   .marquee {
     mask-image: none;
   }

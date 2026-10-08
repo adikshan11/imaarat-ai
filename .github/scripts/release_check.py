@@ -1,4 +1,4 @@
-"""Pull request rules: feature branches into preprod, only preprod into main, one version above the base branch's, and a CHANGELOG entry for it."""
+"""Pull request rules: feature branches into preprod, only preprod into main, and one version bump with a CHANGELOG entry per feature or fix branch."""
 
 import json
 import os
@@ -9,6 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 BRANCH = re.compile(r"^(feature|fix|ci|docs|chore)/[a-z0-9]+(_[a-z0-9]+)*$")
+INTERNAL = re.compile(r"^(ci|docs|chore)/")
 
 
 def backend_version(text: str) -> str:
@@ -32,9 +33,11 @@ def problems(branch: str, files: dict[str, str], base_backend: str, base: str = 
     for name, value in (("frontend/package.json", package), ("package-lock.json", lock["version"]), ("package-lock.json packages['']", lock["packages"][""]["version"])):
         if value != version:
             found.append(f"{name} has {value}, backend/app/__init__.py has {version}")
-    base_version = backend_version(base_backend)
-    if as_tuple(version) <= as_tuple(base_version):
-        found.append(f"version {version} must be above {base}'s {base_version}; bump it once per branch")
+    if INTERNAL.match(branch):
+        return found
+    base_version = as_tuple(backend_version(base_backend))
+    if as_tuple(version) < base_version or (base != "main" and as_tuple(version) == base_version):
+        found.append(f"version {version} must be above {base}'s {backend_version(base_backend)}; bump it once per feature or fix branch")
     if f"## [{version}] - " not in files["CHANGELOG.md"]:
         found.append(f"CHANGELOG.md has no '## [{version}] - <date>' entry")
     return found

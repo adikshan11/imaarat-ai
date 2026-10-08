@@ -37,6 +37,7 @@ AI_REQUEST_SECONDS = 50
 STAGE_THINKING = {"paper_form": "LOW", "vision": "LOW"}
 AI_ATTEMPTS = 2
 AI_DAILY_ADMISSIONS = int(os.getenv("AI_DAILY_ADMISSIONS", "15"))
+AI_SIGN_IN_REQUIRED = os.getenv("AI_SIGN_IN_REQUIRED", "false").lower() == "true"
 AI_CLIENT_DAILY_ADMISSIONS = int(os.getenv("AI_CLIENT_DAILY_ADMISSIONS", "3"))
 AI_DAILY_CALLS = int(os.getenv("AI_DAILY_CALLS", "200"))
 AI_DAILY_GENERATIONS = int(os.getenv("AI_DAILY_GENERATIONS", "20"))

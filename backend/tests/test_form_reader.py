@@ -65,8 +65,9 @@ def test_endpoint_rejects_other_file_types(monkeypatch):
     assert response.status_code == 415
 
 
-def test_reading_a_form_needs_sign_in(monkeypatch):
+def test_reading_a_form_can_require_sign_in(monkeypatch):
     monkeypatch.setattr(config, "AI_API_KEY", "set")
+    monkeypatch.setattr(config, "AI_SIGN_IN_REQUIRED", True)
     response = TestClient(main.app).post("/underwrite/read-form", files={"image": ("page.jpg", b"x", "image/jpeg")})
     assert response.status_code == 401
 
