@@ -124,7 +124,7 @@ jobs:
         run: |
           mkdir -p reports
           LH="$RUNNER_TEMP/lighthouse/node_modules/.bin/lighthouse"
-          FLAGS=(--only-categories=performance,accessibility,best-practices,seo --output=json --output=html --chrome-flags=--headless=new --quiet)
+          FLAGS=("--only-categories=performance,accessibility,best-practices,seo" --output=json --output=html --chrome-flags=--headless=new --quiet)
           for url in $AUDIT_URLS; do
             name=$(echo "$url" | grep -q "/app/" && echo app- || true)
             "$LH" "$url" "${FLAGS[@]}" --form-factor=mobile --screenEmulation.mobile --output-path="reports/${name}mobile"
