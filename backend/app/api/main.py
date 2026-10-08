@@ -386,7 +386,7 @@ def existing_submission(submission_id: int) -> dict[str, Any]:
 
 
 def reviewer_name(principal: auth.Principal) -> str:
-    return f"@{principal.name}" if principal.name else "a reviewer"
+    return principal.full_name or (f"@{principal.name}" if principal.name else "a reviewer")
 
 
 @app.post("/underwrite/history/{submission_id}/claim")

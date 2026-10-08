@@ -7,6 +7,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false)
   const [providers, setProviders] = useState<Providers>({ github: true, google: false })
   const [error, setError] = useState<string | null>(null)
+  const [photoVersion, setPhotoVersion] = useState(() => Date.now())
   useEffect(() => {
     fetchSession().then(setSession).catch(() => setSession(null)).finally(() => setReady(true))
     fetchProviders().then(setProviders).catch(() => undefined)
@@ -17,6 +18,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     providers,
     reviewer: session?.role === 'reviewer' || session?.role === 'operator',
     error,
+    photoVersion,
     signIn: async (provider) => {
       setError(null)
       try { await startSignIn(provider) } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)) }
@@ -24,6 +26,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     signOut: async () => {
       if (session) await signOut(session.csrf_token).catch(() => undefined)
       setSession(null)
+    },
+    setProfile: (profile) => {
+      setSession((current) => current && { ...current, profile })
+      setPhotoVersion(Date.now())
     },
   }
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>

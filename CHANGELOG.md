@@ -2,6 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.43.0] - 2026-10-08
+
+### Added
+- An account menu with your name and photo, a Profile and settings page, and a clear Sign out.
+- After signing in you add your full name and mobile number before using the app; reviewers' names now appear on the referrals they review.
+- An optional profile photo, resized to a small square with its camera details removed.
+
+### Changed
+- Open the app on the home page now shows the sign-in page unless you are already signed in.
+
 ## [2.42.0] - 2026-10-08
 
 ### Added

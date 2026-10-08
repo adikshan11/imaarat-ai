@@ -11,6 +11,8 @@ const PaperForm = lazy(() => import('@/components/paper/PaperForm'))
 const HowItWorks = lazy(() => import('@/components/about/HowItWorks'))
 const StatusPage = lazy(() => import('@/components/status/StatusPage'))
 const SignIn = lazy(() => import('@/components/auth/SignIn'))
+const Onboarding = lazy(() => import('@/components/account/Onboarding'))
+const AccountPage = lazy(() => import('@/components/account/AccountPage'))
 import { useRiskContext } from '@/context/RiskContext'
 import { RiskProvider } from '@/context/RiskProvider'
 import { useSession } from '@/context/Session'
@@ -19,13 +21,13 @@ import { usePreferences } from '@/context/Preferences'
 import { PreferencesProvider } from '@/context/PreferencesProvider'
 import type { BackendSubmission } from '@/types/backend'
 
-type View = 'dashboard' | 'new' | 'paper' | 'how' | 'status' | 'result'
+type View = 'dashboard' | 'new' | 'paper' | 'how' | 'status' | 'result' | 'account'
 
 function Application() {
   const [view, setViewState] = useState<View>(() => {
     const hash = window.location.hash.slice(1)
     if (hash === 'quality' || hash === 'integrations') return 'status'
-    return hash === 'new' || hash === 'paper' || hash === 'how' || hash === 'status' ? hash : 'dashboard'
+    return hash === 'new' || hash === 'paper' || hash === 'how' || hash === 'status' || hash === 'account' ? hash : 'dashboard'
   })
   const [draftOpen, setDraftOpen] = useState(view === 'new')
   const [draftId, setDraftId] = useState(0)
@@ -51,6 +53,8 @@ function Application() {
     setView('new')
   }
   useEffect(() => { window.scrollTo(0, 0) }, [view])
+  const { session } = useSession()
+  useEffect(() => { if (view === 'account' && !session) setView('dashboard') })
   const [detailError, setDetailError] = useState<string | null>(null)
   const [opening, setOpening] = useState(false)
   const [prefill, setPrefill] = useState<Record<string, unknown> | null>(null)
@@ -95,6 +99,7 @@ function Application() {
         <Suspense fallback={<PageSkeleton />}>
         {view === 'how' && <HowItWorks />}
         {view === 'status' && <StatusPage />}
+        {view === 'account' && <AccountPage />}
         {view === 'paper' && <PaperForm onUse={startDraft} />}
         {view === 'result' && resultSubmission && <BackendAssessmentResult submission={resultSubmission} onBack={() => setView('dashboard')} onReviewed={(updated) => {
           applyReview(updated)
@@ -134,6 +139,7 @@ function Gate() {
       setDemo(true)
     }} /></Suspense>
   }
+  if (session && !session.profile?.complete) return <Suspense fallback={<PageSkeleton />}><Onboarding /></Suspense>
   return <Application />
 }
 
