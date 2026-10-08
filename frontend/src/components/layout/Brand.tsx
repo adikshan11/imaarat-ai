@@ -16,7 +16,7 @@ export function BrandMark({ size = 40 }: { size?: number }) {
   )
 }
 
-export default function Brand({ sub }: { sub: string }) {
+export default function Brand({ sub, onHome }: { sub: string; onHome: () => void }) {
   const [index, setIndex] = useState(0)
 
   useEffect(() => {
@@ -26,7 +26,7 @@ export default function Brand({ sub }: { sub: string }) {
   }, [])
 
   return (
-    <div className="brand">
+    <a className="brand" href="/app/" onClick={(event) => { event.preventDefault(); onHome() }}>
       <BrandMark />
       <div className="brand-text">
         <div className="brand-title">
@@ -39,6 +39,6 @@ export default function Brand({ sub }: { sub: string }) {
         </div>
         <div className="brand-sub">{sub}</div>
       </div>
-    </div>
+    </a>
   )
 }

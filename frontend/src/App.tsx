@@ -3,7 +3,7 @@ import { Activity, Suspense, lazy, useEffect, useRef, useState } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import StatusBanner from '@/components/layout/StatusBanner'
 import Dashboard from '@/components/dashboard/Dashboard'
-import { PageSkeleton } from '@/components/shared/Loader'
+import { PageSkeleton, TopProgress } from '@/components/shared/Loader'
 import NewAssessment from '@/components/assessment/NewAssessment'
 import BackendAssessmentResult from '@/components/assessment/BackendAssessmentResult'
 
@@ -52,6 +52,7 @@ function Application() {
   }
   useEffect(() => { window.scrollTo(0, 0) }, [view])
   const [detailError, setDetailError] = useState<string | null>(null)
+  const [opening, setOpening] = useState(false)
   const [prefill, setPrefill] = useState<Record<string, unknown> | null>(null)
   const { loadDetail, applyReview } = useRiskContext()
   const { t } = usePreferences()
@@ -60,11 +61,14 @@ function Application() {
     setDetailError(null)
     let result = submission
     if (submission.id) {
+      setOpening(true)
       try {
         result = await loadDetail(submission.id)
       } catch (cause) {
         setDetailError(cause instanceof Error ? cause.message : 'Unable to load submission detail')
         return
+      } finally {
+        setOpening(false)
       }
     }
     setResultSubmission(result)
@@ -75,6 +79,7 @@ function Application() {
     <div className="app-shell">
       <Sidebar activeView={view === 'result' ? 'new' : view} onNavigate={(next) => navigate(next as View)} />
       <main className="main-content">
+        {opening && <TopProgress />}
         <StatusBanner />
         {detailError && <div className="error-banner">{detailError}</div>}
         {view === 'dashboard' && <Dashboard onNew={() => startDraft()} onView={(item) => { void showResult(item as BackendSubmission) }} />}
