@@ -322,5 +322,12 @@ export async function verifyDesktop(page) {
   if (action.height > 48) throw new Error(`New assessment action unnecessarily wrapped: ${action.height}px`)
   await page.locator('.page-heading-row > button').click()
   if (await page.locator('.nav-item.active').getAttribute('data-view') !== 'new') throw new Error('Desktop new action failed')
-  return { checks: 2, action }
+  await page.locator('.nav-item[data-view="dashboard"]').click()
+  await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight))
+  const sidebar = await page.evaluate(() => { const box = document.querySelector('.sidebar').getBoundingClientRect(); return { top: box.top, bottom: box.bottom, height: innerHeight } })
+  if (Math.abs(sidebar.top) > 1 || Math.abs(sidebar.bottom - sidebar.height) > 1) throw new Error(`Sidebar does not fill the window after scrolling: ${JSON.stringify(sidebar)}`)
+  await page.goto(APP_URL + '/')
+  await page.getByRole('tab', { name: /Scoring/ }).click()
+  if (!await page.getByRole('tabpanel', { name: /Scoring/ }).isVisible()) throw new Error('Landing step tabs do not switch')
+  return { checks: 4, action }
 }

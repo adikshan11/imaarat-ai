@@ -8,8 +8,12 @@ for (const list of document.querySelectorAll<HTMLElement>('[data-tabs]')) {
       tab.setAttribute('aria-selected', String(chosen))
       tab.tabIndex = chosen ? 0 : -1
       const panel = document.getElementById(tab.getAttribute('aria-controls') ?? '')
-      panel?.toggleAttribute('data-inactive', !chosen)
-      if (panel) panel.inert = !chosen
+      if (!panel?.parentElement?.classList.contains('tour-stage')) {
+        panel?.toggleAttribute('hidden', !chosen)
+        continue
+      }
+      panel.toggleAttribute('data-inactive', !chosen)
+      panel.inert = !chosen
     }
   }
   const current = () => tabs.findIndex((tab) => tab.getAttribute('aria-selected') === 'true')
