@@ -1,11 +1,12 @@
 name: CI/CD
 
-# Check and Test run on every pull request and every push to main.
-# Deploy then publishes a preview for a pull request, or production for main, and smoke-tests it.
+# Check and Test run on every pull request and every push to preprod or main.
+# Deploy publishes a preview for a pull request, imaarat-ai-preprod.vercel.app for preprod, or production for main, and smoke-tests it.
+# Preprod is then stress-tested read-only, because it shares production's database.
 
 on:
   push:
-    branches: [main]
+    branches: [main, preprod]
   pull_request:
 
 permissions:
@@ -178,17 +179,17 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 15
     concurrency:
-      group: deploy-${{ github.event_name == 'push' && 'production' || github.ref }}
+      group: deploy-${{ github.event_name == 'push' && github.ref_name || github.ref }}
       cancel-in-progress: false
     environment:
-      name: ${{ github.event_name == 'push' && 'production' || 'preview' }}
+      name: ${{ github.event_name != 'push' && 'preview' || github.ref_name == 'main' && 'production' || 'preprod' }}
       url: ${{ steps.deploy.outputs.url }}
     env:
       VERCEL_ORG_ID: team_IjFtm7aRrxcQ8mlUKZGG864P
       VERCEL_PROJECT_ID: prj_KG8CVLdeu5KR5eyJnuPWTHyS12zT
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-      PROD_FLAG: ${{ github.event_name == 'push' && '--prod' || '' }}
+      TARGET: ${{ github.event_name != 'push' && 'preview' || github.ref_name }}
     steps:
       # A pull request deploys its own head commit: Vercel blocks the merge commit GitHub creates, which is not authored by the account owner.
       - name: Checkout code
@@ -205,11 +206,61 @@ jobs:
         timeout-minutes: 8
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then echo "::error::Add the VERCEL_TOKEN repository secret to deploy from CI"; exit 1; fi
-          url=$(npx --yes vercel@62.7.0 deploy $PROD_FLAG --yes --token "$VERCEL_TOKEN")
-          if [ "${{ github.event_name }}" = "push" ]; then url=https://imaarat-ai.vercel.app; fi
+          if [ "$TARGET" = "main" ]; then
+            npx --yes vercel@62.7.0 deploy --prod --yes --token "$VERCEL_TOKEN"
+            url=https://imaarat-ai.vercel.app
+          else
+            url=$(npx --yes vercel@62.7.0 deploy --yes --token "$VERCEL_TOKEN")
+          fi
+          if [ "$TARGET" = "preprod" ]; then
+            npx --yes vercel@62.7.0 alias set "$url" imaarat-ai-preprod.vercel.app --scope adicr7fans-projects --token "$VERCEL_TOKEN"
+            url=https://imaarat-ai-preprod.vercel.app
+          fi
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Deployed: $url" >> "$GITHUB_STEP_SUMMARY"
       - name: Smoke test the deployment
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ] && [ -z "$BYPASS" ]; then echo "::error::Add the VERCEL_AUTOMATION_BYPASS_SECRET repository secret so CI can open protected previews"; exit 1; fi
+          if [ "$TARGET" != "main" ] && [ -z "$BYPASS" ]; then echo "::error::Add the VERCEL_AUTOMATION_BYPASS_SECRET repository secret so CI can open protected previews"; exit 1; fi
           .github/scripts/smoke_check.sh "${{ steps.deploy.outputs.url }}"
+
+  stress:
+    name: Stress test
+    if: github.event_name == 'push' && github.ref_name == 'preprod'
+    needs: [deploy]
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    env:
+      BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      USERS: "30"
+      DURATION: 2m
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Install Locust
+        run: pip install locust==2.46.7
+      - name: Stress test preprod without writing data
+        id: stress
+        run: >
+          locust -f backend/load/locustfile.py Reader --headless
+          -u "$USERS" -r 5 -t "$DURATION"
+          --host https://imaarat-ai-preprod.vercel.app/api --csv stress --html stress.html
+      - name: Write the job summary
+        if: always() && steps.stress.outcome != 'skipped'
+        run: |
+          echo "### Preprod, $USERS readers, $DURATION" >> "$GITHUB_STEP_SUMMARY"
+          python backend/load/summary.py stress_stats.csv >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: stress-test
+          path: |
+            stress*.csv
+            stress.html
+          retention-days: 30

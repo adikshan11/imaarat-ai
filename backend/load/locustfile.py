@@ -1,3 +1,4 @@
+import os
 import random
 from datetime import date
 
@@ -34,8 +35,12 @@ def proposal() -> dict[str, str]:
     }
 
 
-class Underwriter(HttpUser):
+class Reader(HttpUser):
     wait_time = between(1, 3)
+
+    def on_start(self):
+        if os.environ.get("BYPASS"):
+            self.client.headers["x-vercel-protection-bypass"] = os.environ["BYPASS"]
 
     @task(5)
     def hazard(self):
@@ -50,10 +55,6 @@ class Underwriter(HttpUser):
     @task(3)
     def preview(self):
         self.client.post("/underwrite/preview", data=proposal())
-
-    @task(2)
-    def submit(self):
-        self.client.post("/underwrite/submit", data=proposal())
 
     @task(2)
     def history(self):
@@ -73,3 +74,9 @@ class Underwriter(HttpUser):
     @task(2)
     def status(self):
         self.client.get("/status")
+
+
+class Underwriter(Reader):
+    @task(2)
+    def submit(self):
+        self.client.post("/underwrite/submit", data=proposal())

@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.39.0] - 2026-10-08
+
+### Changed
+- Changes now reach a preprod site first, where they are deployed and stress-tested, and only preprod is released to production.
+
 ## [2.38.2] - 2026-10-08
 
 ### Changed
