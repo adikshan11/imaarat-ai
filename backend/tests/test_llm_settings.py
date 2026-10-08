@@ -31,14 +31,15 @@ def test_the_memo_keeps_the_model_default_thinking(monkeypatch):
     assert client.models.generate_content.call_args.kwargs["config"].thinking_config is None
 
 
-def test_a_busy_model_falls_back_once(monkeypatch):
+def test_a_busy_model_falls_back_at_once(monkeypatch):
     client = fake_client(monkeypatch)
     busy = errors.ServerError(503, {"error": {"code": 503, "message": "high demand", "status": "UNAVAILABLE"}})
-    client.models.generate_content.side_effect = [busy, busy, client.models.generate_content.return_value]
-    monkeypatch.setattr(llm, "sleep", [].append)
+    client.models.generate_content.side_effect = [busy, client.models.generate_content.return_value]
+    slept = []
+    monkeypatch.setattr(llm, "sleep", slept.append)
     result = llm.generate("memo", ["write"])
     models = [call.kwargs["model"] for call in client.models.generate_content.call_args_list]
-    assert models == [llm.config.AI_MODEL, llm.config.AI_MODEL, llm.config.AI_FALLBACK_MODEL]
+    assert models == [llm.config.AI_MODEL, llm.config.AI_FALLBACK_MODEL] and slept == []
     assert result["model"] == llm.config.AI_FALLBACK_MODEL
 
 

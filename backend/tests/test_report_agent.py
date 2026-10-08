@@ -46,8 +46,8 @@ def test_generate_memo_exposes_resource_exhausted_failure(monkeypatch):
     assert state["memo_json"] == {}
     models = [call.kwargs["model"] for call in client.models.generate_content.call_args_list]
     attempts = llm.config.AI_ATTEMPTS
-    assert models == [llm.config.AI_MODEL] * attempts + [llm.config.AI_FALLBACK_MODEL] * attempts
-    assert slept == [2**attempt for attempt in range(1, attempts)] * 2
+    assert models == [llm.config.AI_MODEL] + [llm.config.AI_FALLBACK_MODEL] * attempts
+    assert slept == [2**attempt for attempt in range(1, attempts)]
 
 
 def test_daily_quota_is_not_retried_and_says_so(monkeypatch):

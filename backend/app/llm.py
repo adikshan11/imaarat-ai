@@ -46,10 +46,11 @@ def failure_reason(error: Exception) -> str:
     return f"The AI model returned an error ({type(error).__name__})."
 
 
-def budgeted(stage: str, call: Any, **arguments: Any) -> tuple[Any, int, int]:
+def budgeted(stage: str, call: Any, attempts: int | None = None, **arguments: Any) -> tuple[Any, int, int]:
     """Run one provider call, reserving budget for every attempt and retrying only 429/5xx on the same model."""
     span = f"{config.AI_PROVIDER.title()} {stage}"
-    for attempt in range(1, config.AI_ATTEMPTS + 1):
+    attempts = attempts or config.AI_ATTEMPTS
+    for attempt in range(1, attempts + 1):
         if not time_left(0):
             raise TimeoutError(f"no time left in this request for another {stage} attempt")
         call_id = budget.reserve_call(stage)
@@ -60,7 +61,7 @@ def budgeted(stage: str, call: Any, **arguments: Any) -> tuple[Any, int, int]:
             code = getattr(error, "code", None)
             budget.finish_call(call_id, "failed", latency_ms=round((time.perf_counter() - started) * 1000))
             telemetry.add_span(span, started, time.perf_counter(), f"error {code}" if code else "error")
-            if code not in RETRYABLE or daily_quota(error) or attempt == config.AI_ATTEMPTS or not time_left(2**attempt):
+            if code not in RETRYABLE or daily_quota(error) or attempt == attempts or not time_left(2**attempt):
                 raise
             sleep(2**attempt)
             continue
@@ -73,21 +74,24 @@ def busy(error: Exception) -> bool:
 
 
 def generate(name: str, contents: Any, schema: type[BaseModel] | None = None, system: str | None = None) -> dict[str, Any]:
-    """Call the configured model (with budgeted retries), then the fallback model once if the first stays busy."""
+    """Try the main model once, then the fallback model with retries if the main one is busy."""
     fallback = config.AI_FALLBACK_MODEL
-    try:
+    if not fallback or fallback == config.AI_MODEL:
         return generate_with(config.AI_MODEL, name, contents, schema, system)
+    try:
+        return generate_with(config.AI_MODEL, name, contents, schema, system, attempts=1)
     except Exception as error:
-        if not fallback or fallback == config.AI_MODEL or not busy(error):
+        if not busy(error):
             raise
     return generate_with(fallback, name, contents, schema, system)
 
 
-def generate_with(model: str, name: str, contents: Any, schema: type[BaseModel] | None, system: str | None) -> dict[str, Any]:
+def generate_with(model: str, name: str, contents: Any, schema: type[BaseModel] | None, system: str | None, attempts: int | None = None) -> dict[str, Any]:
     with generation(name, model, contents) as result:
         reply, call_id, latency_ms = budgeted(
             name,
             get_provider().generate,
+            attempts,
             model=model,
             contents=contents if isinstance(contents, list) else [contents],
             system=system,
