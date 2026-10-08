@@ -199,12 +199,9 @@ def resolve_session(token: str, now: int | None = None) -> Principal:
         raise HTTPException(401, "Sign in to continue")
     now = clock(now)
     with engine().begin() as conn:
-        row = conn.execute(
-            select(sessions, users.c.role, users.c.github_id, users.c.name, users.c.disabled_at, profiles.c.full_name, profiles.c.phone)
-            .join(users)
-            .outerjoin(profiles, profiles.c.owner_id == sessions.c.owner_id)
-            .where(sessions.c.id == digest(token))
-        ).first()
+        joined = sessions.join(users, users.c.id == sessions.c.owner_id).outerjoin(profiles, profiles.c.owner_id == sessions.c.owner_id)
+        columns = (sessions, users.c.role, users.c.github_id, users.c.name, users.c.disabled_at, profiles.c.full_name, profiles.c.phone)
+        row = conn.execute(select(*columns).select_from(joined).where(sessions.c.id == digest(token))).first()
         if row is None or row.revoked_at is not None or row.disabled_at is not None or now >= row.expires_at or now - row.last_seen >= IDLE_SECONDS:
             raise HTTPException(401, "Your session has ended; sign in again")
         conn.execute(update(sessions).where(sessions.c.id == row.id).values(last_seen=now))
