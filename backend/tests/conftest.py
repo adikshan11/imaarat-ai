@@ -2,7 +2,7 @@ from io import BytesIO
 from queue import Empty
 
 import pytest
-from app import db, telemetry
+from app import db, llm, telemetry
 from PIL import Image
 
 
@@ -20,6 +20,11 @@ def photo():
 def isolated_database(tmp_path, monkeypatch):
     monkeypatch.delenv("DATABASE_URL", raising=False)
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "test.db")
+
+
+@pytest.fixture(autouse=True)
+def no_busy_models():
+    llm.busy_until.clear()
 
 
 @pytest.fixture(autouse=True)

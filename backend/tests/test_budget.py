@@ -204,7 +204,7 @@ def test_retries_stop_when_the_next_attempt_would_overrun(store, monkeypatch):
         calls.append(model)
         raise ApiError(503)
 
-    token = llm.deadline.set(time.perf_counter() + llm.config.AI_TIMEOUT_MS / 1000 + 1)
+    token = llm.deadline.set(time.perf_counter() + llm.config.AI_MIN_ATTEMPT_MS / 1000 + 1)
     try:
         with pytest.raises(ApiError):
             llm.budgeted("memo", busy, model="gemini-test")
