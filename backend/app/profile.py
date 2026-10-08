@@ -5,18 +5,12 @@ from __future__ import annotations
 import re
 import time
 import unicodedata
-from io import BytesIO
 
 from fastapi import HTTPException
-from PIL import Image, ImageOps, UnidentifiedImageError
 from sqlalchemy import select, update
 
-from app import auth
+from app import auth, config, images
 
-PHOTO_TYPES = {"image/jpeg", "image/png", "image/webp"}
-PHOTO_BYTES = 2_000_000
-PHOTO_PIXELS = 40_000_000
-PHOTO_SIZE = 256
 BLOCKED = set('<>{}[]\\/@#$%^*=+|~`"')
 
 
@@ -41,20 +35,7 @@ def clean_phone(value: object) -> str:
 
 
 def clean_photo(data: bytes, content_type: str | None) -> bytes:
-    if content_type not in PHOTO_TYPES:
-        raise HTTPException(415, "Upload a JPEG, PNG or WebP photo")
-    if len(data) > PHOTO_BYTES:
-        raise HTTPException(413, "The photo is larger than 2 MB")
-    try:
-        with Image.open(BytesIO(data)) as image:
-            if image.format not in {"JPEG", "PNG", "WEBP"} or image.width * image.height > PHOTO_PIXELS:
-                raise HTTPException(415, "Upload a JPEG, PNG or WebP photo")
-            square = ImageOps.fit(ImageOps.exif_transpose(image).convert("RGB"), (PHOTO_SIZE, PHOTO_SIZE))
-    except (UnidentifiedImageError, OSError, ValueError, Image.DecompressionBombError) as error:
-        raise HTTPException(415, "The photo could not be read") from error
-    output = BytesIO()
-    square.save(output, "WEBP", quality=82)
-    return output.getvalue()
+    return images.square_webp(data, content_type, images.PROFILE, config.PROFILE_PHOTO_SIDE)
 
 
 def read(owner_id: str) -> dict:

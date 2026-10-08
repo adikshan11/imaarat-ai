@@ -149,13 +149,13 @@ def test_ai_stages_skip_with_the_reason_shown(store, monkeypatch):
     assert budget.remaining()["calls_left"] == 4
 
 
-def test_read_form_returns_429_with_retry_after(store, monkeypatch):
+def test_read_form_returns_429_with_retry_after(store, monkeypatch, photo):
     monkeypatch.setattr(config, "AI_API_KEY", "set")
     monkeypatch.setattr(auth, "signed_in", lambda request: True)
     client = TestClient(main.app)
     for _ in range(2):
         budget.admit("testclient")
-    response = client.post("/underwrite/read-form", files={"image": ("page.jpg", b"x", "image/jpeg")})
+    response = client.post("/underwrite/read-form", files={"image": ("page.jpg", photo(), "image/jpeg")})
     assert response.status_code == 429
     assert int(response.headers["retry-after"]) > 0
 

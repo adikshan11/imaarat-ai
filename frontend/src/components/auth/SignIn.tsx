@@ -6,7 +6,7 @@ import { useSession } from '@/context/Session'
 
 export default function SignIn({ onDemo }: { onDemo: () => void }) {
   const { t } = usePreferences()
-  const { providers, signIn, error } = useSession()
+  const { providers, signIn, error, ended } = useSession()
   const [chosen, setChosen] = useState<'github' | 'google' | null>(null)
   const going = error ? null : chosen
   const start = (provider: 'github' | 'google') => {
@@ -19,11 +19,12 @@ export default function SignIn({ onDemo }: { onDemo: () => void }) {
       <div className="signin-controls"><Controls compact /></div>
       <section className="signin-card card" aria-labelledby="signin-title">
         <a href="/" className="signin-brand">
-          <img src="/favicon.svg" alt="" width="36" height="36" />
+          <img src="/favicon.svg?v=imaarat-3" alt="" width="36" height="36" />
           <span>imaarat.ai</span>
         </a>
         <h1 id="signin-title">{t('signin.title')}</h1>
         <p className="signin-lead">{t('signin.lead')}</p>
+        {ended && <p className="signin-notice" role="status">{ended.reason === 'idle' ? t('session.ended_idle', { minutes: String(Math.round(ended.timing.idle_seconds / 60)) }) : t('session.ended_max', { hours: String(Math.round(ended.timing.max_seconds / 3600)) })}</p>}
         {error && <p className="signin-error" role="alert">{error}</p>}
         <div className="signin-actions">
           {providers.github && (

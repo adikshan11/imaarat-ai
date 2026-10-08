@@ -1,15 +1,16 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type SubmitEvent } from 'react'
 import Avatar from '@/components/account/Avatar'
 import { Spinner } from '@/components/shared/Loader'
 import { savePhoto, saveProfile } from '@/api/session'
+import { imageProblem, useUploadLimits } from '@/api/uploads'
 import { usePreferences } from '@/context/Preferences'
 import { useSession } from '@/context/Session'
-
-const PHOTO_BYTES = 2_000_000
 
 export default function ProfileForm({ onboarding = false }: { onboarding?: boolean }) {
   const { t } = usePreferences()
   const { session, setProfile } = useSession()
+  const limits = useUploadLimits()
+  const photoHint = limits ? t('profile.photo_hint', { size: `${limits.profile_photo / 1_000_000} MB` }) : ''
   const [fullName, setFullName] = useState(session?.profile?.full_name ?? '')
   const [phone, setPhone] = useState(session?.profile?.phone ?? '')
   const [photo, setPhoto] = useState<File | null>(null)
@@ -33,8 +34,8 @@ export default function ProfileForm({ onboarding = false }: { onboarding?: boole
   const choose = (file: File | undefined) => {
     setSaved(false)
     if (!file) return
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > PHOTO_BYTES) {
-      setError(t('profile.photo_hint'))
+    if (imageProblem(file, 'profile_photo', limits)) {
+      setError(photoHint)
       return
     }
     setError(null)
@@ -42,7 +43,7 @@ export default function ProfileForm({ onboarding = false }: { onboarding?: boole
     setPhoto(file)
   }
 
-  const submit = async (event: FormEvent) => {
+  const submit = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
     setSaving(true)
     setSaved(false)
@@ -72,11 +73,11 @@ export default function ProfileForm({ onboarding = false }: { onboarding?: boole
           <div className="profile-photo-buttons">
             <label className="btn btn-secondary profile-upload">
               {t('profile.photo_choose')}
-              <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => { choose(event.target.files?.[0]); event.target.value = '' }} />
+              <input type="file" accept={limits?.types.join(',') ?? 'image/*'} onChange={(event) => { choose(event.target.files?.[0]); event.target.value = '' }} />
             </label>
             {hasPhoto && <button type="button" className="btn btn-secondary" onClick={() => { setPhoto(null); setRemoved(true); setSaved(false) }}>{t('profile.photo_remove')}</button>}
           </div>
-          <span className="field-hint">{t('profile.photo_hint')}</span>
+          {photoHint && <span className="field-hint">{photoHint}</span>}
         </div>
       </div>
       <label>

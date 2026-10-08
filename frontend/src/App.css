@@ -98,6 +98,12 @@
 .profile-saved { color: var(--accept-fg); font-size: 14px; font-weight: 600; }
 .profile-signout { margin-top: 16px; border: 0; background: none; color: var(--text-muted); font: inherit; font-size: 13px; text-decoration: underline; cursor: pointer; }
 .account-card { max-width: 640px; }
+.signin-notice { margin: 0 0 14px; padding: 10px 12px; border: 1px solid var(--warn-border); border-radius: 10px; background: var(--warn-bg); color: var(--warn-fg); font-size: 14px; line-height: 1.5; }
+.session-dialog { width: min(420px, calc(100vw - 32px)); padding: 24px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface-strong); color: var(--text); box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.35); }
+.session-dialog::backdrop { background: rgb(0 0 0 / 0.45); }
+.session-dialog h2 { margin: 0 0 8px; color: var(--heading); font-size: 20px; }
+.session-dialog p { margin: 0 0 20px; color: var(--text-muted); line-height: 1.55; font-variant-numeric: tabular-nums; }
+.session-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; }
 .language-dialog { width: min(720px, calc(100vw - 32px)); max-height: min(80dvh, 720px); padding: 0; overflow: hidden; border: 1px solid var(--border); border-radius: 16px; background: var(--surface-strong); color: var(--text); box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.3); }
 .language-dialog[open] { display: flex; flex-direction: column; }
 .language-dialog::backdrop { background: rgb(0 0 0 / 0.4); }

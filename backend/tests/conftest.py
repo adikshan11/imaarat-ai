@@ -1,7 +1,19 @@
+from io import BytesIO
 from queue import Empty
 
 import pytest
 from app import db, telemetry
+from PIL import Image
+
+
+@pytest.fixture
+def photo():
+    def encode(kind="JPEG", size=(32, 24)):
+        output = BytesIO()
+        Image.new("RGB", size, "teal").save(output, kind)
+        return output.getvalue()
+
+    return encode
 
 
 @pytest.fixture(autouse=True)

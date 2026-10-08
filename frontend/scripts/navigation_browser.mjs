@@ -370,3 +370,28 @@ export async function verifyAccount(page) {
   check(true, 'sign out')
   return { checks }
 }
+
+export async function verifySessionWarning(page) {
+  let checks = 0
+  const check = (value, name) => {
+    if (!value) throw new Error(name)
+    checks++
+  }
+  let idle = 90
+  await page.route('**/auth/providers', (route) => route.fulfill({ json: { github: true, google: false } }))
+  await page.route('**/auth/session', (route) => {
+    const now = Math.floor(Date.now() / 1000)
+    return route.fulfill({ json: { role: 'member', github_id: 8, name: 'ravi', csrf_token: 'c'.repeat(64), profile: { full_name: 'Ravi Kumar', phone: '+919876543210', has_photo: false, complete: true }, timing: { now, idle_seconds: idle, max_seconds: 28800, expires_at: now + 28800 } } })
+  })
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto(APP_URL + '/app/')
+  await page.evaluate(() => localStorage.setItem('imaarat.lang', 'en'))
+  await page.reload()
+  await page.getByRole('dialog', { name: 'Are you still there?' }).waitFor()
+  check(/signed out in 1:[0-9]{2}/.test(await page.locator('#session-body').innerText()), 'countdown missing from the warning')
+  idle = 900
+  await page.getByRole('button', { name: 'Stay signed in' }).click()
+  await page.getByRole('dialog', { name: 'Are you still there?' }).waitFor({ state: 'hidden' })
+  check(await page.locator('.nav-item').count() > 0, 'app closed after staying signed in')
+  return { checks }
+}

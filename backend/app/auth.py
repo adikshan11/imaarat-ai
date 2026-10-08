@@ -18,12 +18,13 @@ from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.engine import Engine
 
+from app import config
 from app.db import get_engine
 
 SESSION_COOKIE = "__Host-imaarat_session"
 OAUTH_COOKIE = "__Host-imaarat_oauth"
-SESSION_SECONDS = 12 * 3600
-IDLE_SECONDS = 1800
+SESSION_SECONDS = config.SESSION_MAX_SECONDS
+IDLE_SECONDS = config.SESSION_IDLE_SECONDS
 REVIEW_ROLES = {"reviewer", "operator"}
 
 metadata = MetaData()
@@ -88,6 +89,7 @@ class Principal:
     name: str | None = None
     full_name: str | None = None
     profile_complete: bool = False
+    expires_at: int = 0
 
 
 @dataclass(frozen=True)
@@ -205,7 +207,7 @@ def resolve_session(token: str, now: int | None = None) -> Principal:
         if row is None or row.revoked_at is not None or row.disabled_at is not None or now >= row.expires_at or now - row.last_seen >= IDLE_SECONDS:
             raise HTTPException(401, "Your session has ended; sign in again")
         conn.execute(update(sessions).where(sessions.c.id == row.id).values(last_seen=now))
-        return Principal(row.owner_id, row.role, row.id, row.github_id, row.name, row.full_name, bool(row.full_name and row.phone))
+        return Principal(row.owner_id, row.role, row.id, row.github_id, row.name, row.full_name, bool(row.full_name and row.phone), row.expires_at)
 
 
 def resolve_principal(request: Request) -> Principal:
