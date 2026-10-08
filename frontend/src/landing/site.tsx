@@ -4,7 +4,7 @@ export const REPO = 'https://github.com/adikshan11/imaarat-ai'
 export const PORTFOLIO = 'https://adithya-shankaran.vercel.app'
 
 export function Mark({ className = '' }: { className?: string }) {
-  return <img src="/favicon.svg?v=imaarat-2" alt="" width={32} height={32} className={className} />
+  return <img src="/favicon.svg?v=imaarat-3" alt="" width={32} height={32} className={className} />
 }
 
 export function SkipLink() {

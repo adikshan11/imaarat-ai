@@ -2,6 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.44.0] - 2026-10-08
+
+### Added
+- A new Hawa Mahal logo: stepped jharokha pillars around an arched doorway that forms the i.
+- Signed-in sessions now end after 15 minutes without activity or 8 hours at most, with a two-minute warning and a Stay signed in button; signing out in one tab signs out every tab.
+- One upload policy for every photo: type, size and pixel limits are checked on the server and shared with the app, so property photos are now checked too.
+
+### Changed
+- No deprecated React, TypeScript, CSS or Python APIs remain, and CI now fails if one is used, along with new JSON, YAML, workflow and shell checks.
+
 ## [2.43.0] - 2026-10-08
 
 ### Added

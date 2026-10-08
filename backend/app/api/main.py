@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from app import __version__, auth, budget, config, llm, telemetry
+from app import __version__, auth, budget, config, images, llm, telemetry
 from app.api.auth_routes import router as auth_router
 from app.config import AI_API_KEY, DB_PATH, QDRANT_URL
 from app.db import (
@@ -39,8 +39,6 @@ from app.tools.form_reader import read_form
 from app.tools.hazard_lookup import lookup as hazard_lookup
 from app.tools.hazard_lookup import sources as hazard_sources
 from app.tools.hazard_lookup import verify_location
-
-IMAGE_SUFFIXES = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
 
 
 @asynccontextmanager
@@ -89,6 +87,11 @@ app.add_middleware(
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/uploads/limits")
+def upload_limits() -> Response:
+    return Response(json.dumps(images.limits()), media_type="application/json", headers={"Cache-Control": "public, max-age=3600"})
 
 
 @app.get("/status")
@@ -261,10 +264,10 @@ async def submit_underwriting(
     }
     image_path = None
     if image is not None:
+        image_bytes = await images.receive(image, images.PROPERTY)
         local_dir = DB_PATH.parent / "images_uploads"
         local_dir.mkdir(parents=True, exist_ok=True)
-        image_path = str(local_dir / f"{uuid4().hex}{IMAGE_SUFFIXES.get(image.content_type or '', '.img')}")
-        image_bytes = await image.read()
+        image_path = str(local_dir / f"{uuid4().hex}{images.SUFFIXES[image.content_type]}")
         with open(image_path, "wb") as out:
             out.write(image_bytes)
         print("IMAGE_RECEIVED=true")
@@ -437,11 +440,7 @@ async def read_paper_form(request: Request, image: UploadFile = File(...)) -> di
     ready, reason = budget.ai_ready()
     if not ready:
         raise HTTPException(status_code=503, detail=f"AI form reading is switched off on this deployment: {reason}")
-    if image.content_type not in ("image/jpeg", "image/png", "image/webp"):
-        raise HTTPException(status_code=415, detail="Upload a JPEG, PNG or WebP photo of the form")
-    data = await image.read()
-    if len(data) > 4_000_000:
-        raise HTTPException(status_code=413, detail="The photo is larger than 4 MB")
+    data = await images.receive(image, images.FORM)
     if config.AI_SIGN_IN_REQUIRED and not await run_in_threadpool(auth.signed_in, request):
         raise HTTPException(status_code=401, detail="Sign in to read paper forms with AI")
     try:

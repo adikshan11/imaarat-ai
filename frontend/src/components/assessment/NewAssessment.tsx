@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type SubmitEvent } from 'react'
 import type { BackendSubmission, MitigationPreview, SubmissionInput } from '@/types/backend'
 import { previewUnderwriting } from '@/api/underwriting'
+import { useUploadLimits } from '@/api/uploads'
 import { useRiskContext } from '@/context/RiskContext'
 import Card from '@/components/shared/Card'
 import { AiProgress, Spinner } from '@/components/shared/Loader'
@@ -162,6 +163,7 @@ const initialForm: FormState = {
 
 export default function NewAssessment({ onCompleted, onCancel, initial }: { onCompleted: (result: BackendSubmission) => void; onCancel: () => void; initial?: Record<string, unknown> | null }) {
   const { submit } = useRiskContext()
+  const limits = useUploadLimits()
   const { t, label } = usePreferences()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -275,7 +277,7 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
   }, [form])
 
 
-  const submitForm = async (event: React.FormEvent) => {
+  const submitForm = async (event: SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
     setBusy(true)
     setError(null)
@@ -498,7 +500,7 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
             <div className="upload-zone-text">{t('upload.text')}</div>
             <div className="upload-zone-hint">{t('upload.hint')}</div>
           </div>
-          <input ref={imageInputRef} type="file" accept="image/png,image/jpeg" multiple style={{ display: 'none' }} onChange={(event) => setImages(Array.from(event.currentTarget.files ?? []))} />
+          <input ref={imageInputRef} type="file" accept={limits?.types.join(',') ?? 'image/*'} multiple style={{ display: 'none' }} onChange={(event) => setImages(Array.from(event.currentTarget.files ?? []))} />
           {images.length > 0 && <div className="image-grid">{images.map((image) => <img key={image.name + image.size} src={URL.createObjectURL(image)} alt={image.name} />)}</div>}
           {images.length > 1 && <p className="notice">{t('upload.multi')}</p>}
         </Card>

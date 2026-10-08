@@ -107,7 +107,10 @@ def test_idle_sessions_expire(client):
 def test_logout_revokes_the_session_on_the_server(client):
     headers = signed_in(client, 42)
     token = client.cookies.get(auth.SESSION_COOKIE)
-    assert client.post("/auth/logout", headers=headers).status_code == 204
+    timing = client.get("/auth/session").json()["timing"]
+    assert timing["idle_seconds"] == 900 and 0 < timing["expires_at"] - timing["now"] <= 8 * 3600
+    response = client.post("/auth/logout", headers=headers)
+    assert response.status_code == 204 and response.headers["clear-site-data"] == '"cache"'
     client.cookies.set(auth.SESSION_COOKIE, token)
     assert client.get("/auth/session").status_code == 401
 

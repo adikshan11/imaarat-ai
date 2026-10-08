@@ -1,7 +1,7 @@
 {
   "name": "imaarat",
   "private": true,
-  "version": "2.43.0",
+  "version": "2.44.0",
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
@@ -9,6 +9,7 @@
     "build": "node scripts/build.mjs",
     "lint": "oxlint",
     "check:locales": "node scripts/check_locales.mjs",
+    "check:deprecated": "node scripts/check_deprecated.mjs",
     "test": "node --test scripts/navigation.test.mjs scripts/public_copy.test.mjs scripts/select_field.test.mjs",
     "test:browser": "node scripts/navigation.browser.mjs",
     "preview": "vite preview"

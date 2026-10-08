@@ -6,6 +6,7 @@ import Dashboard from '@/components/dashboard/Dashboard'
 import { PageSkeleton, TopProgress } from '@/components/shared/Loader'
 import NewAssessment from '@/components/assessment/NewAssessment'
 import BackendAssessmentResult from '@/components/assessment/BackendAssessmentResult'
+import SessionWarning from '@/components/auth/SessionWarning'
 
 const PaperForm = lazy(() => import('@/components/paper/PaperForm'))
 const HowItWorks = lazy(() => import('@/components/about/HowItWorks'))
@@ -144,5 +145,5 @@ function Gate() {
 }
 
 export default function App() {
-  return <PreferencesProvider><SessionProvider><RiskProvider><Gate /></RiskProvider></SessionProvider></PreferencesProvider>
+  return <PreferencesProvider><SessionProvider><RiskProvider><Gate /><SessionWarning /></RiskProvider></SessionProvider></PreferencesProvider>
 }
