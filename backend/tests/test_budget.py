@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime
 
 import pytest
-from app import budget, config, db, llm
+from app import auth, budget, config, db, llm
 from app.agents.graph import run_graph
 from app.api import main
 from fastapi.testclient import TestClient
@@ -151,6 +151,7 @@ def test_ai_stages_skip_with_the_reason_shown(store, monkeypatch):
 
 def test_read_form_returns_429_with_retry_after(store, monkeypatch):
     monkeypatch.setattr(config, "AI_API_KEY", "set")
+    monkeypatch.setattr(auth, "signed_in", lambda request: True)
     client = TestClient(main.app)
     for _ in range(2):
         budget.admit("testclient")
