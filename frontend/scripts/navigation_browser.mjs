@@ -261,12 +261,12 @@ export async function verifyLabels(page) {
         }))
         const shape = await page.locator('.tab-indicator').evaluate(node => {
           const rect = node.getBoundingClientRect()
-          return { aspect: rect.width / rect.height, radius: parseFloat(getComputedStyle(node).borderRadius), height: node.closest('nav').getBoundingClientRect().height, buttons: Array.from(node.parentElement.querySelectorAll('.tab-item')).map(button => ({ text: button.textContent, width: button.offsetWidth, captionHeight: button.querySelector('.optical-label').offsetHeight })) }
+          return { aspect: rect.width / rect.height, radius: parseFloat(getComputedStyle(node).borderRadius), indicatorHeight: rect.height, height: node.closest('nav').getBoundingClientRect().height, buttons: Array.from(node.parentElement.querySelectorAll('.tab-item')).map(button => ({ text: button.textContent, width: button.offsetWidth, captionHeight: button.querySelector('.optical-label').offsetHeight })) }
         })
         minAspect = Math.min(minAspect, shape.aspect)
         maxAspect = Math.max(maxAspect, shape.aspect)
         maxHeight = Math.max(maxHeight, shape.height)
-        if (shape.radius !== 14 || shape.height > 72) failures.push({ code, width, theme, shape })
+        if (shape.radius < shape.indicatorHeight / 2 || shape.height > 72) failures.push({ code, width, theme, shape })
         configurations++
         maxCenter = Math.max(maxCenter, ...labels.map(label => label.center))
         if (labels.some(label => label.center > 5 || label.outside || label.overflow)) failures.push({ code, width, theme, labels })

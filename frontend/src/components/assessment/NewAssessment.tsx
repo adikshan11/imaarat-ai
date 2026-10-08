@@ -3,7 +3,7 @@ import type { BackendSubmission, MitigationPreview, SubmissionInput } from '@/ty
 import { previewUnderwriting } from '@/api/underwriting'
 import { useRiskContext } from '@/context/RiskContext'
 import Card from '@/components/shared/Card'
-import { AiProgress } from '@/components/shared/Loader'
+import { AiProgress, Spinner } from '@/components/shared/Loader'
 import SelectField from '@/components/shared/SelectField'
 import HazardCard from '@/components/assessment/HazardCard'
 import { usePreferences } from '@/context/Preferences'
@@ -515,7 +515,7 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
         <div className="form-actions-panel">
           {error && <div className="error-banner">{error}</div>}
           <button type="button" className="btn btn-secondary" style={{ width: '100%', marginBottom: 8 }} onClick={onCancel}>{t('new.cancel')}</button>
-          <button className="btn btn-primary" style={{ width: '100%' }} disabled={busy}>{busy ? t('new.submitting') : t('new.submit')}</button>
+          <button className="btn btn-primary" style={{ width: '100%' }} disabled={busy}>{busy ? <><Spinner />{t('new.submitting')}</> : t('new.submit')}</button>
           {busy && <AiProgress title={t('load.assess_title')} hint={t('load.assess_hint')} steps={[t('load.step_hazard'), t('load.step_guidelines'), t('load.step_rules'), t('load.step_memo')]} />}
         </div>
       </aside>

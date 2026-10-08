@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import Card from '@/components/shared/Card'
-import { AiProgress } from '@/components/shared/Loader'
+import { AiProgress, Spinner } from '@/components/shared/Loader'
 import Icon from '@/components/shared/Icon'
 import { readPaperForm } from '@/api/underwriting'
 import { usePreferences } from '@/context/Preferences'
@@ -144,7 +144,7 @@ export default function PaperForm({ onUse }: { onUse: (values: Record<string, un
               <span>{t('paper.consent')}</span>
             </label>
             <label className={consent && !busy ? 'btn btn-primary form-gap upload-button' : 'btn btn-primary form-gap upload-button is-disabled'}>
-              <Icon name="camera" size={18} /> {busy ? t('paper.reading') : t('paper.upload')}
+              {busy ? <><Spinner />{t('paper.reading')}</> : <><Icon name="camera" size={18} /> {t('paper.upload')}</>}
               <input type="file" accept="image/*" capture="environment" disabled={!consent || busy} onChange={(event) => void upload(event.target.files?.[0])} />
             </label>
             {busy && <AiProgress title={t('load.read_title')} hint={t('load.read_hint')} steps={[t('load.step_read'), t('load.step_check')]} />}

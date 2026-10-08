@@ -17,7 +17,8 @@
 /* Sidebar */
 .sidebar { position: sticky; top: 0; height: 100vh; height: 100dvh; border-inline-end: 1px solid rgba(255, 255, 255, 0.06); background: linear-gradient(180deg, var(--sidebar-1), var(--sidebar-2)); color: var(--sidebar-text); display: flex; flex-direction: column; }
 .sidebar-inner { padding: 26px 16px; display: flex; flex-direction: column; height: 100%; overflow-y: auto; }
-.brand { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; padding: 6px 4px; }
+.brand { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; padding: 6px 4px; border-radius: 12px; color: inherit; text-decoration: none; }
+.brand:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .brand-mark { flex: none; filter: drop-shadow(0 4px 10px rgb(0 0 0 / 0.18)); }
 .brand-text { min-width: 0; }
 .brand-title { position: relative; height: 36px; width: 150px; max-width: 100%; font-family: Inter, system-ui, sans-serif; font-weight: 800; font-size: 21px; line-height: 1.4; letter-spacing: 0; }
@@ -323,9 +324,9 @@ input::placeholder { color: var(--text-soft); }
   .tabbar { position: fixed; inset-inline: 0; width: min(calc(100% - 32px), 440px); margin-inline: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 30; display: flex; padding: 5px; gap: 2px; border-radius: 40px; border: 1px solid var(--nav-rim); background: var(--nav-glass); -webkit-backdrop-filter: blur(24px) saturate(130%); backdrop-filter: blur(24px) saturate(130%); box-shadow: 0 6px 24px -8px rgba(5, 38, 26, 0.28); }
   .tabbar { touch-action: pan-y pinch-zoom; -webkit-user-select: none; user-select: none; }
   .tab-track { position: relative; display: flex; flex: 1; min-width: 0; gap: 2px; }
-  .tab-indicator { position: absolute; left: 0; top: 0; height: 100%; border-radius: 14px; background: var(--nav-active); pointer-events: none; opacity: 0; transition: transform 240ms cubic-bezier(.2,.8,.2,1), width 240ms cubic-bezier(.2,.8,.2,1); }
+  .tab-indicator { position: absolute; left: 0; top: 0; height: 100%; border-radius: 999px; background: var(--nav-active); pointer-events: none; opacity: 0; transition: transform 240ms cubic-bezier(.2,.8,.2,1), width 240ms cubic-bezier(.2,.8,.2,1); }
   .is-scrubbing .tab-indicator { transition: none; }
-  .tab-item { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; min-height: 60px; padding: 0 2px; border: none; border-radius: 14px; background: transparent; color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; }
+  .tab-item { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; min-height: 60px; padding: 0 2px; border: none; border-radius: 999px; background: transparent; color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; }
   .tab-caption { display: flex; justify-content: center; align-items: center; width: 100%; }
   .tab-caption .optical-label { width: 100%; line-height: 20px; overflow-wrap: anywhere; }
   .tabbar .tab-item[data-view="dashboard"]:has(:lang(tcy)) { flex-grow: 2; }

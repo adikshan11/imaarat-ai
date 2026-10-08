@@ -19,6 +19,15 @@ export function PageSkeleton({ heading = true }: { heading?: boolean }) {
   )
 }
 
+export function Spinner() {
+  return <span className="spinner" aria-hidden="true" />
+}
+
+export function TopProgress() {
+  const { t } = usePreferences()
+  return <div className="top-progress" role="progressbar" aria-label={t('load.loading')}><span /></div>
+}
+
 export function AiProgress({ title, hint, steps }: { title: string; hint: string; steps: string[] }) {
   const { t } = usePreferences()
   const [seconds, setSeconds] = useState(0)

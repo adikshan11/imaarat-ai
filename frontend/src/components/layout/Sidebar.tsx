@@ -122,7 +122,7 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
     <>
       <aside className="sidebar">
         <div className="sidebar-inner">
-          <Brand sub={t('brand.sub')} />
+          <Brand sub={t('brand.sub')} onHome={() => onNavigate('dashboard')} />
           <nav className="nav" aria-label={t('nav.section')}>{items.map((item) => link(item, 'nav-item', items))}</nav>
           <div className="sidebar-footer">
             <Controls />
@@ -132,7 +132,7 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
       </aside>
 
       <header className="topbar">
-        <Brand sub={t('brand.sub')} />
+        <Brand sub={t('brand.sub')} onHome={() => onNavigate('dashboard')} />
         <Controls compact />
       </header>
       <nav ref={tabbar} className={`tabbar${scrubbing ? ' is-scrubbing' : ''}`} aria-label={t('nav.section')} onPointerDown={(event) => {

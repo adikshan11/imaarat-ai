@@ -28,7 +28,8 @@ def test_ci_runs_are_published_and_shown_newest_first(tmp_path, monkeypatch):
                 "passed": False,
                 "deterministic": {"accuracy": 1, "cases": 24},
                 "retrieval": {"hit_rate": 0.5, "recall": 0.25, "cases": 2},
-                "prompt_tokens": {"saving": 0.34},
+                "prompt_tokens": {"saving": 0.34, "toon_tokens": 2599, "json_tokens": 3924},
+                "memos": {"toon": {"contract_pass_rate": 0.5, "faithfulness": 1.0, "avg_input_tokens": 1357}},
                 "sections": {"memos": {"status": "failed", "reason": "checks_failed"}},
             }
         ),
@@ -42,6 +43,8 @@ def test_ci_runs_are_published_and_shown_newest_first(tmp_path, monkeypatch):
     assert runs["load"][0]["summary"] == {"users": 200, "duration": "", "requests": 100, "failures": 1, "rps": 20.2, "p50_ms": 5, "p95_ms": 15, "p99_ms": 40, "submit_p95_ms": 80}
     assert runs["lighthouse"][0]["summary"]["mobile"] == {"performance": 79, "accessibility": 100, "lcp_ms": 2300, "tbt_ms": 680, "cls": 0.047}
     assert runs["evals"][0]["summary"]["retrieval_recall"] == 0.25
+    assert runs["evals"][0]["summary"]["memo_contract_pass"] == 0.5
+    assert runs["evals"][0]["summary"]["json_tokens"] == 3924
 
 
 def test_app_and_landing_audits_are_kept_apart(tmp_path):

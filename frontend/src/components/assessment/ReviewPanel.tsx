@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Card from '@/components/shared/Card'
+import { Spinner } from '@/components/shared/Loader'
 import SelectField from '@/components/shared/SelectField'
 import { claimSubmission, fetchSubmissionDetail, releaseSubmission, reviewSubmission } from '@/api/underwriting'
 import { usePreferences } from '@/context/Preferences'
@@ -73,7 +74,7 @@ export default function ReviewPanel({ submission, onReviewed }: { submission: Ba
         {canReview && mine && <button className="btn btn-secondary" disabled={busy} onClick={() => void act(releaseSubmission)}>{t('rev.release')}</button>}
         {canReview
           ? <button className="btn btn-primary" disabled={busy || heldByOther || (override && !note.trim())} onClick={() => void act((id, csrf) => reviewSubmission(id, { final_decision: finalDecision, note: note.trim() }, csrf))}>
-              {busy ? t('rev.saving') : t(override ? 'rev.override' : 'rev.approve')}
+              {busy ? <><Spinner />{t('rev.saving')}</> : t(override ? 'rev.override' : 'rev.approve')}
             </button>
           : !session && <button className="btn btn-primary" onClick={() => void signIn()}>{t('auth.sign_in')}</button>}
       </div>

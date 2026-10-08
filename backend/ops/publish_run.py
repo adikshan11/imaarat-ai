@@ -46,6 +46,7 @@ def evals_summary(paths: list[str]) -> dict:
     report = json.loads(Path(paths[0]).read_text(encoding="utf-8"))
     retrieval = report.get("retrieval") or {}
     tokens = report.get("prompt_tokens") or {}
+    memo = (report.get("memos") or {}).get("toon") or {}
     return {
         "mode": report.get("run_mode"),
         "passed": report.get("passed"),
@@ -55,6 +56,11 @@ def evals_summary(paths: list[str]) -> dict:
         "retrieval_recall": retrieval.get("recall"),
         "retrieval_cases": retrieval.get("cases"),
         "toon_token_saving": tokens.get("saving"),
+        "toon_tokens": tokens.get("toon_tokens"),
+        "json_tokens": tokens.get("json_tokens"),
+        "memo_contract_pass": memo.get("contract_pass_rate"),
+        "memo_faithfulness": memo.get("faithfulness"),
+        "memo_input_tokens": memo.get("avg_input_tokens"),
         "sections": {name: section.get("reason") or section.get("status") for name, section in report.get("sections", {}).items()},
     }
 
