@@ -17,6 +17,11 @@ from app.providers import EmbedTask, get_provider
 
 RETRYABLE = {429, 500, 503}
 deadline: ContextVar[float | None] = ContextVar("deadline", default=None)
+busy_until: dict[str, float] = {}
+
+
+class RequestTimeout(TimeoutError):
+    pass
 
 
 def encode(data: Any, fmt: str | None = None) -> str:
@@ -26,9 +31,13 @@ def encode(data: Any, fmt: str | None = None) -> str:
     return json.dumps(data, indent=2, sort_keys=True, ensure_ascii=False, default=str)
 
 
-def time_left(wait_seconds: float) -> bool:
+def attempt_ms(wait_seconds: float = 0, reserve_seconds: float = 0) -> int | None:
+    """How long the next attempt may run, or None when the request has too little time left for one."""
     limit = deadline.get()
-    return limit is None or limit - time.perf_counter() >= wait_seconds + config.AI_TIMEOUT_MS / 1000
+    if limit is None:
+        return config.AI_TIMEOUT_MS
+    available = round((limit - time.perf_counter() - wait_seconds - reserve_seconds) * 1000)
+    return min(config.AI_TIMEOUT_MS, available) if available >= config.AI_MIN_ATTEMPT_MS else None
 
 
 def daily_quota(error: Exception) -> bool:
@@ -46,14 +55,17 @@ def failure_reason(error: Exception) -> str:
     return f"The AI model returned an error ({type(error).__name__})."
 
 
-def budgeted(stage: str, call: Any, attempts: int | None = None, **arguments: Any) -> tuple[Any, int, int]:
+def budgeted(stage: str, call: Any, attempts: int | None = None, reserve_seconds: float = 0, timed: bool = False, **arguments: Any) -> tuple[Any, int, int]:
     """Run one provider call, reserving budget for every attempt and retrying only 429/5xx on the same model."""
     span = f"{config.AI_PROVIDER.title()} {stage}"
     attempts = attempts or config.AI_ATTEMPTS
     for attempt in range(1, attempts + 1):
-        if not time_left(0):
-            raise TimeoutError(f"no time left in this request for another {stage} attempt")
-        call_id = budget.reserve_call(stage)
+        limit_ms = attempt_ms(0, reserve_seconds)
+        if limit_ms is None:
+            raise RequestTimeout(f"no time left in this request for another {stage} attempt")
+        if timed:
+            arguments["timeout_ms"] = limit_ms
+        call_id = budget.reserve_call(stage, model=arguments.get("model"))
         started = time.perf_counter()
         try:
             response = call(**arguments)
@@ -61,7 +73,7 @@ def budgeted(stage: str, call: Any, attempts: int | None = None, **arguments: An
             code = getattr(error, "code", None)
             budget.finish_call(call_id, "failed", latency_ms=round((time.perf_counter() - started) * 1000))
             telemetry.add_span(span, started, time.perf_counter(), f"error {code}" if code else "error")
-            if code not in RETRYABLE or daily_quota(error) or attempt == attempts or not time_left(2**attempt):
+            if code not in RETRYABLE or daily_quota(error) or attempt == attempts or attempt_ms(2**attempt, reserve_seconds) is None:
                 raise
             sleep(2**attempt)
             continue
@@ -70,28 +82,33 @@ def budgeted(stage: str, call: Any, attempts: int | None = None, **arguments: An
 
 
 def busy(error: Exception) -> bool:
-    return getattr(error, "code", None) in RETRYABLE and not daily_quota(error)
+    return (getattr(error, "code", None) in RETRYABLE and not daily_quota(error)) or "Timeout" in type(error).__name__
 
 
 def generate(name: str, contents: Any, schema: type[BaseModel] | None = None, system: str | None = None) -> dict[str, Any]:
-    """Try the main model once, then the fallback model with retries if the main one is busy."""
+    """Try the main model once, keeping time for the fallback model, which runs with retries if the main one is busy or slow."""
     fallback = config.AI_FALLBACK_MODEL
     if not fallback or fallback == config.AI_MODEL:
         return generate_with(config.AI_MODEL, name, contents, schema, system)
-    try:
-        return generate_with(config.AI_MODEL, name, contents, schema, system, attempts=1)
-    except Exception as error:
-        if not busy(error):
-            raise
+    if time.monotonic() >= busy_until.get(config.AI_MODEL, 0.0):
+        try:
+            return generate_with(config.AI_MODEL, name, contents, schema, system, attempts=1, reserve_seconds=config.AI_FALLBACK_SECONDS)
+        except Exception as error:
+            if not busy(error):
+                raise
+            if not isinstance(error, RequestTimeout):
+                busy_until[config.AI_MODEL] = time.monotonic() + config.AI_BUSY_SECONDS
     return generate_with(fallback, name, contents, schema, system)
 
 
-def generate_with(model: str, name: str, contents: Any, schema: type[BaseModel] | None, system: str | None, attempts: int | None = None) -> dict[str, Any]:
+def generate_with(model: str, name: str, contents: Any, schema: type[BaseModel] | None, system: str | None, attempts: int | None = None, reserve_seconds: float = 0) -> dict[str, Any]:
     with generation(name, model, contents) as result:
         reply, call_id, latency_ms = budgeted(
             name,
             get_provider().generate,
-            attempts,
+            attempts=attempts,
+            reserve_seconds=reserve_seconds,
+            timed=True,
             model=model,
             contents=contents if isinstance(contents, list) else [contents],
             system=system,

@@ -44,6 +44,7 @@ class GeminiProvider:
         thinking: str | None,
         temperature: float,
         max_output_tokens: int,
+        timeout_ms: int | None = None,
     ) -> Reply:
         parts = [types.Part.from_bytes(data=item.data, mime_type=item.mime_type) if isinstance(item, ImageInput) else item for item in contents]
         settings = types.GenerateContentConfig(
@@ -53,6 +54,7 @@ class GeminiProvider:
             response_mime_type="application/json" if schema else None,
             response_schema=schema,
             thinking_config=types.ThinkingConfig(thinking_level=thinking) if thinking else None,
+            http_options=types.HttpOptions(timeout=timeout_ms) if timeout_ms else None,
         )
         response = self.call(self.client.models.generate_content, model=model, contents=parts, config=settings)
         usage = getattr(response, "usage_metadata", None)

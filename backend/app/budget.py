@@ -129,14 +129,22 @@ def admit(address: str | None, now: datetime | None = None) -> None:
             raise BudgetExceeded("this visitor", seconds_until_reset(now))
 
 
-def reserve_call(stage: str, now: datetime | None = None) -> int:
+def generation_caps(model: str | None) -> tuple[str, str, int, int]:
+    """Google's free-tier generation limits are per model, so another model gets its own counters."""
+    if not model or model == config.AI_MODEL:
+        return "generations", "minute", limits()["generations"], limits()["minute_generations"]
+    return f"generations:{model}", f"minute:{model}", config.AI_FALLBACK_DAILY_GENERATIONS, config.AI_FALLBACK_MINUTE_GENERATIONS
+
+
+def reserve_call(stage: str, now: datetime | None = None, model: str | None = None) -> int:
     current = now or datetime.now(UTC)
     day = budget_day(current)
     with engine().begin() as connection:
         if stage not in UNCAPPED_STAGES:
-            if not _reserve(connection, day, f"minute:{current.astimezone(UTC):%H:%M}", 1, limits()["minute_generations"]):
+            daily_scope, minute_scope, daily, minute = generation_caps(model)
+            if not _reserve(connection, day, f"{minute_scope}:{current.astimezone(UTC):%H:%M}", 1, minute):
                 raise BudgetExceeded("this minute", 60 - current.second)
-            if not _reserve(connection, day, "generations", 1, limits()["generations"]):
+            if not _reserve(connection, day, daily_scope, 1, daily):
                 raise BudgetExceeded("AI generations", seconds_until_reset(current))
         if not _reserve(connection, day, "calls", 1, limits()["calls"]):
             raise BudgetExceeded("AI calls", seconds_until_reset(current))
