@@ -8,7 +8,7 @@ header=()
 if [ -n "${BYPASS:-}" ]; then header=(-H "x-vercel-protection-bypass: $BYPASS"); fi
 
 live=""
-for attempt in $(seq 1 30); do
+for _ in $(seq 1 30); do
   live=$(curl -fsS "${header[@]}" "$site/api/status" | python3 -c 'import json, sys; print(json.load(sys.stdin)["version"])' || true)
   [ "$live" = "$expected" ] && break
   sleep 5
