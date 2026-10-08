@@ -92,8 +92,8 @@ def test_retries_reserve_budget_and_never_switch_model(store, monkeypatch):
             raise ApiError(429)
         return "ok"
 
-    response, _, _ = llm.budgeted("memo", flaky, model="gemini-test")
-    assert response == "ok" and calls == ["gemini-test"] * 2 and slept == [2]
+    response, _, _ = llm.budgeted("memo", flaky, model=config.AI_MODEL)
+    assert response == "ok" and calls == [config.AI_MODEL] * 2 and slept == [2]
     assert budget.remaining()["calls_left"] == 2
     assert budget.remaining()["generations_left"] == config.AI_DAILY_GENERATIONS - 2
 
