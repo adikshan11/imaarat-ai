@@ -76,7 +76,7 @@ def test_daily_quota_is_not_retried_and_says_so(monkeypatch):
 
 
 def test_minute_limit_says_try_again_in_a_minute(monkeypatch):
-    def full(stage):
+    def full(stage, model=None):
         raise llm.budget.BudgetExceeded("this minute", 30)
 
     monkeypatch.setattr(report_agent, "AI_API_KEY", "test-key")
