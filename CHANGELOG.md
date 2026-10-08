@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.39.1] - 2026-10-08
+
+### Fixed
+- Preprod deploys now get their stable preprod address.
+
 ## [2.39.0] - 2026-10-08
 
 ### Changed
