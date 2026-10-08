@@ -17,7 +17,7 @@ on:
       suite:
         description: What to run
         type: choice
-        options: [evals, lighthouse, load, vision]
+        options: [evals, lighthouse, load, vision, translate]
         default: evals
       memo_cases:
         description: "Evals: AI risk summaries to generate and judge"
@@ -40,6 +40,9 @@ on:
       providers:
         description: "Vision: form readers to compare"
         default: "gemini,sarvam,qwen"
+      keys:
+        description: "Translate: English string keys, separated by commas"
+        default: "signin.lead,signin.demo_note,status.demo"
 
 permissions:
   contents: read
@@ -278,4 +281,30 @@ jobs:
         with:
           name: vision-bench-forms
           path: bench_out/
+          retention-days: 30
+
+  translate:
+    name: Sarvam translations
+    if: inputs.suite == 'translate'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Translate the strings into the 22 scheduled languages
+        env:
+          SARVAM_API_KEY: ${{ secrets.SARVAM_API_KEY }}
+          KEYS: ${{ inputs.keys }}
+        run: python .github/scripts/sarvam_translate.py "$KEYS" >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload the translations
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: sarvam-translations
+          path: translations.json
           retention-days: 30
