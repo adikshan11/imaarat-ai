@@ -1,6 +1,8 @@
+import time
 from types import SimpleNamespace
 from unittest.mock import Mock
 
+import httpx
 from app import budget, llm
 from app.providers import gemini
 from google.genai import errors
@@ -34,12 +36,28 @@ def test_the_memo_keeps_the_model_default_thinking(monkeypatch):
 def test_a_busy_model_falls_back_at_once(monkeypatch):
     client = fake_client(monkeypatch)
     busy = errors.ServerError(503, {"error": {"code": 503, "message": "high demand", "status": "UNAVAILABLE"}})
-    client.models.generate_content.side_effect = [busy, client.models.generate_content.return_value]
+    reply = client.models.generate_content.return_value
+    client.models.generate_content.side_effect = [busy, reply, reply]
     slept = []
     monkeypatch.setattr(llm, "sleep", slept.append)
-    result = llm.generate("memo", ["write"])
+    first = llm.generate("memo", ["write"])
+    second = llm.generate("memo", ["write"])
     models = [call.kwargs["model"] for call in client.models.generate_content.call_args_list]
-    assert models == [llm.config.AI_MODEL, llm.config.AI_FALLBACK_MODEL] and slept == []
+    assert models == [llm.config.AI_MODEL, llm.config.AI_FALLBACK_MODEL, llm.config.AI_FALLBACK_MODEL] and slept == []
+    assert first["model"] == second["model"] == llm.config.AI_FALLBACK_MODEL
+    assert budget.remaining()["generations_left"] == llm.config.AI_DAILY_GENERATIONS - 1
+
+
+def test_a_slow_main_model_leaves_time_for_the_fallback(monkeypatch):
+    client = fake_client(monkeypatch)
+    client.models.generate_content.side_effect = [httpx.ReadTimeout("slow"), client.models.generate_content.return_value]
+    token = llm.deadline.set(time.perf_counter() + 30)
+    try:
+        result = llm.generate("memo", ["write"])
+    finally:
+        llm.deadline.reset(token)
+    timeouts = [call.kwargs["config"].http_options.timeout for call in client.models.generate_content.call_args_list]
+    assert timeouts[0] <= 15_000 and timeouts[1] >= llm.config.AI_MIN_ATTEMPT_MS
     assert result["model"] == llm.config.AI_FALLBACK_MODEL
 
 

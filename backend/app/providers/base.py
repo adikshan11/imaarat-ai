@@ -49,6 +49,7 @@ class Provider(Protocol):
         thinking: str | None,
         temperature: float,
         max_output_tokens: int,
+        timeout_ms: int | None = None,
     ) -> Reply: ...
 
     def count_tokens(self, model: str, text: str) -> int: ...

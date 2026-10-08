@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.45.2] - 2026-10-09
+
+### Fixed
+- The lighter fallback model now has its own daily and per-minute limits, matching Google's free tier for it (500 a day, 15 a minute), so a summary written by it no longer uses the main model's 20 a day, and a busy main model is skipped for two minutes.
+- Each AI attempt is now limited to the time left in the request, and the main model always leaves 15 seconds for the fallback, so a main model that hangs no longer leaves the summary without time.
+
 ## [2.45.1] - 2026-10-09
 
 ### Fixed
