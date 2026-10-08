@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.38.1] - 2026-10-08
+
+### Changed
+- The home page shows the tools it works with as a slowly scrolling row of their logos, which pauses on hover and stays still for visitors who prefer less motion.
+
 ## [2.38.0] - 2026-10-08
 
 ### Added

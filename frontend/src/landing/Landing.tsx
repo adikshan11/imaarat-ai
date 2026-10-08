@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { version } from '../../package.json'
 import { APP, Footer, Header, REPO, SkipLink } from './site.tsx'
+import { stack as tools, type Tool } from './stack.ts'
 
 
 const photo = (name: string, widths: number[]) => ({
@@ -65,14 +66,28 @@ const checks = [
   ['Cyclone exposure', 'Properties in districts that the India Meteorological Department lists as cyclone-prone are flagged automatically.'],
 ]
 
-const stack = ['Google Gemini', 'LangGraph', 'PostgreSQL', 'Langfuse', 'GraphQL', 'MCP', 'A2A', 'Vercel']
+function Logo({ tool }: { tool: Tool }) {
+  if (tool.src) return <img src={tool.src} alt="" width="24" height="24" loading="lazy" className="h-6 w-6 object-contain" />
+  return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6" fill={tool.color}><path d={tool.path} /></svg>
+}
 
 function WorksWith() {
   return (
     <section aria-label="Works with" className="border-b border-forest-900/10 bg-white py-8">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-8 gap-y-3 px-4 text-sm font-semibold text-muted sm:px-6">
-        <span className="text-xs uppercase tracking-[0.16em] text-forest-700">Works with</span>
-        {stack.map((name) => <span key={name}>{name}</span>)}
+      <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 sm:px-6">
+        <span className="shrink-0 text-xs uppercase tracking-[0.16em] text-forest-700">Works with</span>
+        <div className="marquee">
+          {[0, 1].map((copy) => (
+            <ul key={copy} className="marquee-group" aria-hidden={copy === 1 ? 'true' : undefined}>
+              {tools.map((tool) => (
+                <li key={tool.name} className="flex shrink-0 items-center gap-2.5 rounded-full border border-forest-900/10 bg-sand-50 px-4 py-2 text-sm font-semibold text-ink">
+                  <Logo tool={tool} />
+                  {tool.name}
+                </li>
+              ))}
+            </ul>
+          ))}
+        </div>
       </div>
     </section>
   )
