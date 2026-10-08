@@ -10,8 +10,10 @@ import BackendAssessmentResult from '@/components/assessment/BackendAssessmentRe
 const PaperForm = lazy(() => import('@/components/paper/PaperForm'))
 const HowItWorks = lazy(() => import('@/components/about/HowItWorks'))
 const StatusPage = lazy(() => import('@/components/status/StatusPage'))
+const SignIn = lazy(() => import('@/components/auth/SignIn'))
 import { useRiskContext } from '@/context/RiskContext'
 import { RiskProvider } from '@/context/RiskProvider'
+import { useSession } from '@/context/Session'
 import { SessionProvider } from '@/context/SessionProvider'
 import { usePreferences } from '@/context/Preferences'
 import { PreferencesProvider } from '@/context/PreferencesProvider'
@@ -101,6 +103,29 @@ function Application() {
   )
 }
 
+const DEMO_KEY = 'imaarat.demo'
+
+function Gate() {
+  const { session, ready } = useSession()
+  const [demo, setDemo] = useState(() => sessionStorage.getItem(DEMO_KEY) === '1')
+  const [asked, setAsked] = useState(() => window.location.hash === '#signin')
+  useEffect(() => {
+    const follow = () => setAsked(window.location.hash === '#signin')
+    window.addEventListener('hashchange', follow)
+    return () => window.removeEventListener('hashchange', follow)
+  }, [])
+  if (!ready) return <PageSkeleton />
+  if (!session && (!demo || asked)) {
+    return <Suspense fallback={<PageSkeleton />}><SignIn onDemo={() => {
+      sessionStorage.setItem(DEMO_KEY, '1')
+      if (window.location.hash === '#signin') window.history.replaceState(null, '', window.location.pathname)
+      setAsked(false)
+      setDemo(true)
+    }} /></Suspense>
+  }
+  return <Application />
+}
+
 export default function App() {
-  return <PreferencesProvider><SessionProvider><RiskProvider><Application /></RiskProvider></SessionProvider></PreferencesProvider>
+  return <PreferencesProvider><SessionProvider><RiskProvider><Gate /></RiskProvider></SessionProvider></PreferencesProvider>
 }

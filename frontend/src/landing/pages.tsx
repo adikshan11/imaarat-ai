@@ -39,7 +39,7 @@ export function Privacy() {
           <li><strong>Photos.</strong> A property photo is kept in temporary server storage while the assessment runs and disappears when the server restarts. A photo of the paper form is read and not stored.</li>
           <li><strong>Request records:</strong> for each request, the page or API route, the result code and how long it took. Not what you typed. Kept for 14 days.</li>
           <li><strong>A daily visitor count.</strong> To share the daily AI allowance fairly, requests are counted per visitor using a one-way code made from the IP address that changes every day. The address itself is not stored.</li>
-          <li><strong>Signing in</strong> is optional and only needed to review referrals. If you sign in with GitHub, we store your GitHub account’s numeric ID and username, your role and a hashed copy of your session. When you start reviewing or decide a referral, your username is shown with it to anyone who opens that assessment. We do not receive your email address or repositories.</li>
+          <li><strong>Signing in</strong> is optional. The demo works without it, but the AI features and reviewing referrals need it. If you sign in with GitHub, we store your GitHub account’s numeric ID and username, your role and a hashed copy of your session. If you sign in with Google, we store only your Google account’s numeric ID, your role and a hashed copy of your session. When you start reviewing or decide a referral, your username is shown with it to anyone who opens that assessment. We do not receive your email address, contacts or repositories.</li>
           <li><strong>Your browser</strong> keeps your language and light or dark choice in local storage. If you sign in, one cookie keeps you signed in; it is removed when you sign out. There are no analytics or advertising trackers.</li>
         </ul>
       </section>
@@ -48,7 +48,7 @@ export function Privacy() {
         <ul>
           <li><strong>Vercel</strong> hosts the site and API in Singapore and keeps standard request logs.</li>
           <li><strong>Neon</strong> hosts the database in Singapore.</li>
-          <li><strong>GitHub</strong> confirms your identity when you choose to sign in.</li>
+          <li><strong>GitHub</strong> or <strong>Google</strong> confirms your identity when you choose to sign in.</li>
           <li><strong>Google (Gemini API)</strong> receives assessment details and photos to read paper forms, review photos and write the AI risk summary. The demo uses Google’s free tier, under which Google may use what is sent to improve its products.</li>
           <li><strong>Langfuse</strong> (in the EU) records the text of AI requests and responses, not photos, so their quality can be checked. On its free plan they are available for 30 days.</li>
         </ul>

@@ -2,6 +2,14 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.38.0] - 2026-10-08
+
+### Added
+- Opening the app now shows a sign-in page: continue with GitHub, or Google once it is configured, or try the demo with the rule engine and sample data.
+
+### Security
+- The AI features now need a signed-in user; anonymous visitors, MCP and A2A get the rule-engine decision with a note saying why.
+
 ## [2.37.4] - 2026-10-08
 
 ### Changed

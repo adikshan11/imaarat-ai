@@ -1,6 +1,6 @@
 import json
 
-from app import config
+from app import auth, budget, config
 from app.api import main
 from app.tools import form_reader
 from app.tools.form_reader import validate
@@ -48,6 +48,8 @@ def test_endpoint_is_off_without_a_key(monkeypatch):
 
 def test_endpoint_returns_checked_reading(monkeypatch):
     monkeypatch.setattr(config, "AI_API_KEY", "set")
+    monkeypatch.setattr(auth, "signed_in", lambda request: True)
+    monkeypatch.setattr(budget, "admit", lambda address: None)
     monkeypatch.setattr(form_reader.llm, "generate", lambda *args, **kwargs: {"text": json.dumps(reading(zip="700001", city="Kolkata")), "model": "test-model"})
     response = TestClient(main.app).post("/underwrite/read-form", files={"image": ("page.jpg", b"x", "image/jpeg")})
     body = response.json()
@@ -61,6 +63,12 @@ def test_endpoint_rejects_other_file_types(monkeypatch):
     monkeypatch.setattr(config, "AI_API_KEY", "set")
     response = TestClient(main.app).post("/underwrite/read-form", files={"image": ("page.pdf", b"x", "application/pdf")})
     assert response.status_code == 415
+
+
+def test_reading_a_form_needs_sign_in(monkeypatch):
+    monkeypatch.setattr(config, "AI_API_KEY", "set")
+    response = TestClient(main.app).post("/underwrite/read-form", files={"image": ("page.jpg", b"x", "image/jpeg")})
+    assert response.status_code == 401
 
 
 def test_letters_in_numbers_are_flagged_not_dropped():

@@ -7,8 +7,8 @@ import { LANGUAGES } from '@/i18n/languages'
 
 export default function Controls({ compact = false }: { compact?: boolean }) {
   const { t, language, setLanguage, dark, toggleTheme } = usePreferences()
-  const { session, signIn, signOut } = useSession()
-  const account = session ? t('auth.signed_in', { role: t(`auth.role.${session.role}`) }) : t('auth.sign_in')
+  const { session, signOut } = useSession()
+  const account = session ? t('auth.signed_in', { role: t(`auth.role.${session.role}`) }) : t('auth.open_sign_in')
   const dialog = useRef<HTMLDialogElement>(null)
   const themeLabel = `${t('theme.label')}: ${t(dark ? 'theme.light' : 'theme.dark')}`
 
@@ -21,7 +21,7 @@ export default function Controls({ compact = false }: { compact?: boolean }) {
       <button type="button" className="control-button" onClick={toggleTheme} title={themeLabel} aria-label={themeLabel}>
         <Icon name={dark ? 'sun' : 'moon'} />
       </button>
-      <button type="button" className={session ? 'control-button is-signed-in' : 'control-button'} onClick={() => void (session ? signOut() : signIn())} title={session ? `${account} · ${t('auth.sign_out')}` : account} aria-label={session ? `${account}. ${t('auth.sign_out')}` : account}>
+      <button type="button" className={session ? 'control-button is-signed-in' : 'control-button'} onClick={() => { if (session) void signOut(); else window.location.hash = 'signin' }} title={session ? `${account} · ${t('auth.sign_out')}` : account} aria-label={session ? `${account}. ${t('auth.sign_out')}` : account}>
         <Icon name="user" />
       </button>
 

@@ -1,11 +1,13 @@
 import { createContext, useContext } from 'react'
-import type { Session } from '@/api/session'
+import type { Provider, Providers, Session } from '@/api/session'
 
 export type SessionState = {
   session: Session | null
+  ready: boolean
+  providers: Providers
   reviewer: boolean
   error: string | null
-  signIn: () => Promise<void>
+  signIn: (provider?: Provider) => Promise<void>
   signOut: () => Promise<void>
 }
 
