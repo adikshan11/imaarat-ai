@@ -472,12 +472,12 @@
   "auth.need_reviewer_role": "Your account can see this referral, but only a reviewer can approve or override it.",
   "auth.open_sign_in": "Sign in",
   "signin.title": "Sign in to imaarat.ai",
-  "signin.lead": "Signed-in users get the AI risk summary, paper-form reading and guideline search.",
+  "signin.lead": "Sign in with GitHub or Google. Reviewers need an account to sign off referrals.",
   "signin.github": "Continue with GitHub",
   "signin.google": "Continue with Google",
   "signin.or": "or",
   "signin.demo": "Try the demo",
-  "signin.demo_note": "The demo uses the rule engine and sample data only, with no AI.",
+  "signin.demo_note": "The demo uses sample properties and a free daily AI allowance shared by all visitors.",
   "signin.privacy": "Sign-in asks for no extra permissions, and imaarat.ai never sees or stores your password.",
-  "status.demo": "Demo mode: the rule engine and sample data only. Sign in for the AI risk summary and paper-form reading."
+  "status.demo": "Demo mode: sample properties, with a free daily AI allowance shared by all visitors."
 }

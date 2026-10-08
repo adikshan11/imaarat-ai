@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import changelog from '../../../CHANGELOG.md?raw'
 import { APP, Footer, Header, REPO, SkipLink } from './site.tsx'
 
-const UPDATED = '7 October 2026'
+const UPDATED = '8 October 2026'
 
 function Document({ title, lead, children }: { title: string; lead: ReactNode; children: ReactNode }) {
   return (
@@ -39,7 +39,7 @@ export function Privacy() {
           <li><strong>Photos.</strong> A property photo is kept in temporary server storage while the assessment runs and disappears when the server restarts. A photo of the paper form is read and not stored.</li>
           <li><strong>Request records:</strong> for each request, the page or API route, the result code and how long it took. Not what you typed. Kept for 14 days.</li>
           <li><strong>A daily visitor count.</strong> To share the daily AI allowance fairly, requests are counted per visitor using a one-way code made from the IP address that changes every day. The address itself is not stored.</li>
-          <li><strong>Signing in</strong> is optional. The demo works without it, but the AI features and reviewing referrals need it. If you sign in with GitHub, we store your GitHub account’s numeric ID and username, your role and a hashed copy of your session. If you sign in with Google, we store only your Google account’s numeric ID, your role and a hashed copy of your session. When you start reviewing or decide a referral, your username is shown with it to anyone who opens that assessment. We do not receive your email address, contacts or repositories.</li>
+          <li><strong>Signing in</strong> is optional. The demo, including its AI features, works without it; reviewing referrals needs it. If you sign in with GitHub, we store your GitHub account’s numeric ID and username, your role and a hashed copy of your session. If you sign in with Google, we store only your Google account’s numeric ID, your role and a hashed copy of your session. When you start reviewing or decide a referral, your username is shown with it to anyone who opens that assessment. We do not receive your email address, contacts or repositories.</li>
           <li><strong>Your browser</strong> keeps your language and light or dark choice in local storage. If you sign in, one cookie keeps you signed in; it is removed when you sign out. There are no analytics or advertising trackers.</li>
         </ul>
       </section>

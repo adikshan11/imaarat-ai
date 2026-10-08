@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from app import __version__, auth, budget, llm, telemetry
+from app import __version__, auth, budget, config, llm, telemetry
 from app.api.auth_routes import router as auth_router
 from app.config import AI_API_KEY, DB_PATH, QDRANT_URL
 from app.db import (
@@ -275,7 +275,7 @@ async def submit_underwriting(
     from app.agents.graph import run_graph
 
     note = budget.SIGN_IN_NOTE
-    if await run_in_threadpool(auth.signed_in, request):
+    if not config.AI_SIGN_IN_REQUIRED or await run_in_threadpool(auth.signed_in, request):
         note = await run_in_threadpool(budget.admission_note, budget.client_address(request.headers, request.client.host if request.client else None))
     result = await run_in_threadpool(run_graph, raw_input, image_path=image_path, ai_note=note)
     result["raw_input"] = raw_input
@@ -442,8 +442,8 @@ async def read_paper_form(request: Request, image: UploadFile = File(...)) -> di
     data = await image.read()
     if len(data) > 4_000_000:
         raise HTTPException(status_code=413, detail="The photo is larger than 4 MB")
-    if not await run_in_threadpool(auth.signed_in, request):
-        raise HTTPException(status_code=401, detail="Sign in to read paper forms with AI; the demo fills forms by hand")
+    if config.AI_SIGN_IN_REQUIRED and not await run_in_threadpool(auth.signed_in, request):
+        raise HTTPException(status_code=401, detail="Sign in to read paper forms with AI")
     try:
         await run_in_threadpool(budget.admit, budget.client_address(request.headers, request.client.host if request.client else None))
     except budget.BudgetExceeded as exceeded:

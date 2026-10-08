@@ -32,3 +32,8 @@ def test_each_rule_reports_its_own_problem():
 def test_only_preprod_releases_to_main():
     assert release_check.problems("preprod", files("2.30.0"), '__version__ = "2.29.0"', "main") == []
     assert any("against preprod" in item for item in release_check.problems("feature/react_landing", files("2.30.0"), '__version__ = "2.29.0"', "main"))
+
+
+def test_internal_branches_need_no_release():
+    assert release_check.problems("chore/ignore_notes", files("2.29.0", changelog=""), '__version__ = "2.29.0"') == []
+    assert release_check.problems("preprod", files("2.29.0"), '__version__ = "2.29.0"', "main") == []

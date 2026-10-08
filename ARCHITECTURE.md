@@ -87,8 +87,8 @@ Nothing else changes: the components, workflow, budgets, retries, tracing and st
 
 Every AI call is paid for from a daily budget before it is made, so the public demo cannot exhaust the provider quota or run up a bill.
 
-- **Sign-in first:** live AI runs only for a signed-in browser session. Anonymous visitors, MCP and A2A get the same rule-engine decision with the AI stages skipped and a note saying why, so they never take a budget slot.
-- **Admission:** a signed-in assessment or form reading takes one slot from a global daily cap (`AI_DAILY_ADMISSIONS`, 15) and a per-visitor cap (`AI_CLIENT_DAILY_ADMISSIONS`, 3). Visitors are counted by a daily-rotating hash of their address, never the address itself.
+- **Who gets AI:** every browser visitor, demo or signed in, gets the AI risk summary and paper-form reading while the shared daily allowance lasts. Setting `AI_SIGN_IN_REQUIRED=true` limits live AI to signed-in sessions. MCP and A2A always get the rule-engine decision with the AI stages skipped and a note saying why, so they never take a budget slot.
+- **Admission:** each assessment or form reading takes one slot from a global daily cap (`AI_DAILY_ADMISSIONS`, 15) and a per-visitor cap (`AI_CLIENT_DAILY_ADMISSIONS`, 3). Visitors are counted by a daily-rotating hash of their address, never the address itself.
 - **Calls:** every attempt, including retries, takes one call from `AI_DAILY_CALLS` (200). Text and image generations also count against `AI_DAILY_GENERATIONS` (20) and `AI_MINUTE_GENERATIONS` (5), matched to the free tier of gemini-3.8-flash.
 - **Atomic:** a reservation is one `UPDATE … SET used = used + n WHERE used + n <= cap`, so concurrent servers never overspend; CI proves it with 20 parallel requests on real Postgres.
 - **Fail closed:** on Vercel, AI runs only when the budget lives in Postgres. `/api/status` shows what is left.
@@ -99,6 +99,7 @@ Every AI call is paid for from a daily budget before it is made, so the public d
 Postgres ──extract──▶ Parquet ──dbt build──▶ DuckDB marts ──publish──▶ Postgres snapshot ──▶ dashboard
 ```
 
+- The pipeline follows the medallion pattern. Bronze: `extract.py` copies the operational tables as they are into Parquet in `pipeline/lake/`. Silver: dbt staging views parse the stored JSON, cast types and normalise PIN codes and decisions. Gold: `fct_assessments` and the marts are tables built for the dashboard.
 - Staging models feed `fct_assessments` and marts for catastrophe exposure, city accumulation, risk drivers, the review funnel, reference benchmarks and declared-versus-official hazards.
 - dbt tests check keys, accepted values, score ranges, that each stored decision matches its score band, and that every override has a reason.
 - `pipeline/hazard/build_hazard.py` builds the PIN-code hazard table from the open sources listed in the README, and fails if IMD's published district counts do not match.
