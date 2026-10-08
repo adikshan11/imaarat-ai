@@ -362,7 +362,7 @@ export async function verifyAccount(page) {
   const menu = await page.locator('.account-menu:popover-open').boundingBox()
   check(menu && menu.x >= 0 && menu.y >= 0 && menu.x + menu.width <= 1280 && menu.y + menu.height <= 800, `account menu off screen: ${JSON.stringify(menu)}`)
   await page.getByRole('button', { name: 'Profile and settings' }).click()
-  check(await page.getByRole('heading', { name: 'Profile and settings' }).isVisible(), 'settings page not opened')
+  await page.getByRole('heading', { name: 'Profile and settings' }).waitFor()
   check(await page.getByLabel('Full name').inputValue() === 'Asha Rao', 'saved name not shown in settings')
   await page.getByRole('button', { name: 'Account: Asha Rao' }).click()
   await page.locator('.account-menu:popover-open').getByRole('button', { name: 'Sign out' }).click()

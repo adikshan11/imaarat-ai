@@ -17,7 +17,7 @@ PHOTO_TYPES = {"image/jpeg", "image/png", "image/webp"}
 PHOTO_BYTES = 2_000_000
 PHOTO_PIXELS = 40_000_000
 PHOTO_SIZE = 256
-BLOCKED = set("<>{}[]\\/@#$%^*=+|~`\"")
+BLOCKED = set('<>{}[]\\/@#$%^*=+|~`"')
 
 
 def clean_name(value: object) -> str:
