@@ -50,7 +50,9 @@ def providers():
 @router.get("/session")
 def session(request: Request):
     principal = auth.resolve_principal(request)
-    return JSONResponse({"role": principal.role, "github_id": principal.github_id, "name": principal.name, "csrf_token": auth.csrf_token(request.cookies[auth.SESSION_COOKIE]), "profile": profile.read(principal.owner_id)}, headers=NO_STORE)
+    token = auth.csrf_token(request.cookies[auth.SESSION_COOKIE])
+    body = {"role": principal.role, "github_id": principal.github_id, "name": principal.name, "csrf_token": token, "profile": profile.read(principal.owner_id)}
+    return JSONResponse(body, headers=NO_STORE)
 
 
 @router.put("/profile")
