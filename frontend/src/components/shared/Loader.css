@@ -88,6 +88,49 @@
   animation: pixel-pulse 1.2s ease-in-out infinite;
 }
 
+.spinner {
+  display: inline-block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-inline-end-color: transparent;
+  border-radius: 50%;
+  vertical-align: -0.15em;
+  animation: spin 0.7s linear infinite;
+}
+
+.btn .spinner {
+  margin-inline-end: 8px;
+}
+
+.top-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 60;
+  height: 3px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--brand) 18%, transparent);
+}
+
+.top-progress span {
+  display: block;
+  width: 40%;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand), var(--brand-2));
+  animation: top-progress 1.1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes top-progress {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(250%); }
+}
+
 @keyframes skeleton-shimmer {
   from { background-position: 200% 0; }
   to { background-position: -200% 0; }
@@ -100,8 +143,15 @@
 
 @media (prefers-reduced-motion: reduce) {
   .skeleton,
-  .pixel-grid i {
+  .pixel-grid i,
+  .spinner,
+  .top-progress span {
     animation: none;
+  }
+
+  .top-progress span {
+    width: 100%;
+    opacity: 0.6;
   }
 
   .pixel-grid i {

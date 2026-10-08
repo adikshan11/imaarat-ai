@@ -6,7 +6,6 @@ import { useRiskContext } from '@/context/RiskContext'
 import type { OpsSpan, OpsSummary } from '@/types/backend'
 import './StatusPage.css'
 
-const AIQuality = lazy(() => import('@/components/quality/AIQuality'))
 const Integrations = lazy(() => import('@/components/integrations/Integrations'))
 
 const WINDOWS = [{ hours: 24, label: '24 hours' }, { hours: 168, label: '7 days' }]
@@ -102,14 +101,17 @@ export default function StatusPage() {
   const memoTotal = Object.values(ai?.memo_outcomes ?? {}).reduce((sum, value) => sum + value, 0)
   const geminiCalls = Object.values(ai?.stages ?? {}).reduce((sum, stage) => sum + stage.calls, 0)
   const geminiFailed = Object.values(ai?.stages ?? {}).reduce((sum, stage) => sum + stage.failed, 0)
+  const tokensIn = Object.values(ai?.stages ?? {}).reduce((sum, stage) => sum + stage.input_tokens, 0)
+  const tokensOut = Object.values(ai?.stages ?? {}).reduce((sum, stage) => sum + stage.output_tokens, 0)
+  const windowLabel = WINDOWS.find((item) => item.hours === hours)?.label
 
   return (
-    <div className="ops-page" lang="en" dir="ltr">
+    <div className="ops-page" id="quality" lang="en" dir="ltr">
       <div className="page-subtitle">System status</div>
       <div className="page-heading-row">
         <div>
           <h1 className="page-title">Status &amp; quality</h1>
-          <p className="page-lead">Live, aggregated operations data for imaarat.ai: traffic, latency, errors, AI calls and the step-by-step timing of recent assessments. Only route names and timings are stored, never inputs, PIN codes or personal data. Records are written in batches every 2 seconds and kept for 14 days. Technical content is shown in English in every language.</p>
+          <p className="page-lead">Live traffic, latency, AI calls and token use. Only route names and timings are stored, for 14 days.</p>
         </div>
         <div className="ops-window" role="group" aria-label="Time window">
           {WINDOWS.map((item) => <button key={item.hours} type="button" className={`btn ${item.hours === hours ? 'btn-primary' : 'btn-secondary'}`} aria-pressed={item.hours === hours} onClick={() => setHours(item.hours)}>{item.label}</button>)}
@@ -124,9 +126,9 @@ export default function StatusPage() {
           <div className="kpi"><div className="kpi-label">Version</div><div className="kpi-value">{status?.version ?? '—'}</div><div className="kpi-hint">AI {status?.ai ? 'on' : 'off'} · Langfuse tracing {status?.tracing ? 'on' : 'off'}</div></div>
           <div className="kpi"><div className="kpi-label">Requests</div><div className="kpi-value">{requests.total.toLocaleString('en-IN')}</div><div className="kpi-hint">{share(requests.server_errors, requests.total)} server errors · {requests.cold_starts} cold starts</div></div>
           <div className="kpi"><div className="kpi-label">Assessment time</div><div className="kpi-value">{ms(summary.assessments.p50_ms)}</div><div className="kpi-hint">p50 · p95 {ms(summary.assessments.p95_ms)} · {summary.assessments.total} runs</div></div>
-          <div className="kpi"><div className="kpi-label">AI memo available</div><div className="kpi-value">{share(ai.memo_outcomes.Available ?? 0, memoTotal)}</div><div className="kpi-hint">{ai.budget.admissions_left} AI assessments · {ai.budget.generations_left ?? '—'} Gemini generations left today</div></div>
+          <div className="kpi"><div className="kpi-label">Gemini tokens</div><div className="kpi-value">{(tokensIn + tokensOut).toLocaleString('en-IN')}</div><div className="kpi-hint">{windowLabel}: {tokensIn.toLocaleString('en-IN')} in · {tokensOut.toLocaleString('en-IN')} out · {ai.budget.generations_left ?? '—'} generations left today</div></div>
         </div>
-        {summary.storage && <p className="card-footnote">Database: {mb(summary.storage.database_bytes)} of {mb(summary.storage.limit_bytes)} on Neon's free plan ({share(summary.storage.database_bytes, summary.storage.limit_bytes)}). Largest tables: {summary.storage.tables.slice(0, 4).map((item) => `${item.table} ${mb(item.bytes)}`).join(', ')}.</p>}
+        <p className="card-footnote">AI memos available: {share(ai.memo_outcomes.Available ?? 0, memoTotal)} · {ai.budget.admissions_left} AI assessments left today{summary.storage ? ` · database ${mb(summary.storage.database_bytes)} of ${mb(summary.storage.limit_bytes)} (${share(summary.storage.database_bytes, summary.storage.limit_bytes)})` : ''}</p>
 
         <Card title="Traffic">
           <Bars hours={hours} summary={`${requests.total} requests, ${requests.client_errors} client errors, ${requests.server_errors} server errors`} series={[{ name: 'OK', tone: 'ok' }, { name: '4xx', tone: 'warn' }, { name: '5xx', tone: 'error' }]}
@@ -152,7 +154,7 @@ export default function StatusPage() {
               <tbody>{Object.entries(ai.stages).map(([name, stage]) => <tr key={name}><td>{name}</td><td>{stage.calls}</td><td>{stage.failed}</td><td>{ms(stage.p50_ms)}</td><td>{ms(stage.p95_ms)}</td><td>{stage.input_tokens.toLocaleString('en-IN')}</td><td>{stage.output_tokens.toLocaleString('en-IN')}</td></tr>)}</tbody>
             </table>
           </div>
-          <p className="card-footnote">Every Gemini attempt is counted, retries included. Free-tier requests use capacity Google can shed under load, which shows up here as failed calls; the rules still decide every assessment. Memo outcomes: {Object.entries(ai.memo_outcomes).map(([name, count]) => `${name} ${count}`).join(', ') || 'none yet'}.</p>
+          <p className="card-footnote">Every Gemini attempt is counted, retries included. Failed calls are free-tier capacity Google shed; the rules still decide every assessment.</p>
         </Card>
 
         <Card title="Recent assessments, step by step">
@@ -166,7 +168,7 @@ export default function StatusPage() {
         </Card>
 
         <Card title="Quality and testing (CI)">
-          <p className="card-footnote">Each row is one run on the main branch, written by the workflow itself. Load tests run the API on a CI machine with AI off; Lighthouse audits the live site; evaluations score the rules, guideline search and AI memos.</p>
+          <p className="card-footnote">Runs on main. Load tests use a CI copy of the API with AI off; Lighthouse audits the live site; evaluations use synthetic cases, so rule agreement is not LLM accuracy.</p>
           <h3 className="ops-subhead">Load test</h3>
           {summary.ci_runs.load?.length ? <div className="table-wrap"><table className="table-wide">
             <thead><tr><th>Run</th><th>Users</th><th>Req/s</th><th>p50</th><th>p95</th><th>p99</th><th>Submit p95</th><th>Failures</th></tr></thead>
@@ -179,15 +181,14 @@ export default function StatusPage() {
           </table></div> : <p className="muted-text">No Lighthouse audit published from main yet.</p>}
           <h3 className="ops-subhead">Evaluations</h3>
           {summary.ci_runs.evals?.length ? <div className="table-wrap"><table className="table-wide">
-            <thead><tr><th>Run</th><th>Mode</th><th>Result</th><th>Rules agreement</th><th>Guideline search recall</th><th>TOON token saving</th></tr></thead>
-            <tbody>{summary.ci_runs.evals.map((run) => <tr key={run.run_url}><td><a href={run.run_url} target="_blank" rel="noopener noreferrer">{when(run.created_at)}</a></td><td>{run.summary.mode}</td><td>{run.summary.passed ? 'passed' : 'not passed'}</td><td>{share(run.summary.rules_agreement, 1)} of {run.summary.rules_cases}</td><td>{run.summary.retrieval_recall === null ? '—' : `${share(run.summary.retrieval_recall, 1)} (${run.summary.retrieval_cases} cases)`}</td><td>{run.summary.toon_token_saving === null ? '—' : share(run.summary.toon_token_saving, 1)}</td></tr>)}</tbody>
+            <thead><tr><th>Run</th><th>Mode</th><th>Result</th><th>Rules agreement</th><th>Guideline search recall</th><th>Prompt tokens TOON / JSON</th><th>Memo contract pass</th><th>Faithfulness</th></tr></thead>
+            <tbody>{summary.ci_runs.evals.map((run) => <tr key={run.run_url}><td><a href={run.run_url} target="_blank" rel="noopener noreferrer">{when(run.created_at)}</a></td><td>{run.summary.mode}</td><td>{run.summary.passed ? 'passed' : 'not passed'}</td><td>{share(run.summary.rules_agreement, 1)} of {run.summary.rules_cases}</td><td>{run.summary.retrieval_recall === null ? '—' : `${share(run.summary.retrieval_recall, 1)} (${run.summary.retrieval_cases} cases)`}</td><td>{typeof run.summary.toon_tokens === 'number' && typeof run.summary.json_tokens === 'number' ? `${run.summary.toon_tokens.toLocaleString('en-IN')} / ${run.summary.json_tokens.toLocaleString('en-IN')}` : '—'}{run.summary.toon_token_saving === null ? '' : ` (${share(run.summary.toon_token_saving, 1)} fewer)`}</td><td>{typeof run.summary.memo_contract_pass === 'number' ? share(run.summary.memo_contract_pass, 1) : '—'}</td><td>{typeof run.summary.memo_faithfulness === 'number' ? run.summary.memo_faithfulness.toFixed(2) : '—'}</td></tr>)}</tbody>
           </table></div> : <p className="muted-text">No evaluation published from main yet.</p>}
         </Card>
 
         <p className="card-footnote">Generated {new Date(summary.generated_at).toLocaleString('en-IN')} · refreshes every 30 seconds while this tab is open.</p>
       </>}
-      <Suspense fallback={null}>
-        <AIQuality />
+      <Suspense fallback={<PageSkeleton heading={false} />}>
         <Integrations />
       </Suspense>
     </div>

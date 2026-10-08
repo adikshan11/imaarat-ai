@@ -1,5 +1,6 @@
 import React from 'react'
 import Card from '@/components/shared/Card'
+import { Spinner } from '@/components/shared/Loader'
 import type { BackendSubmission, StructuredMemo } from '@/types/backend'
 import { downloadSubmissionReport } from '@/api/underwriting'
 import { usePreferences } from '@/context/Preferences'
@@ -53,7 +54,7 @@ export default function BackendAssessmentResult({ submission, onBack, onReviewed
   return <div>
     <div className="action-row">
       <button className="btn btn-secondary" onClick={onBack}>{t('res.back')}</button>
-      <button className="btn btn-primary" onClick={() => void downloadReport()} disabled={reportBusy}>{reportBusy ? t('res.pdf_busy') : t('res.pdf')}</button>
+      <button className="btn btn-primary" onClick={() => void downloadReport()} disabled={reportBusy}>{reportBusy ? <><Spinner />{t('res.pdf_busy')}</> : t('res.pdf')}</button>
     </div>
     {reportError && <div className="error-banner">{t('res.pdf_error', { error: reportError })} <button className="btn btn-secondary" onClick={() => void downloadReport()}>{t('res.retry')}</button></div>}
     <div className="page-subtitle">{t('res.eyebrow')}</div>

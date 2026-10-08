@@ -67,7 +67,7 @@ const checks = [
 ]
 
 function Logo({ tool }: { tool: Tool }) {
-  if (tool.src) return <img src={tool.src} alt="" width="24" height="24" loading="lazy" className="h-6 w-6 object-contain" />
+  if (tool.src) return <img src={tool.src} alt="" width={tool.wide ? 48 : 24} height="24" loading="lazy" className={`h-6 ${tool.wide ? 'w-12' : 'w-6'} object-contain`} />
   return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6" fill={tool.color}><path d={tool.path} /></svg>
 }
 

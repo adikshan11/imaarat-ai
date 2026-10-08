@@ -144,7 +144,7 @@ export interface OpsSummary {
   ci_runs: {
     load?: Array<CiRun<{ users: number; duration: string; requests: number; failures: number; rps: number; p50_ms: number; p95_ms: number; p99_ms: number; submit_p95_ms: number }>>
     lighthouse?: Array<CiRun<Record<string, { performance: number; accessibility: number; lcp_ms: number; tbt_ms: number; cls: number }>>>
-    evals?: Array<CiRun<{ mode: string; passed: boolean | null; rules_agreement: number; rules_cases: number; retrieval_hit_rate: number | null; retrieval_recall: number | null; retrieval_cases: number | null; toon_token_saving: number | null; sections: Record<string, string> }>>
+    evals?: Array<CiRun<{ mode: string; passed: boolean | null; rules_agreement: number; rules_cases: number; retrieval_hit_rate: number | null; retrieval_recall: number | null; retrieval_cases: number | null; toon_token_saving: number | null; toon_tokens?: number | null; json_tokens?: number | null; memo_contract_pass?: number | null; memo_faithfulness?: number | null; memo_input_tokens?: number | null; sections: Record<string, string> }>>
   }
   storage: { database_bytes: number; limit_bytes: number; tables: Array<{ table: string; bytes: number }> } | null
   generated_at: string

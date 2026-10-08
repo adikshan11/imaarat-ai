@@ -1,4 +1,4 @@
-import type { AnalyticsSnapshot, BackendHistoryRow, BackendSubmission, DeploymentStatus, EvalReport, FormReading, HistoryQuery, MitigationPreview, OpsSummary, PortfolioSummary, ReviewInput, SubmissionInput } from '@/types/backend'
+import type { AnalyticsSnapshot, BackendHistoryRow, BackendSubmission, DeploymentStatus, FormReading, HistoryQuery, MitigationPreview, OpsSummary, PortfolioSummary, ReviewInput, SubmissionInput } from '@/types/backend'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 
@@ -111,10 +111,6 @@ export async function releaseSubmission(submissionId: number, csrf: string): Pro
 
 export async function fetchAnalytics(): Promise<AnalyticsSnapshot> {
   return parseResponse<AnalyticsSnapshot>(await fetch(`${API_BASE_URL}/underwrite/analytics`))
-}
-
-export async function fetchEvals(): Promise<EvalReport> {
-  return parseResponse<EvalReport>(await fetch(`${API_BASE_URL}/underwrite/evals`))
 }
 
 export const apiBaseUrl = new URL(API_BASE_URL, window.location.origin).toString().replace(/\/$/, '')

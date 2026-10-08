@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.40.0] - 2026-10-08
+
+### Changed
+- The home page shows the official coloured logos, the app logo returns to the dashboard, the mobile tab highlight follows the bar's rounded shape, slow actions show a loader, and the status page is shorter and shows Gemini token use and the latest AI evaluation.
+
 ## [2.39.1] - 2026-10-08
 
 ### Fixed
