@@ -213,7 +213,7 @@ jobs:
             url=$(npx --yes vercel@62.7.0 deploy --yes --token "$VERCEL_TOKEN")
           fi
           if [ "$TARGET" = "preprod" ]; then
-            npx --yes vercel@62.7.0 alias set "$url" imaarat-ai-preprod.vercel.app --scope adicr7fans-projects --token "$VERCEL_TOKEN"
+            curl -sS --fail-with-body -X POST "https://api.vercel.com/v2/deployments/${url#https://}/aliases?teamId=$VERCEL_ORG_ID" -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" -d '{"alias":"imaarat-ai-preprod.vercel.app"}'
             url=https://imaarat-ai-preprod.vercel.app
           fi
           echo "url=$url" >> "$GITHUB_OUTPUT"
