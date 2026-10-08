@@ -1,10 +1,12 @@
+from io import BytesIO
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
-from app import auth, db
+from app import auth, db, profile
 from app.api import auth_routes, main
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
+from PIL import Image
 
 ORIGIN = "https://imaarat.test"
 REVIEW = {"final_decision": "Accept", "note": ""}
@@ -22,8 +24,10 @@ def client(tmp_path, monkeypatch):
     return TestClient(main.app, base_url="https://testserver")
 
 
-def signed_in(client, github_id):
+def signed_in(client, github_id, complete=True):
     grant = auth.create_member(github_id)
+    if complete:
+        profile.save(grant.principal.owner_id, "Asha Rao", "98765 43210")
     client.cookies.set(auth.SESSION_COOKIE, grant.token)
     return {"origin": ORIGIN, "x-csrf-token": grant.csrf_token}
 
@@ -106,6 +110,33 @@ def test_logout_revokes_the_session_on_the_server(client):
     assert client.post("/auth/logout", headers=headers).status_code == 204
     client.cookies.set(auth.SESSION_COOKIE, token)
     assert client.get("/auth/session").status_code == 401
+
+
+def test_reviewer_needs_a_profile(client):
+    operator = signed_in(client, 7, complete=False)
+    assert client.get("/auth/session").json()["profile"]["complete"] is False
+    assert client.post("/underwrite/history/999999/review", json=REVIEW, headers=operator).status_code == 403
+    assert client.put("/auth/profile", json={"full_name": "Asha 2", "phone": "98765 43210"}, headers=operator).status_code == 422
+    assert client.put("/auth/profile", json={"full_name": "Asha Rao", "phone": "12345"}, headers=operator).status_code == 422
+    assert client.put("/auth/profile", json={"full_name": "Asha Rao", "phone": "98765 43210"}).status_code == 403
+    saved = client.put("/auth/profile", json={"full_name": "  Asha   Rao ", "phone": "098765-43210"}, headers=operator).json()
+    assert saved == {"full_name": "Asha Rao", "phone": "+919876543210", "has_photo": False, "complete": True}
+    assert client.post("/underwrite/history/999999/review", json=REVIEW, headers=operator).status_code == 404
+
+
+def test_photo_is_re_encoded_and_private(client):
+    member = signed_in(client, 42)
+    upload = BytesIO()
+    Image.new("RGB", (900, 600), "teal").save(upload, "PNG")
+    saved = client.put("/auth/profile/photo", files={"photo": ("me.png", upload.getvalue(), "image/png")}, headers=member)
+    assert saved.status_code == 200 and saved.json()["has_photo"] is True
+    shown = client.get("/auth/profile/photo")
+    assert shown.headers["content-type"] == "image/webp" and Image.open(BytesIO(shown.content)).size == (256, 256)
+    assert client.put("/auth/profile/photo", files={"photo": ("me.png", b"not an image", "image/png")}, headers=member).status_code == 415
+    assert client.delete("/auth/profile/photo", headers=member).json()["has_photo"] is False
+    assert client.get("/auth/profile/photo").status_code == 404
+    client.cookies.clear()
+    assert client.get("/auth/profile/photo").status_code == 401
 
 
 def test_origin_ignores_the_api_path_in_the_base_url(monkeypatch):

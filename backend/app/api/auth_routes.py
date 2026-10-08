@@ -1,10 +1,11 @@
 import os
 
 from authlib.integrations.httpx_client import OAuth2Client
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse, RedirectResponse, Response
+from pydantic import BaseModel, Field
 
-from app import auth
+from app import auth, profile
 
 router = APIRouter(prefix="/auth")
 NO_STORE = {"Cache-Control": "no-store"}
@@ -13,6 +14,11 @@ GITHUB_ISSUER = "https://github.com/login/oauth"
 GOOGLE_ISSUER = "https://accounts.google.com"
 GOOGLE_CALLBACK_PARAMS = {"code", "state", "scope", "authuser", "prompt", "hd", "iss"}
 COOKIE = {"secure": True, "httponly": True, "samesite": "lax", "path": "/"}
+
+
+class ProfileForm(BaseModel):
+    full_name: str = Field(max_length=200)
+    phone: str = Field(max_length=40)
 
 
 def oauth_client(**kwargs):
@@ -44,7 +50,37 @@ def providers():
 @router.get("/session")
 def session(request: Request):
     principal = auth.resolve_principal(request)
-    return JSONResponse({"role": principal.role, "github_id": principal.github_id, "name": principal.name, "csrf_token": auth.csrf_token(request.cookies[auth.SESSION_COOKIE])}, headers=NO_STORE)
+    return JSONResponse({"role": principal.role, "github_id": principal.github_id, "name": principal.name, "csrf_token": auth.csrf_token(request.cookies[auth.SESSION_COOKIE]), "profile": profile.read(principal.owner_id)}, headers=NO_STORE)
+
+
+@router.put("/profile")
+def save_profile(form: ProfileForm, request: Request):
+    principal = auth.resolve_principal(request)
+    auth.require_csrf(request, principal)
+    return JSONResponse(profile.save(principal.owner_id, form.full_name, form.phone), headers=NO_STORE)
+
+
+@router.put("/profile/photo")
+def save_photo(request: Request, photo: UploadFile = File(...)):
+    principal = auth.resolve_principal(request)
+    auth.require_csrf(request, principal)
+    data = profile.clean_photo(photo.file.read(profile.PHOTO_BYTES + 1), photo.content_type)
+    return JSONResponse(profile.save_photo(principal.owner_id, data), headers=NO_STORE)
+
+
+@router.delete("/profile/photo")
+def remove_photo(request: Request):
+    principal = auth.resolve_principal(request)
+    auth.require_csrf(request, principal)
+    return JSONResponse(profile.save_photo(principal.owner_id, None), headers=NO_STORE)
+
+
+@router.get("/profile/photo")
+def show_photo(request: Request):
+    data = profile.photo(auth.resolve_principal(request).owner_id)
+    if not data:
+        raise HTTPException(404, "No photo")
+    return Response(data, media_type="image/webp", headers={"Cache-Control": "private, no-cache"})
 
 
 @router.post("/logout")

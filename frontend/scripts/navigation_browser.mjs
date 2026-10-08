@@ -331,3 +331,42 @@ export async function verifyDesktop(page) {
   if (!await page.getByRole('tabpanel', { name: /Scoring/ }).isVisible()) throw new Error('Landing step tabs do not switch')
   return { checks: 4, action }
 }
+
+export async function verifyAccount(page) {
+  let checks = 0
+  const check = (value, name) => {
+    if (!value) throw new Error(name)
+    checks++
+  }
+  const profile = { full_name: null, phone: null, has_photo: false, complete: false }
+  let signedIn = true
+  await page.route('**/auth/providers', (route) => route.fulfill({ json: { github: true, google: false } }))
+  await page.route('**/auth/session', (route) => signedIn ? route.fulfill({ json: { role: 'reviewer', github_id: 7, name: 'asha', csrf_token: 'c'.repeat(64), profile } }) : route.fulfill({ status: 401, json: { detail: 'Sign in' } }))
+  await page.route('**/auth/profile', (route) => {
+    const body = route.request().postDataJSON()
+    Object.assign(profile, { full_name: body.full_name, phone: body.phone, complete: true })
+    return route.fulfill({ json: profile })
+  })
+  await page.route('**/auth/logout', (route) => { signedIn = false; return route.fulfill({ status: 204 }) })
+  await page.setViewportSize({ width: 1280, height: 800 })
+  await page.goto(APP_URL + '/app/')
+  await page.evaluate(() => localStorage.setItem('imaarat.lang', 'en'))
+  await page.reload()
+  await page.getByRole('heading', { name: 'Set up your profile' }).waitFor()
+  check(await page.locator('.nav-item').count() === 0, 'app opened before the profile was filled')
+  await page.getByLabel('Full name').fill('Asha Rao')
+  await page.getByLabel('Mobile number').fill('+91 98765 43210')
+  await page.getByRole('button', { name: 'Save and continue' }).click()
+  await page.locator('.nav-item').first().waitFor()
+  await page.getByRole('button', { name: 'Account: Asha Rao' }).click()
+  const menu = await page.locator('.account-menu:popover-open').boundingBox()
+  check(menu && menu.x >= 0 && menu.y >= 0 && menu.x + menu.width <= 1280 && menu.y + menu.height <= 800, `account menu off screen: ${JSON.stringify(menu)}`)
+  await page.getByRole('button', { name: 'Profile and settings' }).click()
+  check(await page.getByRole('heading', { name: 'Profile and settings' }).isVisible(), 'settings page not opened')
+  check(await page.getByLabel('Full name').inputValue() === 'Asha Rao', 'saved name not shown in settings')
+  await page.getByRole('button', { name: 'Account: Asha Rao' }).click()
+  await page.locator('.account-menu:popover-open').getByRole('button', { name: 'Sign out' }).click()
+  await page.locator('.signin-page').waitFor()
+  check(true, 'sign out')
+  return { checks }
+}

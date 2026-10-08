@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 from uuid import uuid4
 
 from fastapi import HTTPException, Request
-from sqlalchemy import BigInteger, Column, ForeignKey, Integer, MetaData, String, Table, case, insert, inspect, select, text, update
+from sqlalchemy import BigInteger, Column, ForeignKey, Integer, LargeBinary, MetaData, String, Table, case, insert, inspect, select, text, update
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.engine import Engine
@@ -60,6 +60,15 @@ oauth_transactions = Table(
     Column("expires_at", BigInteger, nullable=False),
     Column("consumed_at", BigInteger),
 )
+profiles = Table(
+    "profiles",
+    metadata,
+    Column("owner_id", String, ForeignKey("users.id"), primary_key=True),
+    Column("full_name", String),
+    Column("phone", String),
+    Column("photo", LargeBinary),
+    Column("updated_at", BigInteger, nullable=False),
+)
 rate_limits = Table(
     "identity_rate_limits",
     metadata,
@@ -77,6 +86,8 @@ class Principal:
     session_id: str
     github_id: int | None = None
     name: str | None = None
+    full_name: str | None = None
+    profile_complete: bool = False
 
 
 @dataclass(frozen=True)
@@ -188,11 +199,16 @@ def resolve_session(token: str, now: int | None = None) -> Principal:
         raise HTTPException(401, "Sign in to continue")
     now = clock(now)
     with engine().begin() as conn:
-        row = conn.execute(select(sessions, users.c.role, users.c.github_id, users.c.name, users.c.disabled_at).join(users).where(sessions.c.id == digest(token))).first()
+        row = conn.execute(
+            select(sessions, users.c.role, users.c.github_id, users.c.name, users.c.disabled_at, profiles.c.full_name, profiles.c.phone)
+            .join(users)
+            .outerjoin(profiles, profiles.c.owner_id == sessions.c.owner_id)
+            .where(sessions.c.id == digest(token))
+        ).first()
         if row is None or row.revoked_at is not None or row.disabled_at is not None or now >= row.expires_at or now - row.last_seen >= IDLE_SECONDS:
             raise HTTPException(401, "Your session has ended; sign in again")
         conn.execute(update(sessions).where(sessions.c.id == row.id).values(last_seen=now))
-        return Principal(row.owner_id, row.role, row.id, row.github_id, row.name)
+        return Principal(row.owner_id, row.role, row.id, row.github_id, row.name, row.full_name, bool(row.full_name and row.phone))
 
 
 def resolve_principal(request: Request) -> Principal:
@@ -227,6 +243,8 @@ def require_reviewer(request: Request) -> Principal:
     require_csrf(request, principal)
     if principal.role not in REVIEW_ROLES:
         raise HTTPException(403, "Only a reviewer can approve or override a referral")
+    if not principal.profile_complete:
+        raise HTTPException(403, "Add your name and mobile number in your profile before reviewing")
     return principal
 
 

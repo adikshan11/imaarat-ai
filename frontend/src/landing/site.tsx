@@ -1,4 +1,4 @@
-export const APP = '/app/'
+export const APP = '/app/#signin'
 export const DEMO = '/app/?demo'
 export const REPO = 'https://github.com/adikshan11/imaarat-ai'
 export const PORTFOLIO = 'https://adithya-shankaran.vercel.app'
