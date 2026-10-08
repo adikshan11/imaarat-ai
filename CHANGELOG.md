@@ -2,6 +2,13 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.41.2] - 2026-10-08
+
+### Fixed
+- The side menu stays in place and fills the window from top to bottom while the page scrolls.
+- The six steps on the home page switch again when you pick one.
+- Glass panels have a softer, less white edge.
+
 ## [2.41.1] - 2026-10-08
 
 ### Fixed
