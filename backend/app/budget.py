@@ -162,5 +162,6 @@ def remaining(now: datetime | None = None) -> dict[str, Any]:
         "generations_left": max(0, caps["generations"] - used.get("generations", 0)),
         "per_visitor_admissions": caps["client_admissions"],
         "tokens_today": {"input": int(tokens[0]), "output": int(tokens[1])},
+        "limits": caps,
         "shared_store": shared_store(),
     }
