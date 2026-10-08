@@ -12,7 +12,7 @@ import toon_format
 from pydantic import BaseModel
 
 from app import budget, config, telemetry
-from app.observability import record_generation
+from app.observability import generation
 from app.providers import EmbedTask, get_provider
 
 RETRYABLE = {429, 500, 503}
@@ -68,30 +68,45 @@ def budgeted(stage: str, call: Any, **arguments: Any) -> tuple[Any, int, int]:
         return response, call_id, round((time.perf_counter() - started) * 1000)
 
 
+def busy(error: Exception) -> bool:
+    return getattr(error, "code", None) in RETRYABLE and not daily_quota(error)
+
+
 def generate(name: str, contents: Any, schema: type[BaseModel] | None = None, system: str | None = None) -> dict[str, Any]:
-    """Call the configured model once (with budgeted retries) and return text, tokens and latency."""
-    model = config.AI_MODEL
-    reply, call_id, latency_ms = budgeted(
-        name,
-        get_provider().generate,
-        model=model,
-        contents=contents if isinstance(contents, list) else [contents],
-        system=system,
-        schema=schema,
-        thinking=config.STAGE_THINKING.get(name),
-        temperature=0.2,
-        max_output_tokens=config.AI_STAGE_OUTPUT_TOKENS,
-    )
-    result = {
-        "text": reply.text,
-        "model": model,
-        "input_tokens": reply.input_tokens,
-        "output_tokens": reply.output_tokens,
-        "thought_tokens": reply.thought_tokens,
-        "latency_ms": latency_ms,
-    }
-    budget.finish_call(call_id, "succeeded", model, result["input_tokens"], result["output_tokens"], latency_ms)
-    record_generation(name, model, contents, result)
+    """Call the configured model (with budgeted retries), then the fallback model once if the first stays busy."""
+    fallback = config.AI_FALLBACK_MODEL
+    try:
+        return generate_with(config.AI_MODEL, name, contents, schema, system)
+    except Exception as error:
+        if not fallback or fallback == config.AI_MODEL or not busy(error):
+            raise
+    return generate_with(fallback, name, contents, schema, system)
+
+
+def generate_with(model: str, name: str, contents: Any, schema: type[BaseModel] | None, system: str | None) -> dict[str, Any]:
+    with generation(name, model, contents) as result:
+        reply, call_id, latency_ms = budgeted(
+            name,
+            get_provider().generate,
+            model=model,
+            contents=contents if isinstance(contents, list) else [contents],
+            system=system,
+            schema=schema,
+            thinking=config.STAGE_THINKING.get(name),
+            temperature=0.2,
+            max_output_tokens=config.AI_STAGE_OUTPUT_TOKENS,
+        )
+        result.update(
+            {
+                "text": reply.text,
+                "model": model,
+                "input_tokens": reply.input_tokens,
+                "output_tokens": reply.output_tokens,
+                "thought_tokens": reply.thought_tokens,
+                "latency_ms": latency_ms,
+            }
+        )
+        budget.finish_call(call_id, "succeeded", model, result["input_tokens"], result["output_tokens"], latency_ms)
     return result
 
 
@@ -102,6 +117,8 @@ def count_tokens(text: str) -> int:
 
 
 def embed(texts: list[str], task: EmbedTask) -> list[list[float]]:
-    vectors, call_id, latency_ms = budgeted("embed", get_provider().embed, model=config.AI_EMBEDDING_MODEL, texts=texts, task=task)
+    with generation("embed", config.AI_EMBEDDING_MODEL, texts, as_type="embedding") as result:
+        vectors, call_id, latency_ms = budgeted("embed", get_provider().embed, model=config.AI_EMBEDDING_MODEL, texts=texts, task=task)
+        result["latency_ms"] = latency_ms
     budget.finish_call(call_id, "succeeded", config.AI_EMBEDDING_MODEL, None, None, latency_ms)
     return vectors

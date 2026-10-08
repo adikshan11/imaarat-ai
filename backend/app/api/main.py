@@ -453,6 +453,8 @@ async def read_paper_form(request: Request, image: UploadFile = File(...)) -> di
         raise HTTPException(status_code=429, detail=f"The form could not be read. {llm.failure_reason(exceeded)}", headers={"Retry-After": str(exceeded.retry_after)}) from exceeded
     except Exception as error:
         raise HTTPException(status_code=502, detail=f"The form could not be read. {llm.failure_reason(error)}") from error
+    finally:
+        flush()
 
 
 @app.get("/hazard/sources")

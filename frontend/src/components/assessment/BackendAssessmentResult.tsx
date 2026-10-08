@@ -99,6 +99,7 @@ export default function BackendAssessmentResult({ submission, onBack, onReviewed
       </p>
       {cited.size > 0 && <p className="card-footnote">{t('res.cited', { ids: [...cited].join(', ') })}</p>}
       {submission.ai_memo_status !== 'Available' || !submission.memo_json ? <p>{t('res.memo_reason', { reason: submission.ai_memo_reason ?? t('res.not_available') })}</p> : <Memo memo={submission.memo_json} />}
+      {submission.trace_url && <p className="card-footnote"><a href={submission.trace_url} target="_blank" rel="noreferrer">{t('res.trace_link')}</a></p>}
     </Card>
     <div className="dashboard-grid">
       <Card title={t('res.guidelines')}>

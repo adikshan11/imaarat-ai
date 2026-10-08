@@ -26,11 +26,13 @@ REVIEW_DECISIONS = ("Accept", "Refer", "Decline (mitigation possible)", "Auto-De
 
 
 @timed("intake")
+@traced("intake")
 def intake_node(state: UWState) -> dict:
     return {"property_id": str(state["raw_input"].get("property_id", ""))}
 
 
 @timed("photo review")
+@traced("photo review")
 def extract_features_node(state: UWState) -> dict:
     return {"extracted_features": verify_location(extract_property_features(state.get("image_path"), state["raw_input"], state.get("ai_note")))}
 
@@ -50,12 +52,14 @@ def retrieval_query(raw: dict) -> str:
 
 
 @timed("guideline search")
+@traced("guideline search")
 def rag_guidelines_node(state: UWState) -> dict:
     hits = retrieve(retrieval_query(state["raw_input"]), k=4, ai_note=state.get("ai_note"))
     return {"guideline_hits": hits, "guideline_chunks": [format_hit(hit) for hit in hits]}
 
 
 @timed("risk rules")
+@traced("risk rules")
 def score_risk_node(state: UWState) -> dict:
     score_data = risk_score_calculator(state.get("extracted_features") or state["raw_input"])
     return {
@@ -67,17 +71,20 @@ def score_risk_node(state: UWState) -> dict:
 
 
 @timed("comparables")
+@traced("comparables")
 def fetch_comparables_node(state: UWState) -> dict:
     return {"comparables": comparable_lookup(state.get("extracted_features") or state["raw_input"], k=5)}
 
 
 @timed("decision")
+@traced("decision")
 def decide_node(state: UWState) -> dict:
     # Deterministic authority: Python rules set the decision; AI only explains.
     return {"decision": decision_from_score(state["risk_score"])}
 
 
 @timed("AI risk summary")
+@traced("AI risk summary")
 def generate_report_node(state: UWState) -> dict:
     from app.agents.report_agent import generate_memo
 
