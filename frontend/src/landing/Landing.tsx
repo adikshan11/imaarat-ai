@@ -67,22 +67,24 @@ const checks = [
 ]
 
 function Logo({ tool }: { tool: Tool }) {
-  if (tool.src) return <img src={tool.src} alt="" width={tool.wide ? 48 : 24} height="24" loading="lazy" className={`h-6 ${tool.wide ? 'w-12' : 'w-6'} object-contain`} />
-  return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6" fill={tool.color}><path d={tool.path} /></svg>
+  if (tool.src) return <img src={tool.src} alt="" width={tool.wide ? 64 : 32} height="32" loading="lazy" className={`h-8 ${tool.wide ? 'w-16' : 'w-8'} object-contain`} />
+  return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-8 w-8" fill={tool.color}><path d={tool.path} /></svg>
 }
 
 function WorksWith() {
   return (
-    <section aria-label="Works with" className="border-b border-forest-900/10 bg-white py-8">
+    <section aria-label="Built with" className="border-b border-forest-900/10 bg-white py-8">
       <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 sm:px-6">
-        <span className="shrink-0 text-xs uppercase tracking-[0.16em] text-forest-700">Works with</span>
+        <span className="shrink-0 text-xs uppercase tracking-[0.16em] text-forest-700">Built with</span>
         <div className="marquee">
           {[0, 1].map((copy) => (
             <ul key={copy} className="marquee-group" aria-hidden={copy === 1 ? 'true' : undefined}>
               {tools.map((tool) => (
-                <li key={tool.name} className="flex shrink-0 items-center gap-2.5 rounded-full border border-forest-900/10 bg-sand-50 px-4 py-2 text-sm font-semibold text-ink">
-                  <Logo tool={tool} />
-                  {tool.name}
+                <li key={tool.name} className="shrink-0">
+                  <a href={tool.href} target="_blank" rel="noopener noreferrer" tabIndex={copy === 1 ? -1 : undefined} className="flex items-center gap-3 rounded-lg px-2 py-1 text-base font-semibold text-ink opacity-70 grayscale transition duration-300 hover:opacity-100 hover:grayscale-0 focus-visible:opacity-100 focus-visible:grayscale-0">
+                    <Logo tool={tool} />
+                    {tool.name}
+                  </a>
                 </li>
               ))}
             </ul>
@@ -330,14 +332,15 @@ function Tour() {
                 </button>
               ))}
             </div>
-            <button type="button" data-tabs-toggle hidden className="h-11 shrink-0 rounded-full px-4 text-sm font-semibold text-forest-900 ring-1 ring-forest-900/15 hover:bg-mint-50">Pause</button>
           </div>
-          {tour.map((item, index) => (
-            <div key={item.id} role="tabpanel" id={`panel-${item.id}`} aria-labelledby={`tab-${item.id}`} hidden={index !== 0} className="mt-6">
-              <img src={`/landing/shot-${item.image}-1440.webp`} srcSet={`/landing/shot-${item.image}-720.webp 720w, /landing/shot-${item.image}-1440.webp 1440w`} sizes="(min-width: 1152px) 1104px, 100vw"
-                alt={item.alt} width={1440} height={900} loading="lazy" decoding="async" className="w-full rounded-2xl border border-forest-900/10 bg-white shadow-2xl shadow-forest-950/15" />
-            </div>
-          ))}
+          <div className="tour-stage mt-6">
+            {tour.map((item, index) => (
+              <div key={item.id} role="tabpanel" id={`panel-${item.id}`} aria-labelledby={`tab-${item.id}`} data-inactive={index !== 0 ? '' : undefined} inert={index !== 0}>
+                <img src={`/landing/shot-${item.image}-1440.webp`} srcSet={`/landing/shot-${item.image}-720.webp 720w, /landing/shot-${item.image}-1440.webp 1440w`} sizes="(min-width: 1152px) 1104px, 100vw"
+                  alt={item.alt} width={1440} height={900} loading="lazy" decoding="async" className="w-full rounded-2xl border border-forest-900/10 bg-white shadow-2xl shadow-forest-950/15" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
