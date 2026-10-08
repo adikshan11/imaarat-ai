@@ -166,6 +166,8 @@ def memos(cases: list[dict]) -> dict:
                         row["generation_attempted"] = True
                         memo = generate_once(state)
                     row.update({"passed_contract": bool(memo) and state.get("ai_memo_status") == "Available", "model": state.get("memo_model"), **state.get("memo_usage", {})})
+                    if not row["passed_contract"]:
+                        row["reason"] = f"memo_{state.get('ai_memo_status', 'unavailable').lower()}: {state.get('memo_error', '')[:300]}"
                     pause()
                     if row["passed_contract"]:
                         stage = "judge"
