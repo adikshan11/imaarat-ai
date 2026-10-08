@@ -155,6 +155,16 @@ export default function StatusPage() {
             </table>
           </div>
           <p className="card-footnote">Every Gemini attempt is counted, retries included. Failed calls are free-tier capacity Google shed; the rules still decide every assessment.</p>
+          {ai.budget.limits && <>
+            <h3 className="ops-subhead">Today's free-tier quota</h3>
+            <div className="risk-stack">
+              <div className="risk-line"><span>Text and image generations</span><strong>{ai.budget.limits.generations - (ai.budget.generations_left ?? 0)} of {ai.budget.limits.generations} used</strong></div>
+              <div className="risk-line"><span>All Gemini calls, retries included</span><strong>{ai.budget.limits.calls - ai.budget.calls_left} of {ai.budget.limits.calls} used</strong></div>
+              <div className="risk-line"><span>AI assessments and form readings</span><strong>{ai.budget.limits.admissions - ai.budget.admissions_left} of {ai.budget.limits.admissions} used</strong></div>
+              <div className="risk-line"><span>Tokens today, in / out</span><strong>{ai.budget.tokens_today.input.toLocaleString('en-IN')} / {ai.budget.tokens_today.output.toLocaleString('en-IN')}</strong></div>
+            </div>
+            <p className="card-footnote">Google counts free-tier limits per project, not per key, and resets the daily quota at midnight Pacific time, in {Math.floor(ai.budget.resets_in_seconds / 3600)}h {Math.floor((ai.budget.resets_in_seconds % 3600) / 60)}m. At most {ai.budget.limits.minute_generations} generations a minute and {ai.budget.limits.client_admissions} AI assessments per visitor a day.</p>
+          </>}
         </Card>
 
         <Card title="Recent assessments, step by step">
