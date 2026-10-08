@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { version } from '../../package.json'
-import { APP, Footer, Header, REPO, SkipLink } from './site.tsx'
+import { DEMO, Footer, Header, REPO, SkipLink } from './site.tsx'
 import { stack as tools, type Tool } from './stack.ts'
 
 
@@ -43,8 +43,8 @@ function Hero() {
           imaarat.ai reads hand-filled proposals in Indian languages, checks what each one declares against official hazard data for its PIN code, and gives your underwriter a scored, explained decision to sign off.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <a href={`${APP}#new`} className="inline-flex h-12 items-center rounded-full bg-mint-300 px-6 font-semibold text-forest-950 shadow-lg shadow-black/20 transition hover:bg-white">Try the live demo</a>
-          <a href={`${APP}#paper`} className="inline-flex h-12 items-center rounded-full border border-white/40 px-6 font-semibold text-white transition hover:bg-white/10">See a paper proposal</a>
+          <a href={`${DEMO}#new`} className="inline-flex h-12 items-center rounded-full bg-mint-300 px-6 font-semibold text-forest-950 shadow-lg shadow-black/20 transition hover:bg-white">Try the live demo</a>
+          <a href={`${DEMO}#paper`} className="inline-flex h-12 items-center rounded-full border border-white/40 px-6 font-semibold text-white transition hover:bg-white/10">See a paper proposal</a>
         </div>
         <dl className="mt-14 grid max-w-3xl grid-cols-2 gap-6 border-t border-white/15 pt-8 sm:grid-cols-4">
           {[['19,312', 'PIN codes covered, metro to rural'], ['11', 'official and public data sources'], ['26', 'Indian languages'], ['< 1 min', 'from proposal to decision']].map(([value, label]) => (
@@ -349,7 +349,7 @@ function Tour() {
 
 function Checked() {
   const items = [
-    ['Live status page', 'Requests, errors, AI calls and the time each step of an assessment takes, updated as people use it.', `${APP}#status`],
+    ['Live status page', 'Requests, errors, AI calls and the time each step of an assessment takes, updated as people use it.', `${DEMO}#status`],
     ['Tested on every change', 'Unit tests, browser tests in several languages, load tests with up to 200 simulated users, Lighthouse audits and AI evaluations run in GitHub Actions.', `${REPO}/actions`],
     ['Open source', 'The code, the hazard data pipeline and every test run are public on GitHub.', REPO],
   ]
@@ -391,7 +391,7 @@ function Faq() {
         <div className="mt-16 rounded-3xl bg-mint-100 p-8 text-center sm:p-12">
           <h2 className="text-2xl font-bold tracking-tight text-forest-900 sm:text-3xl">Try it with a sample property</h2>
           <p className="mx-auto mt-3 max-w-xl text-muted">No sign-up. Enter a PIN code and a few details, and see the decision, the reasons and the risk summary.</p>
-          <a href={`${APP}#new`} className="mt-7 inline-flex h-12 items-center rounded-full bg-forest-900 px-7 font-semibold text-white transition hover:bg-forest-800">Start an assessment</a>
+          <a href={`${DEMO}#new`} className="mt-7 inline-flex h-12 items-center rounded-full bg-forest-900 px-7 font-semibold text-white transition hover:bg-forest-800">Start an assessment</a>
         </div>
       </div>
     </section>
