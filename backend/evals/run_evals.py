@@ -122,12 +122,12 @@ def judge(metric, state: dict, memo: dict) -> dict:
 
 def generate_once(state: dict) -> dict:
     """Generate one memo with a single attempt, so a bounded evaluation never retries."""
-    previous = config.AI_ATTEMPTS
+    previous = config.AI_ATTEMPTS, config.AI_FALLBACK_MODEL
     try:
-        config.AI_ATTEMPTS = 1
+        config.AI_ATTEMPTS, config.AI_FALLBACK_MODEL = 1, ""
         return generate_memo(state)
     finally:
-        config.AI_ATTEMPTS = previous
+        config.AI_ATTEMPTS, config.AI_FALLBACK_MODEL = previous
 
 
 def memos(cases: list[dict]) -> dict:

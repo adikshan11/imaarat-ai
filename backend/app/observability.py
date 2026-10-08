@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import os
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from typing import Any
 
 ENABLED = bool(os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY"))
@@ -13,12 +14,12 @@ def untraced(func: Callable) -> Callable:
     return func
 
 
-def traced(name: str, as_type: str = "span") -> Callable:
+def traced(name: str, as_type: str = "span", capture_input: bool = True) -> Callable:
     if not ENABLED:
         return untraced
     from langfuse import observe
 
-    return observe(name=name, as_type=as_type)
+    return observe(name=name, as_type=as_type, capture_input=capture_input)
 
 
 def describe(contents: Any) -> Any:
@@ -29,22 +30,22 @@ def describe(contents: Any) -> Any:
     return str(contents)
 
 
-def record_generation(name: str, model: str, contents: Any, result: dict[str, Any]) -> None:
+@contextmanager
+def generation(name: str, model: str, contents: Any, as_type: str = "generation") -> Iterator[dict[str, Any]]:
+    result: dict[str, Any] = {}
     if not ENABLED:
+        yield result
         return
     from langfuse import get_client
 
-    usage = {key: value for key, value in (("input", result["input_tokens"]), ("output", result["output_tokens"])) if value is not None}
-    with get_client().start_as_current_observation(
-        name=name,
-        as_type="generation",
-        model=model,
-        input=describe(contents),
-        output=result["text"],
-        usage_details=usage,
-        metadata={"latency_ms": result["latency_ms"]},
-    ):
-        pass
+    with get_client().start_as_current_observation(name=name, as_type=as_type, model=model, input=describe(contents)) as observation:
+        try:
+            yield result
+        except Exception as error:
+            observation.update(level="ERROR", status_message=f"{type(error).__name__}: {str(error)[:300]}")
+            raise
+        usage = {key: result[field] for key, field in (("input", "input_tokens"), ("output", "output_tokens")) if result.get(field) is not None}
+        observation.update(output=result.get("text"), usage_details=usage or None, metadata={"latency_ms": result.get("latency_ms")})
 
 
 def publish_trace() -> str | None:

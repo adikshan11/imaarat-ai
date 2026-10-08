@@ -167,6 +167,7 @@
   "res.memo_title": "AI risk summary",
   "res.memo_ai_label": "Drafted by AI from the rule engine's decision and the cited guidelines. The decision itself comes from the rules.",
   "res.memo_reason": "AI risk summary not available: {reason}",
+  "res.trace_link": "See each step of this assessment in Langfuse",
   "res.cited": "Grounded in guideline sections {ids}, checked against what was retrieved.",
   "memo.summary": "Property summary",
   "memo.factors": "Key risk factors",

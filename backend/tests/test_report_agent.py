@@ -45,8 +45,9 @@ def test_generate_memo_exposes_resource_exhausted_failure(monkeypatch):
     assert state["ai_memo_reason"].startswith("The AI model is busy")
     assert state["memo_json"] == {}
     models = [call.kwargs["model"] for call in client.models.generate_content.call_args_list]
-    assert models == [llm.config.AI_MODEL] * llm.config.AI_ATTEMPTS
-    assert slept == [2**attempt for attempt in range(1, llm.config.AI_ATTEMPTS)]
+    attempts = llm.config.AI_ATTEMPTS
+    assert models == [llm.config.AI_MODEL] * attempts + [llm.config.AI_FALLBACK_MODEL] * attempts
+    assert slept == [2**attempt for attempt in range(1, attempts)] * 2
 
 
 def test_daily_quota_is_not_retried_and_says_so(monkeypatch):

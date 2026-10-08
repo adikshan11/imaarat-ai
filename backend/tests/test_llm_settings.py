@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 from app import budget, llm
 from app.providers import gemini
+from google.genai import errors
 
 
 def fake_client(monkeypatch):
@@ -28,6 +29,17 @@ def test_the_memo_keeps_the_model_default_thinking(monkeypatch):
     client = fake_client(monkeypatch)
     llm.generate("memo", ["write"])
     assert client.models.generate_content.call_args.kwargs["config"].thinking_config is None
+
+
+def test_a_busy_model_falls_back_once(monkeypatch):
+    client = fake_client(monkeypatch)
+    busy = errors.ServerError(503, {"error": {"code": 503, "message": "high demand", "status": "UNAVAILABLE"}})
+    client.models.generate_content.side_effect = [busy, busy, client.models.generate_content.return_value]
+    monkeypatch.setattr(llm, "sleep", [].append)
+    result = llm.generate("memo", ["write"])
+    models = [call.kwargs["model"] for call in client.models.generate_content.call_args_list]
+    assert models == [llm.config.AI_MODEL, llm.config.AI_MODEL, llm.config.AI_FALLBACK_MODEL]
+    assert result["model"] == llm.config.AI_FALLBACK_MODEL
 
 
 def test_failures_are_explained_the_same_way_for_every_provider():
