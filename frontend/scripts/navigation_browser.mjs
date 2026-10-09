@@ -269,8 +269,8 @@ export async function verifyLabels(page) {
           const box = bar.getBoundingClientRect()
           const items = Array.from(node.parentElement.querySelectorAll('.tab-item')).map(button => button.getBoundingClientRect())
           const gaps = [rect.top - box.top - bar.clientTop, box.top + bar.clientTop + bar.clientHeight - rect.bottom]
-          if (Math.abs(rect.left - items[0].left) < 1) gaps.push(rect.left - box.left - bar.clientLeft)
-          if (Math.abs(rect.right - items.at(-1).right) < 1) gaps.push(box.left + bar.clientLeft + bar.clientWidth - rect.right)
+          if (Math.abs(rect.left - Math.min(...items.map(item => item.left))) < 1) gaps.push(rect.left - box.left - bar.clientLeft)
+          if (Math.abs(rect.right - Math.max(...items.map(item => item.right))) < 1) gaps.push(box.left + bar.clientLeft + bar.clientWidth - rect.right)
           return { edgeGap: Math.max(...gaps), aspect: rect.width / rect.height, radius: parseFloat(getComputedStyle(node).borderRadius), indicatorHeight: rect.height, height: node.closest('nav').getBoundingClientRect().height, buttons: Array.from(node.parentElement.querySelectorAll('.tab-item')).map(button => ({ text: button.textContent, width: button.offsetWidth, captionHeight: button.querySelector('.optical-label').offsetHeight })) }
         })
         minAspect = Math.min(minAspect, shape.aspect)
