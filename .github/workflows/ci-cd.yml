@@ -1,7 +1,7 @@
 name: CI/CD
 
 # Check and Test run on every pull request and every push to preprod or main.
-# Deploy publishes a preview for a pull request, imaarat-ai-preprod.vercel.app for preprod, or production for main, and smoke-tests it.
+# Only a push deploys: preprod goes to imaarat-ai-preprod.vercel.app and main to production, each smoke-tested.
 # Preprod is then stress-tested read-only, because it shares production's database.
 
 on:
@@ -46,6 +46,10 @@ jobs:
         run: ruff check backend pipeline
       - name: Check Python code formatting with Ruff
         run: ruff format --check backend pipeline
+      - name: Measure the Vercel function's dependencies
+        env:
+          BUDGET_MB: "260"
+        run: bash .github/scripts/function_size.sh
       - name: Check JSON files are valid and formatted
         run: bash .github/scripts/check_json.sh
       - name: Install YAML and schema linters
@@ -193,29 +197,27 @@ jobs:
 
   deploy:
     name: Deploy
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name == 'push'
     needs: [check, test-backend, test-frontend, test-pipeline, test-container]
     runs-on: ubuntu-26.04
     timeout-minutes: 15
     concurrency:
-      group: deploy-${{ github.event_name == 'push' && github.ref_name || github.ref }}
+      group: deploy-${{ github.ref_name }}
       cancel-in-progress: false
     environment:
-      name: ${{ github.event_name != 'push' && 'preview' || github.ref_name == 'main' && 'production' || 'preprod' }}
+      name: ${{ github.ref_name == 'main' && 'production' || 'preprod' }}
       url: ${{ steps.deploy.outputs.url }}
     env:
       VERCEL_ORG_ID: team_IjFtm7aRrxcQ8mlUKZGG864P
       VERCEL_PROJECT_ID: prj_KG8CVLdeu5KR5eyJnuPWTHyS12zT
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-      TARGET: ${{ github.event_name != 'push' && 'preview' || github.ref_name }}
+      TARGET: ${{ github.ref_name }}
     steps:
-      # A pull request deploys its own head commit: Vercel blocks the merge commit GitHub creates, which is not authored by the account owner.
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:

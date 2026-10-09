@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.45.3] - 2026-10-09
+
+### Changed
+- Pull requests are tested in CI without a deployment; only preprod and main deploy, which cuts stored deployments to about two per release. CI now reports the size of the server function's dependencies and fails if it grows past a budget.
+
 ## [2.45.2] - 2026-10-09
 
 ### Fixed
