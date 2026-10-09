@@ -48,7 +48,7 @@ jobs:
         run: ruff format --check backend pipeline
       - name: Measure the Vercel function's dependencies
         env:
-          BUDGET_MB: "260"
+          BUDGET_MB: "180"
         run: bash .github/scripts/function_size.sh
       - name: Check JSON files are valid and formatted
         run: bash .github/scripts/check_json.sh
