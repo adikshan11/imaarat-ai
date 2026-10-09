@@ -10,10 +10,10 @@ total=$(du -sm "$target" | cut -f1)
   echo
   echo "| Package | MB |"
   echo "| --- | --- |"
-  du -sm "$target"/* | sort -rn | head -15 | while read -r size path; do
+  du -sm "$target"/* | sort -rn | head -25 | while read -r size path; do
     echo "| $(basename "$path") | $size |"
   done
-} >> "$GITHUB_STEP_SUMMARY"
+} | tee -a "$GITHUB_STEP_SUMMARY"
 
 if [ "$total" -gt "$BUDGET_MB" ]; then
   echo "::error::The function's dependencies are ${total} MB, over the ${BUDGET_MB} MB budget"
