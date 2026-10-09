@@ -213,17 +213,29 @@ jobs:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
       TARGET: ${{ github.ref_name }}
+    outputs:
+      deployed: ${{ steps.gate.outputs.skip != 'true' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          fetch-depth: 0
+      - name: Skip a preprod reset to code main already runs
+        id: gate
+        run: |
+          if [ "$TARGET" = "preprod" ] && git merge-base --is-ancestor HEAD origin/main; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Preprod was reset to main, which is already deployed; nothing new to deploy" >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Set up Node.js
+        if: steps.gate.outputs.skip != 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
       - name: Deploy to Vercel
         id: deploy
+        if: steps.gate.outputs.skip != 'true'
         timeout-minutes: 8
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then echo "::error::Add the VERCEL_TOKEN repository secret to deploy from CI"; exit 1; fi
@@ -240,13 +252,14 @@ jobs:
           echo "url=$url" >> "$GITHUB_OUTPUT"
           echo "Deployed: $url" >> "$GITHUB_STEP_SUMMARY"
       - name: Smoke test the deployment
+        if: steps.gate.outputs.skip != 'true'
         run: |
           if [ "$TARGET" != "main" ] && [ -z "$BYPASS" ]; then echo "::error::Add the VERCEL_AUTOMATION_BYPASS_SECRET repository secret so CI can open protected previews"; exit 1; fi
           .github/scripts/smoke_check.sh "${{ steps.deploy.outputs.url }}"
 
   stress:
     name: Stress test
-    if: github.event_name == 'push' && github.ref_name == 'preprod'
+    if: github.event_name == 'push' && github.ref_name == 'preprod' && needs.deploy.outputs.deployed == 'true'
     needs: [deploy]
     runs-on: ubuntu-26.04
     timeout-minutes: 15
