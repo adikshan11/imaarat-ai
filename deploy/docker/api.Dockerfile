@@ -3,8 +3,8 @@ FROM python:3.12-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /app
 
-COPY requirements.txt ./
-RUN pip install -r requirements.txt
+COPY requirements.txt requirements-qdrant.txt ./
+RUN pip install -r requirements.txt -r requirements-qdrant.txt
 
 COPY api ./api
 COPY backend ./backend
