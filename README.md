@@ -221,7 +221,7 @@ Conventions: each `feature/` or `fix/` branch bumps the version once and adds on
 | `AI_SIGN_IN_REQUIRED` | Set to `true` to limit live AI to signed-in visitors; off by default, so the demo uses AI too |
 | `SESSION_IDLE_SECONDS`, `SESSION_MAX_SECONDS` | Sign-in session limits; 900 (15 minutes idle) and 28800 (8 hours) by default |
 | `PROFILE_PHOTO_BYTES`, `FORM_PHOTO_BYTES`, `PROPERTY_PHOTO_BYTES`, `IMAGE_MAX_PIXELS`, `PROFILE_PHOTO_SIDE` | Upload limits for every image, served to the app at `/api/uploads/limits` |
-| `QDRANT_URL`, `QDRANT_API_KEY` | Optional hosted vector store |
+| `QDRANT_URL`, `QDRANT_API_KEY` | Optional hosted vector store; also install `requirements-qdrant.txt` |
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | Optional AI tracing |
 | `VERCEL_TOKEN`, `VERCEL_AUTOMATION_BYPASS_SECRET` (GitHub only) | Deploys and preview smoke tests |
 
