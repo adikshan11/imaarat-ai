@@ -5,7 +5,7 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 ## [2.45.3] - 2026-10-09
 
 ### Changed
-- Pull requests are tested in CI without a deployment; only preprod and main deploy, which cuts stored deployments to about two per release. CI now reports the size of the server function's dependencies and fails if it grows past a budget.
+- Pull requests are tested in CI without a deployment; only preprod and main deploy, which cuts stored deployments to about two per release. CI now reports the size of the server function's dependencies and fails if it grows past a budget. The optional Qdrant client (which brought numpy and gRPC) and the PDF reader used only by the data pipeline are no longer installed in the server function, cutting its dependencies by about a third; the Docker image and evals still install the Qdrant client.
 
 ## [2.45.2] - 2026-10-09
 
