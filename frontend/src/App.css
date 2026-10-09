@@ -353,7 +353,7 @@ input::placeholder { color: var(--text-soft); }
   .controls-compact { flex: none; flex-wrap: nowrap; }
   .controls-compact .control-button { flex: none; width: 40px; padding: 0; }
   .controls-compact .control-language { justify-content: center; }
-  .tabbar { position: fixed; inset-inline: 0; width: min(calc(100% - 32px), 440px); margin-inline: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 30; display: flex; padding: 5px; gap: 2px; border-radius: 40px; border: 1px solid var(--nav-rim); background: var(--nav-glass); -webkit-backdrop-filter: blur(24px) saturate(130%); backdrop-filter: blur(24px) saturate(130%); box-shadow: 0 6px 24px -8px rgba(5, 38, 26, 0.28); }
+  .tabbar { position: fixed; inset-inline: 0; width: min(calc(100% - 32px), 440px); margin-inline: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 30; display: flex; padding: 0; gap: 2px; border-radius: 40px; border: 1px solid var(--nav-rim); background: var(--nav-glass); -webkit-backdrop-filter: blur(24px) saturate(130%); backdrop-filter: blur(24px) saturate(130%); box-shadow: 0 6px 24px -8px rgba(5, 38, 26, 0.28); }
   .tabbar { touch-action: pan-y pinch-zoom; -webkit-user-select: none; user-select: none; }
   .tab-track { position: relative; display: flex; flex: 1; min-width: 0; gap: 2px; }
   .tab-indicator { position: absolute; left: 0; top: 0; height: 100%; border-radius: 999px; background: var(--nav-active); pointer-events: none; opacity: 0; transition: transform 240ms cubic-bezier(.2,.8,.2,1), width 240ms cubic-bezier(.2,.8,.2,1); }

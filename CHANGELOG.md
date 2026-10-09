@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.45.4] - 2026-10-09
+
+### Fixed
+- On phones and tablets the highlight behind the selected tab now fills the bar to its top, bottom and outer edge, like the iOS tab bar, instead of floating inside it.
+
 ## [2.45.3] - 2026-10-09
 
 ### Changed
