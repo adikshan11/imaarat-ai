@@ -21,8 +21,8 @@ export function Header({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
         </a>
         <div className="header-links ml-auto hidden items-center gap-6 text-sm font-medium text-muted md:flex">
           <a href="/#steps" className="hover:text-forest-900">How it works</a>
-          <a href="/#features" className="hover:text-forest-900">Features</a>
           <a href="/#tour" className="hover:text-forest-900">Product</a>
+          <a href="/#features" className="hover:text-forest-900">Features</a>
           <a href="/#faq" className="hover:text-forest-900">FAQ</a>
         </div>
         <a href={APP} className="header-cta ml-auto inline-flex h-10 items-center rounded-full bg-forest-900 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-forest-800 md:ml-0">

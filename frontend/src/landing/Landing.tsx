@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { version } from '../../package.json'
+import { LANGUAGES } from '../i18n/languages.ts'
 import { DEMO, Footer, Header, REPO, SkipLink } from './site.tsx'
 import { stack as tools, type Tool } from './stack.ts'
 
@@ -46,6 +47,10 @@ function Hero() {
           <a href={`${DEMO}#new`} className="inline-flex h-12 items-center rounded-full bg-mint-300 px-6 font-semibold text-forest-950 shadow-lg shadow-black/20 transition hover:bg-white">Try the live demo</a>
           <a href={`${DEMO}#paper`} className="inline-flex h-12 items-center rounded-full bg-white/10 px-6 font-semibold text-white transition hover:bg-white/20">See a paper proposal</a>
         </div>
+        <ul aria-label="Some of the Indian languages it works in" className="mt-6 flex max-w-2xl flex-wrap gap-x-4 gap-y-1 text-base text-white/90">
+          {LANGUAGES.slice(1, 12).map(({ code, name, english, rtl }) => <li key={code} lang={code} dir={rtl ? 'rtl' : undefined} title={english}>{name}</li>)}
+          <li className="text-white/70">+{LANGUAGES.length - 12} more</li>
+        </ul>
         <div data-glass className="glass-panel relative isolate mt-14 overflow-hidden rounded-3xl">
           <canvas aria-hidden="true" />
           <dl className="grid grid-cols-2 gap-6 p-6 sm:grid-cols-4 sm:px-8 sm:py-6">
@@ -72,6 +77,21 @@ const checks = [
 function Logo({ tool }: { tool: Tool }) {
   if (tool.src) return <img src={tool.src} alt="" width={tool.wide ? 64 : 32} height="32" loading="lazy" className={`h-8 ${tool.wide ? 'w-16' : 'w-8'} object-contain`} />
   return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-8 w-8" fill={tool.color}><path d={tool.path} /></svg>
+}
+
+const sources = ['India Post', 'BIS IS 1893', 'NRSC, ISRO', 'NDEM', 'IMD', 'data.gov.in', 'Chennai and Bengaluru city corporations']
+
+function Sources() {
+  return (
+    <section aria-labelledby="sources-title" className="border-b border-forest-900/10 bg-white py-6">
+      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 sm:flex-row sm:items-center sm:gap-8 sm:px-6">
+        <h2 id="sources-title" className="shrink-0 text-xs font-semibold uppercase tracking-[0.16em] text-forest-700">Checked against public data from</h2>
+        <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-ink">
+          {sources.map((source) => <li key={source}>{source}</li>)}
+        </ul>
+      </div>
+    </section>
+  )
 }
 
 function WorksWith() {
@@ -156,7 +176,7 @@ function Journey() {
 function Row({ label, value, tone = 'text-white' }: { label: string; value: string; tone?: string }) {
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-white/10 py-1.5 last:border-0">
-      <span className="text-white/60">{label}</span>
+      <span className="text-white/75">{label}</span>
       <span className={`text-right font-semibold ${tone}`}>{value}</span>
     </div>
   )
@@ -189,7 +209,7 @@ const modules: Array<[string, string, ReactNode]> = [
     <Panel key="rules">
       {scoreParts.map(([label, points]) => (
         <div key={label} className="py-1">
-          <div className="flex justify-between text-white/60"><span>{label}</span><span className="font-semibold text-white">+{points}</span></div>
+          <div className="flex justify-between text-white/75"><span>{label}</span><span className="font-semibold text-white">+{points}</span></div>
           <div className="mt-1 h-1.5 rounded-full bg-white/10"><div className="h-1.5 rounded-full bg-mint-300" style={{ width: `${points * 4}%` }} /></div>
         </div>
       ))}
@@ -408,14 +428,15 @@ export default function Landing() {
       <Header tone="dark" />
       <main id="main">
         <Hero />
-        <WorksWith />
+        <Sources />
         <Verified />
         <Journey />
-        <Modules />
-        <Features />
-        <Audiences />
         <Tour />
+        <Features />
+        <Modules />
+        <Audiences />
         <Checked />
+        <WorksWith />
         <Faq />
       </main>
       <Footer />
