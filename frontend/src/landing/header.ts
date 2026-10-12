@@ -1,11 +1,15 @@
 const header = document.querySelector<HTMLElement>('.site-header')
-const hero = document.querySelector<HTMLElement>('[data-hero]')
+const dark = [...document.querySelectorAll<HTMLElement>('[data-dark]')]
 
-if (header && hero) {
+if (header && dark.length) {
   let frame = 0
   const update = () => {
     frame = 0
-    header.dataset.tone = hero.getBoundingClientRect().bottom > header.offsetHeight ? 'dark' : 'light'
+    const middle = header.offsetHeight / 2
+    header.dataset.tone = dark.some((section) => {
+      const box = section.getBoundingClientRect()
+      return box.top <= middle && box.bottom > middle
+    }) ? 'dark' : 'light'
   }
   const schedule = () => {
     if (!frame) frame = requestAnimationFrame(update)

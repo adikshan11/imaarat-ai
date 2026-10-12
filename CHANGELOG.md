@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.48.3] - 2026-10-12
+
+### Changed
+- The home page menu bar is clear glass over every dark green section, not only the photo, so it no longer shows a pale band or a second shade of green, and it is a little more see-through over the light sections.
+
 ## [2.48.2] - 2026-10-12
 
 ### Changed
