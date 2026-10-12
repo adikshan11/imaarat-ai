@@ -19,9 +19,8 @@ out vec4 color;
 
 const vec3 forest = vec3(0.0235, 0.1647, 0.1255);
 const vec3 index = vec3(1.466, 1.470, 1.475);
-const vec2 light = vec2(-0.6, -0.8);
-const float bevel = 28.0;
-const float slab = 40.0;
+const float bevel = 14.0;
+const float slab = 18.0;
 
 float edge(vec2 p) {
   vec2 q = abs(p - size * 0.5) - size * 0.5 + radius;
@@ -50,10 +49,8 @@ void main() {
     backdrop(point - normal * shift(rise, index.g)).g,
     backdrop(point - normal * shift(rise, index.b)).b
   );
-  float inside = -d;
-  float rim = (smoothstep(0.0, 3.0, inside) - smoothstep(3.0, 14.0, inside)) * (0.02 + 0.1 * max(dot(normal, normalize(light)), 0.0));
   float alpha = clamp(0.5 - d, 0.0, 1.0);
-  color = vec4((mix(seen, forest, 0.4) + rim) * alpha, alpha);
+  color = vec4(mix(seen, forest, 0.4) * alpha, alpha);
 }`
 
 function compile(gl: WebGL2RenderingContext) {

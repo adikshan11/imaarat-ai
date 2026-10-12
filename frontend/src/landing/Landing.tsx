@@ -48,7 +48,7 @@ function Hero() {
         </div>
         <div data-glass className="glass-panel relative isolate mt-14 overflow-hidden rounded-3xl">
           <canvas aria-hidden="true" />
-          <dl className="grid grid-cols-2 gap-6 p-6 sm:grid-cols-4 sm:p-8">
+          <dl className="grid grid-cols-2 gap-6 p-6 sm:grid-cols-4 sm:px-8 sm:py-6">
             {[['19,312', 'PIN codes covered, metro to rural'], ['11', 'official and public data sources'], ['26', 'Indian languages'], ['< 1 min', 'from proposal to decision']].map(([value, label]) => (
               <div key={label}>
                 <dt className="sr-only">{label}</dt>
