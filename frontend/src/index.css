@@ -17,7 +17,6 @@
   --surface-muted: rgba(255, 255, 255, 0.5);
   --nav-glass: rgba(240, 248, 244, 0.4);
   --nav-sheen: rgba(255, 255, 255, 0.7);
-  --nav-filter: blur(20px) saturate(130%) brightness(1.06);
   --tab-pill: rgba(255, 255, 255, 0.78);
   --tab-pill-edge: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 3px rgba(5, 38, 26, 0.12), 0 0 0 0.5px rgba(5, 38, 26, 0.06);
   --tab-lens: rgba(255, 255, 255, 0.16);
@@ -77,7 +76,6 @@
   --surface-muted: rgba(255, 255, 255, 0.035);
   --nav-glass: rgba(18, 36, 29, 0.38);
   --nav-sheen: rgba(255, 255, 255, 0.07);
-  --nav-filter: blur(20px) saturate(160%);
   --tab-pill: rgba(110, 231, 183, 0.12);
   --tab-pill-edge: inset 0 1px 0 rgba(255, 255, 255, 0.07);
   --tab-lens: rgba(255, 255, 255, 0.05);
@@ -131,7 +129,6 @@
     --surface-muted: rgba(255, 255, 255, 0.035);
     --nav-glass: rgba(18, 36, 29, 0.38);
     --nav-sheen: rgba(255, 255, 255, 0.07);
-    --nav-filter: blur(20px) saturate(160%);
     --tab-pill: rgba(110, 231, 183, 0.12);
     --tab-pill-edge: inset 0 1px 0 rgba(255, 255, 255, 0.07);
     --tab-lens: rgba(255, 255, 255, 0.05);

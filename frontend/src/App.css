@@ -354,7 +354,7 @@ input::placeholder { color: var(--text-soft); }
   .controls-compact { flex: none; flex-wrap: nowrap; }
   .controls-compact .control-button { flex: none; width: 40px; padding: 0; }
   .controls-compact .control-language { justify-content: center; }
-  .tabbar { position: fixed; inset-inline: 0; width: min(calc(100% - 32px), 440px); margin-inline: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 30; display: flex; padding: 4px; gap: 2px; overflow: clip; border-radius: 40px; border: none; background: var(--nav-glass); -webkit-backdrop-filter: var(--nav-filter); backdrop-filter: var(--nav-filter); box-shadow: inset 0 1px 0 var(--nav-sheen), 0 6px 24px -8px rgba(5, 38, 26, 0.28); }
+  .tabbar { position: fixed; inset-inline: 0; width: min(calc(100% - 32px), 440px); margin-inline: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 30; display: flex; padding: 4px; gap: 2px; overflow: clip; border-radius: 40px; border: none; background: var(--nav-glass); -webkit-backdrop-filter: blur(20px) saturate(140%); backdrop-filter: blur(20px) saturate(140%); box-shadow: inset 0 1px 0 var(--nav-sheen), 0 6px 24px -8px rgba(5, 38, 26, 0.28); }
   .tabbar.is-lens { -webkit-backdrop-filter: url(#tab-lens); backdrop-filter: url(#tab-lens); }
   .lens-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
   .tabbar { touch-action: pan-y pinch-zoom; -webkit-user-select: none; user-select: none; }
