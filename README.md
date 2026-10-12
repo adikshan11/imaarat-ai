@@ -26,7 +26,7 @@
 
 | Module | What you get |
 |---|---|
-| **Paper reader** | Photograph a hand-filled proposal in any of 26 Indian languages. AI reads every box with its confidence; a person confirms the key values. |
+| **Paper reader** | Photograph a hand-filled proposal in English or any of 25 Indian languages. AI reads every box with its confidence; a person confirms the key values. |
 | **Hazard verification** | All 19,312 PIN codes mapped to their IS 1893 seismic zone, satellite flood history (1998–2022), city flooding spots and IMD cyclone grade. A proposal that understates its hazard is scored at the official value and flagged. |
 | **Rule engine** | A 0–100 score with every point explained, and a decision: Accept, Refer, Decline (mitigation possible) or Auto-Decline. |
 | **AI risk summary** | A plain-language explanation that may only use the facts above and cite the guideline sections it was given. |

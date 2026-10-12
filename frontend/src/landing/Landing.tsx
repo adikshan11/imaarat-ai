@@ -21,7 +21,7 @@ const faqs: Array<[string, ReactNode]> = [
   ['Where does the hazard data come from?', 'Public data: India Post PIN-code boundaries and earthquake zones from IS 1893 on data.gov.in, satellite-observed flood inundation from NRSC and NDEM for 1998 to 2022, IMD’s cyclone-prone districts, and flooding spots published by the Chennai and Bengaluru city corporations. Each result names its source.'],
   ['What happens to the details I enter?', 'The paper form asks only about the property and its risks, not about people. This free demo uses a free AI service, so please do not enter personal or confidential information.'],
   ['Is this an insurer’s price or quote?', 'No. imaarat.ai is an independent prototype. Its decisions and product segments are indicative and are not an insurer’s rate, tariff or offer.'],
-  ['Which languages does it support?', 'The app is available in 26 Indian languages. Reading paper forms has been tested with handwriting-style fonts in English, Hindi, Tamil, Bengali, Telugu, Malayalam and Gujarati; tests with real handwriting are next.'],
+  ['Which languages does it support?', 'The app is available in English and 25 Indian languages. Reading paper forms has been tested with handwriting-style fonts in English, Hindi, Tamil, Bengali, Telugu, Malayalam and Gujarati; tests with real handwriting are next.'],
   ['Why is the AI summary sometimes unavailable?', 'The demo shares a small free daily AI allowance across all visitors. When it runs out, or Google’s model is busy, the rules still decide and the page says so.'],
 ]
 
@@ -53,7 +53,7 @@ function Hero() {
         <div data-glass className="glass-panel relative isolate mt-14 overflow-hidden rounded-3xl">
           <canvas aria-hidden="true" />
           <dl className="grid grid-cols-2 gap-6 p-6 sm:grid-cols-4 sm:px-8 sm:py-6">
-            {[['19,312', 'PIN codes covered, metro to rural'], ['11', 'public hazard datasets'], ['26', 'Indian languages'], ['< 1 min', 'from proposal to decision']].map(([value, label]) => (
+            {[['19,312', 'PIN codes covered, metro to rural'], ['11', 'public hazard datasets'], ['25', 'Indian languages, plus English'], ['< 1 min', 'from proposal to decision']].map(([value, label]) => (
               <div key={label}>
                 <dt className="sr-only">{label}</dt>
                 <dd className="text-3xl font-bold tracking-tight">{value}</dd>
