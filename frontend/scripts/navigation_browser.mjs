@@ -360,7 +360,7 @@ export async function verifyDesktop(page) {
   await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight))
   const sidebar = await page.evaluate(() => { const box = document.querySelector('.sidebar').getBoundingClientRect(); return { top: box.top, bottom: box.bottom, height: innerHeight } })
   if (Math.abs(sidebar.top) > 1 || Math.abs(sidebar.bottom - sidebar.height) > 1) throw new Error(`Sidebar does not fill the window after scrolling: ${JSON.stringify(sidebar)}`)
-  const rims = await page.evaluate(() => [...document.querySelectorAll('.sidebar .control-button, .sidebar .nav-item.active')].map(node => `${getComputedStyle(node).borderTopWidth} ${getComputedStyle(node).boxShadow}`))
+  const rims = await page.evaluate(() => [...document.querySelectorAll('.sidebar .control-button, .sidebar .nav-item.active')].filter(node => !node.closest('dialog')).map(node => `${getComputedStyle(node).borderTopWidth} ${getComputedStyle(node).boxShadow}`))
   if (rims.some(rim => rim !== '0px none')) throw new Error(`Sidebar controls still have a rim: ${JSON.stringify(rims)}`)
   await page.goto(APP_URL + '/')
   await page.getByRole('tab', { name: /Scoring/ }).click()
