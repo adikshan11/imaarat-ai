@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.46.0] - 2026-10-12
+
+### Added
+- The figures under the home page headline sit on a pane of liquid glass that bends the photo behind it at its edges, like real glass, with a frosted fallback where WebGL2 is unavailable and a solid panel for reduced transparency, higher contrast and forced colours.
+
 ## [2.45.4] - 2026-10-09
 
 ### Fixed
