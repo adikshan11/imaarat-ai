@@ -2,6 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.49.0] - 2026-10-12
+
+### Added
+- The home page names the public data every proposal is checked against (India Post, BIS IS 1893, NRSC, NDEM, IMD, data.gov.in and the Chennai and Bengaluru city corporations) right under the opening section.
+- The opening section lists the supported Indian languages in their own scripts.
+
+### Changed
+- The home page follows the order a buyer asks questions in: the problem, how it works, the product, the details, who it is for, then the technical proof and the tools it is built with.
+- Body text on the home page is darker, for easier reading on bright screens.
+
 ## [2.48.4] - 2026-10-12
 
 ### Changed
