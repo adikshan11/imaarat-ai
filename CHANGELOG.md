@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.47.1] - 2026-10-12
+
+### Changed
+- The language, appearance and account buttons and the selected menu item no longer have white outlines, and the glass behind the home page figures has no white rim and a thinner, slimmer edge.
+
 ## [2.47.0] - 2026-10-12
 
 ### Added
