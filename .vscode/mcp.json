@@ -1,0 +1,32 @@
+{
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "langfuse-authorization",
+      "description": "Langfuse MCP Authorization header: Basic followed by base64 of public_key:secret_key",
+      "password": true
+    }
+  ],
+  "servers": {
+    "vercel": {
+      "type": "http",
+      "url": "https://mcp.vercel.com"
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@0.0.83",
+        "--isolated",
+        "--headless"
+      ]
+    },
+    "langfuse": {
+      "type": "http",
+      "url": "https://cloud.langfuse.com/api/public/mcp",
+      "headers": {
+        "Authorization": "${input:langfuse-authorization}"
+      }
+    }
+  }
+}
