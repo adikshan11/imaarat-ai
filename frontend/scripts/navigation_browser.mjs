@@ -14,12 +14,14 @@ export const tabShape = async (page) => {
   const gaps = [rect.top - box.top, box.bottom - rect.bottom]
   if (chosen.left <= Math.min(...bounds.map(item => item.left)) + 1) gaps.push(rect.left - box.left)
   if (chosen.right >= Math.max(...bounds.map(item => item.right)) - 1) gaps.push(box.right - rect.right)
-  const separators = items.slice(1).map((button, index) => ({ shown: getComputedStyle(button, '::before').opacity !== '0', beside: index === active || index + 1 === active }))
+  const separators = items.some(button => getComputedStyle(button, '::before').content !== 'none')
+  const map = document.querySelector('#tab-lens feImage')
   return {
     edgeGap: Math.max(...gaps),
     fit: Math.max(Math.abs(rect.left - chosen.left), Math.abs(rect.right - chosen.right)),
     rim: getComputedStyle(bar).borderTopWidth,
-    separators: separators.every(separator => separator.shown !== separator.beside),
+    separators,
+    lens: bar.classList.contains('is-lens') && Number(map?.getAttribute('width')) === bar.clientWidth && map.getAttribute('href').startsWith('data:image/png'),
     aspect: rect.width / rect.height,
     radius: parseFloat(getComputedStyle(node).borderRadius),
     indicatorHeight: rect.height,
@@ -29,7 +31,7 @@ export const tabShape = async (page) => {
   })
 }
 
-export const tabProblem = (shape) => shape.radius < shape.indicatorHeight / 2 || shape.height > 72 || shape.edgeGap > 1 || shape.fit > 1 || shape.rim !== '0px' || !shape.separators
+export const tabProblem = (shape) => shape.radius < shape.indicatorHeight / 2 || shape.height > 72 || shape.edgeGap > 1 || shape.fit > 1 || shape.rim !== '0px' || shape.separators
 
 export const glassState = (page) => page.locator('[data-glass]').evaluate((node) => {
   const box = node.getBoundingClientRect()
@@ -304,7 +306,7 @@ export async function verifyLabels(page) {
         minAspect = Math.min(minAspect, shape.aspect)
         maxAspect = Math.max(maxAspect, shape.aspect)
         maxHeight = Math.max(maxHeight, shape.height)
-        if (tabProblem(shape)) failures.push({ code, width, theme, shape })
+        if (tabProblem(shape) || !shape.lens) failures.push({ code, width, theme, shape })
         configurations++
         maxCenter = Math.max(maxCenter, ...labels.map(label => label.center))
         if (labels.some(label => label.center > 5 || label.outside || label.overflow)) failures.push({ code, width, theme, labels })

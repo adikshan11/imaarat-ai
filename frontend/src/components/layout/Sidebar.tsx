@@ -5,6 +5,7 @@ import Controls from '@/components/layout/Controls'
 import Icon from '@/components/shared/Icon'
 import OpticalLabel from '@/components/shared/OpticalLabel'
 import { usePreferences } from '@/context/Preferences'
+import { type Lens, lensMap, lensSupported } from '@/lib/lens'
 import { navKey, navPoint } from './nav_motion'
 
 interface Props {
@@ -20,11 +21,15 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
   const gesture = useRef<{ id: number; x: number; y: number; moved: boolean } | null>(null)
   const blockClick = useRef(false)
   const [scrubbing, setScrubbing] = useState(false)
+  const [lens, setLens] = useState<Lens | null>(null)
   useEffect(() => {
     const node = tabbar.current
     if (!node) return
     const shell = node.closest<HTMLElement>('.app-shell')
-    const measure = () => shell?.style.setProperty('--tabbar-height', `${node.getBoundingClientRect().height + (parseFloat(getComputedStyle(node).bottom) || 0) + 14}px`)
+    const measure = () => {
+      shell?.style.setProperty('--tabbar-height', `${node.getBoundingClientRect().height + (parseFloat(getComputedStyle(node).bottom) || 0) + 14}px`)
+      if (lensSupported) setLens((current) => current?.width === node.clientWidth && current.height === node.clientHeight ? current : lensMap(node.clientWidth, node.clientHeight))
+    }
     const observer = new ResizeObserver(measure)
     observer.observe(node)
     measure()
@@ -135,7 +140,7 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
         <Brand sub={t('brand.sub')} onHome={() => onNavigate('dashboard')} />
         <Controls compact onAccount={() => onNavigate('account')} />
       </header>
-      <nav ref={tabbar} className={`tabbar${scrubbing ? ' is-scrubbing' : ''}`} aria-label={t('nav.section')} onPointerDown={(event) => {
+      <nav ref={tabbar} className={`tabbar${scrubbing ? ' is-scrubbing' : ''}${lens ? ' is-lens' : ''}`} aria-label={t('nav.section')} onPointerDown={(event) => {
         blockClick.current = false
         if (!event.isPrimary || event.button !== 0) return
         gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false }
@@ -145,6 +150,16 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
           {tabs.map((item) => link(item, 'tab-item', tabs))}
         </div>
       </nav>
+      {lens && (
+        <svg className="lens-defs" aria-hidden="true" width="0" height="0">
+          <filter id="tab-lens" x="0" y="0" width={lens.width} height={lens.height} filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+            <feImage href={lens.href} x="0" y="0" width={lens.width} height={lens.height} preserveAspectRatio="none" result="map" />
+            <feDisplacementMap in="SourceGraphic" in2="map" scale={lens.scale} xChannelSelector="R" yChannelSelector="G" result="bent" />
+            <feGaussianBlur in="bent" stdDeviation="6" result="soft" />
+            <feColorMatrix in="soft" type="saturate" values="1.6" />
+          </filter>
+        </svg>
+      )}
     </>
   )
 }
