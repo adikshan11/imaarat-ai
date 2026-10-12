@@ -2,7 +2,7 @@ from io import BytesIO
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
-from app import auth, db, profile
+from app import auth, db, observability, profile
 from app.api import auth_routes, main
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
@@ -157,3 +157,8 @@ def test_contact_details_reach_only_reviewers(client):
     assert "mobile" not in client.get(f"/underwrite/history/{saved['id']}").json()["raw_input"]
     signed_in(client, 7)
     assert client.get(f"/underwrite/history/{saved['id']}").json()["raw_input"]["mobile"] == "98765 43210"
+
+
+def test_traces_never_carry_contact_details():
+    assert observability.hide_contacts(data={"args": ({"mobile": "98765 43210", "city": "Pune"},), "kwargs": {}}) == {"args": [{"city": "Pune"}], "kwargs": {}}
+    assert "mobile" not in observability.hide_contacts(data='{"mobile": "98765 43210", "city": "Pune"}')

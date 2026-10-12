@@ -120,6 +120,12 @@ def _reserve(connection: Any, day: str, scope: str, amount: int, limit: int) -> 
     return result.rowcount == 1
 
 
+def allow(scope: str, limit: int, now: datetime | None = None) -> bool:
+    """Count one use of a daily allowance; False once the limit is reached."""
+    with engine().begin() as connection:
+        return _reserve(connection, budget_day(now), scope, 1, limit)
+
+
 def admit(address: str | None, now: datetime | None = None) -> None:
     day = budget_day(now)
     with engine().begin() as connection:

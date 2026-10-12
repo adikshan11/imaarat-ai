@@ -435,6 +435,7 @@ def fetch_submission_detail(submission_id: int) -> dict[str, Any] | None:
     if row is None:
         return None
     detail: dict[str, Any] = _loads(row.result_json, {})
+    detail.pop("trace_url", None)
     raw_input = _loads(row.raw_input, {})
     detail.setdefault("property_id", row.property_id)
     detail.setdefault("raw_input", raw_input)

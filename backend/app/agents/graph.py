@@ -13,7 +13,7 @@ from app import llm
 from app.agents.state import UWState
 from app.config import AI_REQUEST_SECONDS
 from app.db import database_url, is_postgres
-from app.observability import publish_trace, traced
+from app.observability import traced
 from app.schemas import decision_from_score
 from app.telemetry import current_spans, record_trace, timed
 from app.tools.comparables import comparable_lookup
@@ -219,7 +219,6 @@ def run_graph(raw_input: dict, image_path: str | None = None, thread_id: str | N
     record_trace(thread_id, collected, result.get("ai_memo_status"), result.get("decision"))
     state = {key: value for key, value in result.items() if key != "__interrupt__"}
     state["thread_id"] = thread_id
-    state["trace_url"] = publish_trace()
     if "__interrupt__" in result:
         state["review_status"] = "pending_review"
         state["final_decision"] = None

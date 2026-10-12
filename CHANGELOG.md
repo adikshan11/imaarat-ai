@@ -2,6 +2,25 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.51.0] - 2026-10-12
+
+### Security
+- AI traces no longer carry proposer names, mobile numbers or emails, and traces are no longer made public or linked from the result page. Before, the whole proposal was recorded in a public trace.
+- Sending work to the A2A agent needs a partner key in the `X-API-Key` header, and each partner sees only its own tasks. The agent card advertises the scheme.
+- MCP stays open to AI assistants, with a cap of 300 calls a day per visitor.
+
+### Added
+- Required fields carry a red asterisk on the online form and on the printed paper form, with a note explaining it.
+- The paper form asks for the distance to the coast and the six new protections plus drainage, so a paper proposal can say everything the online form scores.
+- Tests that a memo obeying a prompt injection is rejected and that injected text cannot move the score.
+- GOVERNANCE.md maps the controls to OWASP's LLM risks, the NIST AI framework, ISO/IEC 42001 and India's DPDP Act, and lists the official source and status of every hazard value.
+- ARCHITECTURE.md explains why A2A tasks use both memory and the database, why each library is used, and how guideline search works.
+- A git pre-commit hook keeps MAP.md current.
+
+### Changed
+- Hazard names follow Indian policy wordings: "Cyclone or storm", "Hailstorm" and "Forest or bush fire".
+- A2A tasks are cached in memory for 15 minutes at most, and a task no longer returns its assessment twice.
+
 ## [2.50.0] - 2026-10-12
 
 ### Security

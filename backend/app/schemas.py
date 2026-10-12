@@ -12,7 +12,7 @@ def redact(value: Any) -> Any:
     """Copy of a record without the proposer's contact details."""
     if isinstance(value, dict):
         return {key: redact(item) for key, item in value.items() if key not in PERSONAL_FIELDS}
-    if isinstance(value, list):
+    if isinstance(value, (list, tuple)):
         return [redact(item) for item in value]
     return value
 

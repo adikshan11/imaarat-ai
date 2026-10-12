@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+import hashlib
+import hmac
 import json
 import os
+import time
 from typing import Any
 
-from a2a.helpers import get_data_parts, new_data_artifact, new_data_part, new_task, new_text_message, new_text_part
+from a2a.helpers import get_data_parts, get_message_text, new_data_artifact, new_data_part, new_task, new_text_message, new_text_part
 from a2a.server.agent_execution import AgentExecutor, RequestContext
 from a2a.server.context import ServerCallContext
 from a2a.server.events import EventQueue
@@ -14,11 +17,15 @@ from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.routes import add_a2a_routes_to_fastapi, create_agent_card_routes, create_jsonrpc_routes
 from a2a.server.tasks import InMemoryTaskStore, TaskUpdater
 from a2a.types import AgentCapabilities, AgentCard, AgentInterface, AgentSkill
-from a2a.types.a2a_pb2 import Task, TaskState
+from a2a.types.a2a_pb2 import APIKeySecurityScheme, SecurityRequirement, SecurityScheme, StringList, Task, TaskState
 from fastapi import FastAPI
 from mcp.server.mcpserver import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
+from starlette.authentication import AuthCredentials, AuthenticationBackend, AuthenticationError, SimpleUser
 from starlette.concurrency import run_in_threadpool
+from starlette.middleware.authentication import AuthenticationMiddleware
+from starlette.requests import HTTPConnection, Request
+from starlette.responses import JSONResponse
 from starlette.types import Receive, Scope, Send
 
 from app import budget
@@ -173,7 +180,8 @@ class UnderwritingAgentExecutor(AgentExecutor):
             return
         await updater.start_work()
         facts.setdefault("property_id", f"A2A-{context.task_id[:8]}")
-        state = run_graph(facts, thread_id=f"a2a:{context.context_id}:{context.task_id}", ai_note=budget.INTEROP_NOTE)
+        partner = context.call_context.user.user_name
+        state = run_graph(facts, thread_id=f"a2a:{partner}:{context.context_id}:{context.task_id}", ai_note=budget.INTEROP_NOTE)
         detail = fetch_submission_detail(save_submission(state)["id"])
         await updater.add_artifact([new_data_part(task_result(detail))], name="assessment")
         if detail["review_status"] == "pending_review":
@@ -188,19 +196,22 @@ class UnderwritingAgentExecutor(AgentExecutor):
 A2A_REQUIRED = ("construction_type", "occupancy_type", "cat_zone", "sprinkler_system")
 AWAITING = "Referred to an underwriter. The task stays working until they sign off; check it again with tasks/get."
 INDICATIVE = "Indicative assessment from a demo service, decided by fixed rules; not a quote, a policy or a binding underwriting decision."
+TASK_CACHE_SECONDS = 900
+MCP_DAILY_CALLS = 300
 
 
 def task_result(detail: dict[str, Any]) -> dict[str, Any]:
     return {**assessment_summary(detail), "reviewer": detail.get("reviewer"), "reviewed_at": detail.get("reviewed_at"), "review_note": detail.get("review_note"), "notice": INDICATIVE}
 
 
-def assessment_task(task_id: str) -> Task | None:
-    """The A2A task rebuilt from its stored assessment, so it outlives the serverless instance."""
+def assessment_task(task_id: str, partner: str) -> Task | None:
+    """The partner's A2A task rebuilt from its stored assessment, so it outlives the serverless instance."""
+    prefix = f"a2a:{partner}:"
     submission_id = submission_for_thread(f":{task_id}")
     detail = fetch_submission_detail(submission_id) if submission_id else None
-    if detail is None:
+    if detail is None or not detail["thread_id"].startswith(prefix):
         return None
-    context_id = detail["thread_id"][4 : -len(task_id) - 1]
+    context_id = detail["thread_id"][len(prefix) : -len(task_id) - 1]
     waiting = detail["review_status"] == "pending_review"
     task = new_task(task_id, context_id, TaskState.TASK_STATE_WORKING if waiting else TaskState.TASK_STATE_COMPLETED, artifacts=[new_data_artifact("assessment", task_result(detail))])
     if waiting:
@@ -208,14 +219,57 @@ def assessment_task(task_id: str) -> Task | None:
     return task
 
 
+def awaiting_review(task: Task) -> bool:
+    return task.status.state == TaskState.TASK_STATE_WORKING and get_message_text(task.status.message) == AWAITING
+
+
 class AssessmentTaskStore(InMemoryTaskStore):
-    """Keeps in-flight tasks in memory and reads settled ones from the assessment table."""
+    """Caches tasks in memory for 15 minutes; the assessment table is the source of truth once a task has settled."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.saved_at: dict[str, tuple[float, ServerCallContext]] = {}
+
+    async def save(self, task: Task, context: ServerCallContext) -> None:
+        now = time.monotonic()
+        for task_id, (saved, owner) in list(self.saved_at.items()):
+            if now - saved > TASK_CACHE_SECONDS:
+                del self.saved_at[task_id]
+                await super().delete(task_id, owner)
+        self.saved_at[task.id] = (now, context)
+        await super().save(task, context)
 
     async def get(self, task_id: str, context: ServerCallContext) -> Task | None:
         task = await super().get(task_id, context)
-        if task is not None and task.status.state != TaskState.TASK_STATE_WORKING:
+        if task is not None and not awaiting_review(task):
             return task
-        return await run_in_threadpool(assessment_task, task_id) or task
+        return await run_in_threadpool(assessment_task, task_id, context.user.user_name) or task
+
+
+def partner_for(key: str) -> str | None:
+    """Partner name for an API key, matched by SHA-256 against A2A_PARTNER_KEYS (name:hash, comma separated)."""
+    digest = hashlib.sha256(key.encode()).hexdigest()
+    for entry in os.getenv("A2A_PARTNER_KEYS", "").split(","):
+        name, separator, expected = entry.strip().partition(":")
+        if name and separator and hmac.compare_digest(digest, expected):
+            return name
+    return None
+
+
+class PartnerKeys(AuthenticationBackend):
+    """A2A calls need a partner key; the agent card and MCP stay public."""
+
+    async def authenticate(self, conn: HTTPConnection) -> tuple[AuthCredentials, SimpleUser] | None:
+        if not conn.url.path.rstrip("/").endswith("/a2a"):
+            return None
+        partner = partner_for(conn.headers.get("x-api-key", ""))
+        if partner is None:
+            raise AuthenticationError("Send your imaarat.ai partner key in the X-API-Key header")
+        return AuthCredentials(["partner"]), SimpleUser(partner)
+
+
+def refuse(conn: HTTPConnection, error: AuthenticationError) -> JSONResponse:
+    return JSONResponse({"error": str(error)}, status_code=401)
 
 
 def agent_card() -> AgentCard:
@@ -225,6 +279,8 @@ def agent_card() -> AgentCard:
         version="1.1.0",
         supported_interfaces=[AgentInterface(url=f"{public_base_url()}/a2a", protocol_binding="JSONRPC", protocol_version="1.0")],
         capabilities=AgentCapabilities(streaming=False, push_notifications=False),
+        security_schemes={"partnerKey": SecurityScheme(api_key_security_scheme=APIKeySecurityScheme(location="header", name="X-API-Key", description="Partner key issued by imaarat.ai"))},
+        security_requirements=[SecurityRequirement(schemes={"partnerKey": StringList()})],
         default_input_modes=["application/json", "text/plain"],
         default_output_modes=["application/json", "text/plain"],
         skills=[
@@ -265,7 +321,11 @@ def add_a2a(app: FastAPI) -> None:
 
 
 async def serve_mcp(scope: Scope, receive: Receive, send: Send) -> None:
-    """Serve one stateless MCP request with its own session manager."""
+    """Serve one stateless MCP request with its own session manager, within each visitor's daily cap."""
+    address = budget.client_address(Request(scope).headers, (scope.get("client") or (None,))[0])
+    if not await run_in_threadpool(budget.allow, f"mcp:{budget.client_scope(address)}", MCP_DAILY_CALLS):
+        await JSONResponse({"error": f"Daily limit of {MCP_DAILY_CALLS} MCP calls reached; it resets at midnight Pacific time"}, status_code=429)(scope, receive, send)
+        return
     app = mcp_app()
     async with app.router.lifespan_context(app):
         await app(scope, receive, send)
@@ -274,6 +334,7 @@ async def serve_mcp(scope: Scope, receive: Receive, send: Send) -> None:
 def interop_app() -> FastAPI:
     """Build the app that serves the MCP server and the A2A agent."""
     app = FastAPI()
+    app.add_middleware(AuthenticationMiddleware, backend=PartnerKeys(), on_error=refuse)
     app.mount("/mcp", serve_mcp)
     add_a2a(app)
     return app

@@ -24,13 +24,14 @@ NUMBER_FIELDS = {
     "plant_machinery_value_inr": (0, 1e12),
     "stock_inventory_value_inr": (0, 1e12),
     "other_contents_value_inr": (0, 1e12),
+    "distance_to_coast_miles": (0, 2000),
 }
 CHOICE_FIELDS = {
     "construction_type": ["Frame", "Joisted Masonry", "Non-Combustible", "Masonry Non-Combustible", "Fire Resistive"],
     "cat_zone": ["None", "Wind", "Hail", "Wildfire", "Flood", "Earthquake"],
     "seismic_zone": ["II", "III", "IV", "V"],
 }
-TICK_FIELDS = ["sprinkler_system", "fire_alarm", "flood_protection"]
+TICK_FIELDS = ["sprinkler_system", "fire_alarm", "fire_hydrants", "fire_extinguishers", "fire_noc", "lightning_protection", "flood_protection", "drainage", "seismic_design", "cyclone_roof"]
 CONFIRM_FIELDS = ["zip", "year_built", "building_value_inr", "plant_machinery_value_inr", "stock_inventory_value_inr", "other_contents_value_inr"]
 FIELDS = ["zip", *TEXT_FIELDS, *NUMBER_FIELDS, *CHOICE_FIELDS, *TICK_FIELDS]
 
