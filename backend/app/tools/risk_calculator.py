@@ -69,7 +69,14 @@ def prototype_mitigation_model(features: dict, authoritative_score: int) -> dict
     fire_alarm_enabled = features.get("fire_alarm") is True
     flood_protection_enabled = features.get("flood_protection") is True
     windy = cat_zone == "Wind" or _safe_float(features.get("distance_to_coast_miles"), 99) < 1
-    relief_points = (("fire_hydrants", 15), ("fire_noc", 10), ("fire_extinguishers", 5), ("lightning_protection", 5), ("seismic_design", 10 if seismic_zone in ("IV", "V") else 0), ("cyclone_roof", 10 if windy else 0))
+    relief_points = (
+        ("fire_hydrants", 15),
+        ("fire_noc", 10),
+        ("fire_extinguishers", 5),
+        ("lightning_protection", 5),
+        ("seismic_design", 10 if seismic_zone in ("IV", "V") else 0),
+        ("cyclone_roof", 10 if windy else 0),
+    )
     relief = {factor: points for factor, points in relief_points if features.get(factor) is True}
 
     cat_base = {"None": 12, "Hail": 35, "Wind": 62, "Flood": 68, "Wildfire": 72, "Earthquake": 58}.get(cat_zone, 25)
