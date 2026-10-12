@@ -14,9 +14,9 @@ async function headerTone(page, dark) {
   await page.evaluate((dark) => {
     const section = document.querySelectorAll('[data-dark]')[1]
     const target = dark ? section : section.nextElementSibling
-    window.scrollTo(0, target.getBoundingClientRect().top + window.scrollY + 40)
+    window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY + 40, behavior: 'instant' })
   }, dark)
-  await page.waitForTimeout(500)
+  await page.waitForTimeout(800)
   return page.evaluate(() => document.querySelector('.site-header').dataset.tone)
 }
 
