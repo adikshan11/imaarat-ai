@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Card from '@/components/shared/Card'
-import { PageSkeleton } from '@/components/shared/Loader'
+import { PageLoader } from '@/components/shared/Loader'
 import SelectField from '@/components/shared/SelectField'
 import PortfolioAnalytics from '@/components/dashboard/PortfolioAnalytics'
 import { useRiskContext } from '@/context/RiskContext'
@@ -36,7 +36,7 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
     </div>
 
     {error && <div className="error-banner">{error} <button className="btn btn-secondary" onClick={refresh}>{t('dash.retry')}</button></div>}
-    {loading ? <PageSkeleton heading={false} /> : <>
+    {loading ? <PageLoader /> : <>
       <div className="kpi-row">
         <div className="kpi"><div className="kpi-label">{t('kpi.submissions')}</div><div className="kpi-value">{portfolio?.submissions ?? 0}</div></div>
         <div className="kpi"><div className="kpi-label">{t('kpi.avg_score')}</div><div className="kpi-value"><bdi dir="ltr">{t('score.of', { score: portfolio?.average_score ?? 0 })}</bdi></div><div className="kpi-hint">{t('score.hint')}</div></div>

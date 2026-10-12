@@ -2,6 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.47.0] - 2026-10-12
+
+### Added
+- A calm branded loader replaces the grey placeholder blocks while a page loads, carrying on from the first screen without a jump.
+
+### Changed
+- On phones and tablets the selected tab is a capsule that fills its whole slot and reaches the rounded ends of the bar, the bar's light outline is replaced by a soft inner highlight, and thin dividers separate the other tabs.
+- The glass on the home page loses its bright rim for a soft inner highlight.
+- The app starts faster after a quiet spell: the connections for AI assistants (MCP) and other agents (A2A) now load on their first use instead of every time the server starts.
+
 ## [2.46.0] - 2026-10-12
 
 ### Added

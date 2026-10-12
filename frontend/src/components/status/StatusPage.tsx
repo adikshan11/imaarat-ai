@@ -1,6 +1,6 @@
 import { Suspense, lazy, useEffect, useState } from 'react'
 import Card from '@/components/shared/Card'
-import { PageSkeleton } from '@/components/shared/Loader'
+import { PageLoader } from '@/components/shared/Loader'
 import { fetchOpsSummary } from '@/api/underwriting'
 import { useRiskContext } from '@/context/RiskContext'
 import type { OpsSpan, OpsSummary } from '@/types/backend'
@@ -119,7 +119,7 @@ export default function StatusPage() {
       </div>
 
       {error && <div className="error-banner" role="alert">{error}</div>}
-      {!summary && !error && <PageSkeleton heading={false} />}
+      {!summary && !error && <PageLoader />}
 
       {summary && requests && ai && <>
         <div className="kpi-row">
@@ -198,7 +198,7 @@ export default function StatusPage() {
 
         <p className="card-footnote">Generated {new Date(summary.generated_at).toLocaleString('en-IN')} · refreshes every 30 seconds while this tab is open.</p>
       </>}
-      <Suspense fallback={<PageSkeleton heading={false} />}>
+      <Suspense fallback={<PageLoader />}>
         <Integrations />
       </Suspense>
     </div>

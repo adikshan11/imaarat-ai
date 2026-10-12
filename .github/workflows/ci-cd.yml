@@ -114,9 +114,9 @@ jobs:
         run: |
           python -X importtime -c "import app.api.main" 2> importtime.log
           {
-            echo "### Slowest imports at startup (cumulative ms)"
+            echo "### Slowest imports at startup (cumulative ms, two levels deep)"
             echo '```'
-            sort -t'|' -k2 -n -r importtime.log | head -20 | awk -F'|' '{printf "%7.0f %s\n", $2 / 1000, $3}'
+            awk -F'|' 'NR > 1 { name = $3; sub(/^ /, "", name); match(name, /^ */); if (RLENGTH <= 4) printf "%7.0f %s\n", $2 / 1000, name }' importtime.log | sort -n -r | head -25
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
         working-directory: backend
