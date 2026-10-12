@@ -34,23 +34,16 @@ function bucketLabel(bucket: string, hours: number) {
 function Bars({ points, series, hours, summary }: { points: Array<{ bucket: string; values: number[] }>; series: Array<{ name: string; tone: string }>; hours: number; summary: string }) {
   if (!points.length) return <p className="muted-text">No data in this window yet.</p>
   const peak = Math.max(1, ...points.map((point) => point.values.reduce((sum, value) => sum + value, 0)))
-  const width = points.length * 10
   return (
     <figure className="ops-chart">
       <div className="ops-chart-peak">{peak.toLocaleString('en-IN')}</div>
-      <svg viewBox={`0 0 ${width} 100`} preserveAspectRatio="none" role="img" aria-label={summary}>
-        {points.map((point, index) => {
-          let top = 100
-          return <g key={point.bucket}>
-            <title>{`${bucketLabel(point.bucket, hours)}: ${series.map((item, position) => `${item.name} ${point.values[position]}`).join(', ')}`}</title>
-            {point.values.map((value, position) => {
-              const height = (value / peak) * 100
-              top -= height
-              return <rect key={series[position].name} className={`ops-${series[position].tone}`} x={index * 10 + 1} y={top} width={8} height={height} />
-            })}
-          </g>
-        })}
-      </svg>
+      <div className="ops-bars" role="img" aria-label={summary}>
+        {points.map((point) => (
+          <div key={point.bucket} className="ops-bar" title={`${bucketLabel(point.bucket, hours)}: ${series.map((item, position) => `${item.name} ${point.values[position]}`).join(', ')}`}>
+            {point.values.map((value, position) => value > 0 && <span key={series[position].name} className={`ops-${series[position].tone}`} style={{ height: `${(value / peak) * 100}%` }} />)}
+          </div>
+        ))}
+      </div>
       <figcaption>
         <span>{bucketLabel(points[0].bucket, hours)}</span>
         <span className="ops-legend">{series.map((item) => <span key={item.name}><i className={`ops-${item.tone}`} />{item.name}</span>)}</span>

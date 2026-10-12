@@ -1,4 +1,4 @@
-"""Pull request rules: feature branches into preprod, only preprod into main, and one version bump with a CHANGELOG entry per feature or fix branch."""
+"""Release rules: work lands on preprod, only preprod is released to main, and a new version has a CHANGELOG entry."""
 
 import json
 import os
@@ -8,8 +8,6 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-BRANCH = re.compile(r"^(feature|fix|ci|docs|chore)/[a-z0-9]+(_[a-z0-9]+)*$")
-INTERNAL = re.compile(r"^(ci|docs|chore)/")
 
 
 def backend_version(text: str) -> str:
@@ -20,25 +18,20 @@ def as_tuple(version: str) -> tuple[int, ...]:
     return tuple(int(part) for part in version.split("."))
 
 
-def problems(branch: str, files: dict[str, str], base_backend: str, base: str = "preprod") -> list[str]:
+def problems(files: dict[str, str], main_backend: str, head: str = "preprod", base: str = "") -> list[str]:
     found = []
-    if base == "main":
-        if branch != "preprod":
-            found.append(f"open '{branch}' against preprod; only preprod is released to main")
-    elif not BRANCH.match(branch):
-        found.append(f"branch '{branch}' should look like feature/short_name (feature, fix, ci, docs or chore, then snake_case)")
+    if base == "main" and head != "preprod":
+        found.append(f"'{head}' cannot be released to main; only preprod is")
     version = backend_version(files["backend/app/__init__.py"])
     package = json.loads(files["frontend/package.json"])["version"]
     lock = json.loads(files["frontend/package-lock.json"])
     for name, value in (("frontend/package.json", package), ("package-lock.json", lock["version"]), ("package-lock.json packages['']", lock["packages"][""]["version"])):
         if value != version:
             found.append(f"{name} has {value}, backend/app/__init__.py has {version}")
-    if INTERNAL.match(branch):
-        return found
-    base_version = as_tuple(backend_version(base_backend))
-    if as_tuple(version) < base_version or (base != "main" and as_tuple(version) == base_version):
-        found.append(f"version {version} must be above {base}'s {backend_version(base_backend)}; bump it once per feature or fix branch")
-    if f"## [{version}] - " not in files["CHANGELOG.md"]:
+    released = backend_version(main_backend)
+    if as_tuple(version) < as_tuple(released):
+        found.append(f"version {version} is below main's {released}")
+    elif as_tuple(version) > as_tuple(released) and f"## [{version}] - " not in files["CHANGELOG.md"]:
         found.append(f"CHANGELOG.md has no '## [{version}] - <date>' entry")
     return found
 
@@ -46,9 +39,9 @@ def problems(branch: str, files: dict[str, str], base_backend: str, base: str = 
 def main() -> int:
     paths = ["backend/app/__init__.py", "frontend/package.json", "frontend/package-lock.json", "CHANGELOG.md"]
     files = {path: (ROOT / path).read_text(encoding="utf-8") for path in paths}
-    base = os.environ.get("GITHUB_BASE_REF") or "preprod"
-    base_backend = subprocess.run(["git", "show", f"origin/{base}:backend/app/__init__.py"], cwd=ROOT, capture_output=True, text=True, check=True).stdout
-    found = problems(os.environ.get("GITHUB_HEAD_REF", ""), files, base_backend, base)
+    main_backend = subprocess.run(["git", "show", "origin/main:backend/app/__init__.py"], cwd=ROOT, capture_output=True, text=True, check=True).stdout
+    head = os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME", "preprod")
+    found = problems(files, main_backend, head, os.environ.get("GITHUB_BASE_REF", ""))
     for problem in found:
         print(f"::error::{problem}")
     if not found:

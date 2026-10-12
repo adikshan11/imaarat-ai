@@ -12,4 +12,4 @@ applyTo: ".github/**"
 - Secrets reach a step only through `env`, never inline in `run`.
 - Deploys run only on a push to `preprod` or `main`; pull requests never deploy.
 - Workflows must pass `yamllint --strict`, `check-jsonschema --builtin-schema vendor.github-workflows` and `actionlint`; shell scripts must pass `shellcheck`.
-- `ci/` branches change only CI and need no version bump or changelog entry.
+- CI-only changes are committed on `preprod` like any other work and need no version bump or changelog entry.

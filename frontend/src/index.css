@@ -46,6 +46,10 @@
   --danger-fg: #991b1b;
   --flag: #c2410c;
   --track: #e5e7eb;
+  --chart-ok: #2f9e74;
+  --chart-warn: #c27c0e;
+  --chart-error: #dc4c4c;
+  --chart-grid: rgba(15, 23, 42, 0.06);
   --focus: rgba(13, 72, 56, 0.3);
   --tooltip-bg: #1e293b;
   --glass-edge:
@@ -96,6 +100,10 @@
   --danger-fg: #fca5a5;
   --flag: #fb923c;
   --track: rgba(255, 255, 255, 0.12);
+  --chart-ok: #34d399;
+  --chart-warn: #fbbf24;
+  --chart-error: #f87171;
+  --chart-grid: rgba(255, 255, 255, 0.06);
   --focus: rgba(16, 185, 129, 0.4);
   --tooltip-bg: #0f172a;
   --glass-edge:
@@ -142,6 +150,10 @@
     --danger-fg: #fca5a5;
     --flag: #fb923c;
     --track: rgba(255, 255, 255, 0.12);
+    --chart-ok: #34d399;
+    --chart-warn: #fbbf24;
+    --chart-error: #f87171;
+    --chart-grid: rgba(255, 255, 255, 0.06);
     --focus: rgba(16, 185, 129, 0.4);
     --tooltip-bg: #0f172a;
     --glass-edge:

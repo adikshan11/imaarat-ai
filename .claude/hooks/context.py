@@ -13,7 +13,7 @@ SKILLS = {
     "live-check": r"\b(live|deployed|production|preprod|status|trace|langfuse)\b",
     "add-ui-text": r"\b(translat\w*|locale\w*|i18n|label|wording)\b",
 }
-PROTECTED = {"main", "preprod"}
+WORK = "preprod"
 RESET = "origin/main:refs/heads/preprod"
 
 
@@ -40,15 +40,15 @@ def context(event: dict) -> dict:
 
 
 def push_guard(event: dict) -> dict | None:
-    """Deny a push from main or preprod unless it is the post-release reset."""
+    """Allow only a plain push of preprod, or the post-release reset."""
     command = event.get("tool_input", {}).get("command", "")
     if "git push" not in command:
         return None
     current = branch()
-    if current in PROTECTED and RESET not in command:
-        reason = f"Pushing from {current} is not allowed; work on a feature branch and open a pull request."
+    if RESET not in command and (current != WORK or re.search(r"\s(-f\b|--force)|\bmain\b", command)):
+        reason = f"Pushing from {current} like this is not allowed; work is committed on preprod, pushed without force, and reaches main only through the release pull request."
         return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny", "permissionDecisionReason": reason}}
-    note = "Before pushing, the pr-ready checks and, for feature/ and fix/ branches, the version bump and CHANGELOG entry must be done."
+    note = "Before pushing, the pr-ready checks must pass and a user-visible change needs the version bump and CHANGELOG entry."
     return {"hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": note}}
 
 

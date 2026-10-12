@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.48.1] - 2026-10-12
+
+### Changed
+- The status page charts use softer colours that read well in light mode, with rounded bars, faint guide lines and a highlight on the hour you point at.
+
 ## [2.48.0] - 2026-10-12
 
 ### Added
