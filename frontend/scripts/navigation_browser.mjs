@@ -18,6 +18,7 @@ export const tabShape = async (page) => {
   const map = document.querySelector('#tab-lens feImage')
   return {
     edgeGap: Math.max(...gaps),
+    inset: Math.min(...gaps),
     fit: Math.max(Math.abs(rect.left - chosen.left), Math.abs(rect.right - chosen.right)),
     rim: getComputedStyle(bar).borderTopWidth,
     separators,
@@ -31,7 +32,7 @@ export const tabShape = async (page) => {
   })
 }
 
-export const tabProblem = (shape) => shape.radius < shape.indicatorHeight / 2 || shape.height > 72 || shape.edgeGap > 1 || shape.fit > 1 || shape.rim !== '0px' || shape.separators
+export const tabProblem = (shape) => shape.radius < shape.indicatorHeight / 2 || shape.height > 72 || shape.inset < 3 || shape.edgeGap > 5 || shape.fit > 1 || shape.rim !== '0px' || shape.separators
 
 export const glassState = (page) => page.locator('[data-glass]').evaluate((node) => {
   const box = node.getBoundingClientRect()

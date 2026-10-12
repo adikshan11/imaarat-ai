@@ -68,6 +68,9 @@ def prototype_mitigation_model(features: dict, authoritative_score: int) -> dict
     sprinkler_enabled = str(features.get("sprinkler_system") or "").upper() == "Y"
     fire_alarm_enabled = features.get("fire_alarm") is True
     flood_protection_enabled = features.get("flood_protection") is True
+    windy = cat_zone == "Wind" or _safe_float(features.get("distance_to_coast_miles"), 99) < 1
+    relief_points = (("fire_hydrants", 15), ("fire_noc", 10), ("fire_extinguishers", 5), ("lightning_protection", 5), ("seismic_design", 10 if seismic_zone in ("IV", "V") else 0), ("cyclone_roof", 10 if windy else 0))
+    relief = {factor: points for factor, points in relief_points if features.get(factor) is True}
 
     cat_base = {"None": 12, "Hail": 35, "Wind": 62, "Flood": 68, "Wildfire": 72, "Earthquake": 58}.get(cat_zone, 25)
     if seismic_zone in ("IV", "V"):
@@ -76,7 +79,7 @@ def prototype_mitigation_model(features: dict, authoritative_score: int) -> dict
         cat_base += 12
     if _safe_float(features.get("distance_to_fire_zone_miles"), 99) < 1:
         cat_base += 12
-    cat_score = _clamp(cat_base - (20 if flood_protection_enabled and cat_zone == "Flood" else 0))
+    cat_score = _clamp(cat_base - (20 if flood_protection_enabled and cat_zone == "Flood" else 0) - relief.get("seismic_design", 0) - relief.get("cyclone_roof", 0))
 
     construction_score = {
         "Fire Resistive": 18,
@@ -101,6 +104,7 @@ def prototype_mitigation_model(features: dict, authoritative_score: int) -> dict
     protection_score = 100
     protection_score -= 40 if sprinkler_enabled else 0
     protection_score -= 20 if fire_alarm_enabled else 0
+    protection_score -= sum(relief.get(factor, 0) for factor in ("fire_hydrants", "fire_noc", "fire_extinguishers", "lightning_protection"))
     protection_score += min(20, round((roof_age - 20) / 2)) if roof_age > 20 else 0
     protection_score = _clamp(protection_score)
     claims = _safe_int(features.get("prior_claims_count_5yr"))
@@ -139,6 +143,10 @@ def prototype_mitigation_model(features: dict, authoritative_score: int) -> dict
             benefits.append({"factor": "flood_protection", "benefit": 0})
     if roof_age > 20:
         adjustments.append({"factor": "roof_age", "adjustment": min(20, round((roof_age - 20) / 2))})
+    for factor, points in relief.items():
+        benefits.append({"factor": factor, "benefit": points})
+        if points:
+            adjustments.append({"factor": factor, "adjustment": -points})
     for factor in ("generator", "drainage", "security_protective_safeguards"):
         if features.get(factor) is True:
             benefits.append({"factor": factor, "benefit": 0})

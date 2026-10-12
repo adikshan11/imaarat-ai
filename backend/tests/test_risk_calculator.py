@@ -169,6 +169,16 @@ def test_prototype_mitigation_combined_and_roof_age_adjustments():
     }
 
 
+def test_india_protections_count_only_in_the_preview():
+    protections = {"fire_hydrants": True, "fire_noc": True, "fire_extinguishers": True, "lightning_protection": True, "seismic_design": True, "cyclone_roof": True}
+    calm = risk_score_calculator({**mitigation_features(), **protections})
+    exposed = risk_score_calculator({**mitigation_features(), **protections, "seismic_zone": "V", "cat_zone": "Wind"})
+    assert calm["score"] == 0
+    assert calm["prototype_mitigation_model"]["mitigation_benefit"] == 35
+    assert exposed["score"] == risk_score_calculator({**mitigation_features(), "seismic_zone": "V", "cat_zone": "Wind"})["score"]
+    assert exposed["prototype_mitigation_model"]["mitigation_benefit"] == 55
+
+
 def test_hail_cat_zone_captured_not_scored():
     """Hail is a named STFI peril (IRDAI SFSP Tempest); captured as exposure flag, not scored."""
     base = mitigation_features()

@@ -57,6 +57,12 @@ type FormState = {
   generator: boolean
   drainage: boolean
   security_protective_safeguards: boolean
+  fire_hydrants: boolean
+  fire_extinguishers: boolean
+  fire_noc: boolean
+  lightning_protection: boolean
+  seismic_design: boolean
+  cyclone_roof: boolean
   cat_zone: string
   seismic_zone: string
   rsmd_cover: boolean
@@ -135,6 +141,12 @@ const initialForm: FormState = {
   generator: false,
   drainage: false,
   security_protective_safeguards: false,
+  fire_hydrants: false,
+  fire_extinguishers: false,
+  fire_noc: false,
+  lightning_protection: false,
+  seismic_design: false,
+  cyclone_roof: false,
   cat_zone: 'None',
   seismic_zone: 'II',
   rsmd_cover: false,
@@ -221,6 +233,12 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
       generator: values.generator,
       drainage: values.drainage,
       security_protective_safeguards: values.security_protective_safeguards,
+      fire_hydrants: values.fire_hydrants,
+      fire_extinguishers: values.fire_extinguishers,
+      fire_noc: values.fire_noc,
+      lightning_protection: values.lightning_protection,
+      seismic_design: values.seismic_design,
+      cyclone_roof: values.cyclone_roof,
       cat_zone: values.cat_zone,
       seismic_zone: values.seismic_zone as SubmissionInput['seismic_zone'],
       rsmd_cover: values.rsmd_cover,
@@ -448,11 +466,16 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
         <Card title={t('sec.protection')}>
           <div className="protection-split">
             <div className="checkbox-list">
+              <div className="coverage-group-label">{t('prot.fire')}</div>
               <label className="checkbox-field"><input type="checkbox" checked={form.sprinkler_system === 'Y'} onChange={(event) => update('sprinkler_system', event.target.checked ? 'Y' : 'N')} /> {t('f.sprinkler_system')}</label>
               <label className="checkbox-field"><input type="checkbox" checked={form.fire_alarm} onChange={(event) => update('fire_alarm', event.target.checked)} /> {t('f.fire_alarm')}</label>
+              {(['fire_hydrants', 'fire_extinguishers', 'fire_noc', 'lightning_protection'] as const).map((name) => <label key={name} className="checkbox-field"><input type="checkbox" checked={form[name]} onChange={(event) => update(name, event.target.checked)} /> {t(`f.${name}`)}</label>)}
+              <div className="coverage-group-label">{t('prot.nature')}</div>
               <label className="checkbox-field"><input type="checkbox" checked={form.flood_protection} onChange={(event) => update('flood_protection', event.target.checked)} /> {t('f.flood_protection')}</label>
-              <label className="checkbox-field"><input type="checkbox" checked={form.generator} onChange={(event) => update('generator', event.target.checked)} /> {t('f.generator')}</label>
               <label className="checkbox-field"><input type="checkbox" checked={form.drainage} onChange={(event) => update('drainage', event.target.checked)} /> {t('f.drainage')}</label>
+              {(['seismic_design', 'cyclone_roof'] as const).map((name) => <label key={name} className="checkbox-field"><input type="checkbox" checked={form[name]} onChange={(event) => update(name, event.target.checked)} /> {t(`f.${name}`)}</label>)}
+              <div className="coverage-group-label">{t('prot.other')}</div>
+              <label className="checkbox-field"><input type="checkbox" checked={form.generator} onChange={(event) => update('generator', event.target.checked)} /> {t('f.generator')}</label>
               <label className="checkbox-field"><input type="checkbox" checked={form.security_protective_safeguards} onChange={(event) => update('security_protective_safeguards', event.target.checked)} /> {t('f.security_protective_safeguards')}</label>
             </div>
             {previewCard}

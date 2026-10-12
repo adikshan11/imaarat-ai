@@ -11,6 +11,15 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 ### Removed
 - The GraphQL API at /graphql and the Strawberry library behind it. The dashboard now uses the same REST endpoints as everything else.
 
+### Added
+- Six more protections an Indian property can declare, grouped by peril: fire hydrants, fire extinguishers, a valid fire NOC, lightning conductors, earthquake-resistant design and a cyclone-rated roof. They lower the live preview figure; earthquake design counts only in seismic zones IV and V, and the cyclone roof only in a wind zone or within a mile of the coast. The rule engine's score and decision do not change.
+
+### Changed
+- "Security / protective safeguards" is now "Burglar alarm, CCTV or guards", which is what it meant.
+- The benefit rows in the live preview have a small gap between them.
+- The phone tab bar keeps a small even gap around the highlighted tab, the highlight no longer spills outside the bar when pressed, and dragging it shows a clear glass lens instead of a solid pill.
+- In the light theme the highlighted tab is a bright white pill and the background glows are softer, so the screen no longer looks dark and muddy on TVs.
+
 ## [2.49.1] - 2026-10-12
 
 ### Changed
