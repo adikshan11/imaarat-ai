@@ -11,7 +11,7 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 
 ### Added
 - Required fields carry a red asterisk on the online form and on the printed paper form, with a note explaining it.
-- The paper form asks for the distance to the coast and the six new protections plus drainage, so a paper proposal can say everything the online form scores.
+- The paper form asks for the distance to the coast, which the rules score. The six new protections stay online only for now: with them, the Indian-language versions of the form no longer fit on the single page that is photographed.
 - Tests that a memo obeying a prompt injection is rejected and that injected text cannot move the score.
 - GOVERNANCE.md maps the controls to OWASP's LLM risks, the NIST AI framework, ISO/IEC 42001 and India's DPDP Act, and lists the official source and status of every hazard value.
 - ARCHITECTURE.md explains why A2A tasks use both memory and the database, why each library is used, and how guideline search works.

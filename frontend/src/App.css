@@ -335,7 +335,6 @@ label:has(> input:required) > .field-label-text::after, .select-field.required >
   .pf-ticks i { display: inline-block; width: 4.5mm; height: 4.5mm; border: 1px solid #000; }
   .pf-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 4mm; align-items: end; }
   .pf-row-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pf-row-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .pf-required { color: #c00; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .pf-small { font-size: 9pt; color: #333; margin-top: 3mm; }
 }

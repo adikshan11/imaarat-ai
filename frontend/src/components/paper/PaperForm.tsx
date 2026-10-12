@@ -12,7 +12,7 @@ const ZONES = ['II', 'III', 'IV', 'V']
 const TEXT_BOXES = ['address', 'city', 'state', 'occupancy_type']
 const NUMBER_BOXES = ['year_built', 'num_stories', 'square_footage', 'roof_age_years', 'prior_claims_count_5yr', 'distance_to_coast_miles']
 const MONEY_BOXES = ['building_value_inr', 'plant_machinery_value_inr', 'stock_inventory_value_inr', 'other_contents_value_inr']
-const TICKS = ['sprinkler_system', 'fire_alarm', 'fire_hydrants', 'fire_extinguishers', 'fire_noc', 'lightning_protection', 'flood_protection', 'drainage', 'seismic_design', 'cyclone_roof']
+const TICKS = ['sprinkler_system', 'fire_alarm', 'flood_protection']
 const REQUIRED = new Set(['zip', 'address', 'city', 'state', 'occupancy_type', 'construction_type', 'year_built', 'num_stories', 'square_footage', 'cat_zone', 'sprinkler_system'])
 const NUMERIC = new Set(['zip', ...NUMBER_BOXES, ...MONEY_BOXES])
 
@@ -83,7 +83,7 @@ function PrintableForm() {
         <div className="pf-row">{NUMBER_BOXES.map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>
         <Ticks {...both('f.cat_zone')} options={HAZARDS.map((item) => [label('opt.cat', item), item])} />
         <Ticks {...both('f.seismic_zone')} options={ZONES.map((zone) => [zone, zone])} />
-        <div className="pf-row pf-row-4">{TICKS.map((key) => <Ticks key={key} {...both(`f.${key}`)} options={yesNo} />)}</div>
+        <div className="pf-row">{TICKS.map((key) => <Ticks key={key} {...both(`f.${key}`)} options={yesNo} />)}</div>
         <div className="pf-row pf-row-2">{MONEY_BOXES.map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>
         <p className="pf-small">{t('paper.digits_hint')} {t('f.required_note')}</p>
       </section>
