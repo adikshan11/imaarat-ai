@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 import re
+from operator import itemgetter
 
 from sqlalchemy import Column, String, Table, Text, select
 from sqlalchemy.exc import IntegrityError
@@ -102,6 +103,33 @@ def local_search(query_vector: list[float], k: int) -> list[dict]:
     return [{"id": item["id"], "title": item["title"], "text": item["text"], "score": round(cosine(query_vector, item["vector"]), 4)} for item in ranked[:k]]
 
 
+def words(text: str) -> list[str]:
+    return re.findall(r"[a-z0-9]+", text.lower())
+
+
+def keyword_ranking(query: str) -> list[str]:
+    """Section ids ranked by BM25 score for the query's words."""
+    sections = guideline_sections()
+    documents = [words(section_document(section)) for section in sections]
+    average = sum(len(document) for document in documents) / len(documents)
+    scores = []
+    for document in documents:
+        score = 0.0
+        for term in set(words(query)):
+            frequency = document.count(term)
+            if frequency:
+                containing = sum(term in other for other in documents)
+                rarity = math.log(1 + (len(documents) - containing + 0.5) / (containing + 0.5))
+                score += rarity * frequency * 2.2 / (frequency + 1.2 * (0.25 + 0.75 * len(document) / average))
+        scores.append(score)
+    return [section["id"] for _, section in sorted(zip(scores, sections, strict=True), key=itemgetter(0), reverse=True)]
+
+
+def fuse(dense: list[dict], keyword: list[str]) -> list[dict]:
+    """Reciprocal rank fusion of the vector and keyword rankings."""
+    return sorted(dense, key=lambda hit: -(1 / (61 + dense.index(hit)) + 1 / (61 + keyword.index(hit["id"]))))
+
+
 @traced("rag_retrieval", as_type="retriever")
 def retrieve(query: str, k: int = 4, ai_note: str | None = None) -> list[dict]:
     """Return the guideline sections closest to the query, best first.
@@ -114,7 +142,9 @@ def retrieve(query: str, k: int = 4, ai_note: str | None = None) -> list[dict]:
         return []
     try:
         query_vector = llm.embed([query], "query")[0]
-        hits = qdrant_search(query_vector, k) if QDRANT_URL else local_search(query_vector, k)
+        count = len(guideline_sections())
+        dense = qdrant_search(query_vector, count) if QDRANT_URL else local_search(query_vector, count)
+        hits = fuse(dense, keyword_ranking(query))[:k]
         print(f"[rag_lookup] status=available store={'qdrant' if QDRANT_URL else 'local'} hits={[hit['id'] for hit in hits]}")
         return hits
     except Exception as e:

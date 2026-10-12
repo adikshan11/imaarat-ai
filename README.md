@@ -223,7 +223,7 @@ Conventions: the first user-visible change after a release bumps the version onc
 | `PROFILE_PHOTO_BYTES`, `FORM_PHOTO_BYTES`, `PROPERTY_PHOTO_BYTES`, `IMAGE_MAX_PIXELS`, `PROFILE_PHOTO_SIDE` | Upload limits for every image, served to the app at `/api/uploads/limits` |
 | `QDRANT_URL`, `QDRANT_API_KEY` | Optional hosted vector store; also install `requirements-qdrant.txt` |
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | Optional AI tracing |
-| `A2A_PARTNER_KEYS` | A2A partners as `name:sha256-of-key`, comma separated; without it every A2A call is refused |
+| `A2A_PARTNER_KEYS` | Optional extra A2A partners as `name:sha256-of-key`, comma separated. Operators normally issue keys on the account page instead |
 | `VERCEL_TOKEN`, `VERCEL_AUTOMATION_BYPASS_SECRET` (GitHub only) | Deploys and preview smoke tests |
 
 ## Hazard data sources

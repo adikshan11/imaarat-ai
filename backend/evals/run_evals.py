@@ -20,19 +20,13 @@ from app.db import init_db, seed_demo_database
 from app.evaluation import empty_report
 from app.schemas import decision_from_score
 from app.tools.comparables import comparable_lookup
-from app.tools.rag_lookup import format_hit, local_search, qdrant_search
+from app.tools.rag_lookup import format_hit, retrieve
 from app.tools.risk_calculator import risk_score_calculator
 
 from evals.golden import golden_cases
 
 RESULTS = Path(__file__).parent / "results"
 K = 4
-
-
-def retrieve(query: str, k: int = K) -> list[dict]:
-    vector = llm.embed([query], "query")[0]
-    hits = qdrant_search(vector, k) if config.QDRANT_URL else local_search(vector, k)
-    return hits
 
 
 def mean(values) -> float | None:
@@ -56,7 +50,7 @@ def deterministic(cases: list[dict]) -> dict:
 def retrieval(cases: list[dict]) -> dict:
     rows = []
     for case in cases:
-        hits = retrieve(retrieval_query(case["facts"]), k=K)
+        hits = retrieve(retrieval_query(case["facts"], risk_score_calculator(case["facts"])["flags"]), k=K)
         ranked = [hit["id"] for hit in hits]
         relevant = set(case["relevant_guidelines"])
         first = next((rank for rank, section in enumerate(ranked, start=1) if section in relevant), None)
@@ -86,7 +80,7 @@ def retrieval(cases: list[dict]) -> dict:
 
 def memo_state(case: dict) -> dict:
     scored = risk_score_calculator(case["facts"])
-    hits = retrieve(retrieval_query(case["facts"]), k=K)
+    hits = retrieve(retrieval_query(case["facts"], scored["flags"]), k=K)
     return {
         "property_id": case["facts"]["property_id"],
         "raw_input": case["facts"],
@@ -304,7 +298,7 @@ def main() -> int:
         report["metadata"]["selected_live_cases"] = [case["id"] for case in selected]
         for name, function in (("retrieval", retrieval), ("prompt_tokens", prompt_tokens), ("memos", memos)):
             try:
-                report[name] = function(selected)
+                report[name] = function(cases if name == "retrieval" else selected)
                 passed = name == "prompt_tokens" or report[name].get("passed") is True
                 report["sections"][name] = {"status": "completed" if passed or name == "retrieval" else "failed", "reason": "checks_failed" if not passed else "measured", "passed": passed}
                 if name == "retrieval":

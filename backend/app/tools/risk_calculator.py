@@ -9,8 +9,9 @@ _FRAME_SCORE = 10  # combustible frame construction
 _NO_SPRINKLER_HH = 10  # warehouse/industrial without sprinkler
 _HIGH_CAT_SCORE = 20  # primary CAT perils (Wind/Flood/Wildfire)
 _HIGH_SEISMIC_SCORE = 15  # seismic zone IV or V
-_COASTAL_SCORE = 15  # < 1 mile to coast
-_WILDLAND_SCORE = 15  # < 1 mile to wildland-urban interface
+_COASTAL_SCORE = 15  # < 1.6 km to coast
+_WILDLAND_SCORE = 15  # < 1.6 km to forest
+NEAR_KM = 1.6
 _ADVERSE_LOSS_SCORE = 15  # > 2 prior claims in 5 years
 _HIGH_TIV_SCORE = 5  # TIV > ₹20M
 # Flood protection declared benefit; must equal actual cat_score reduction for consistency
@@ -68,7 +69,7 @@ def prototype_mitigation_model(features: dict, authoritative_score: int) -> dict
     sprinkler_enabled = str(features.get("sprinkler_system") or "").upper() == "Y"
     fire_alarm_enabled = features.get("fire_alarm") is True
     flood_protection_enabled = features.get("flood_protection") is True
-    windy = cat_zone == "Wind" or _safe_float(features.get("distance_to_coast_miles"), 99) < 1
+    windy = cat_zone == "Wind" or _safe_float(features.get("distance_to_coast_km"), 99) < NEAR_KM
     relief_points = (
         ("fire_hydrants", 15),
         ("fire_noc", 10),
@@ -82,9 +83,9 @@ def prototype_mitigation_model(features: dict, authoritative_score: int) -> dict
     cat_base = {"None": 12, "Hail": 35, "Wind": 62, "Flood": 68, "Wildfire": 72, "Earthquake": 58}.get(cat_zone, 25)
     if seismic_zone in ("IV", "V"):
         cat_base += 10
-    if _safe_float(features.get("distance_to_coast_miles"), 99) < 1:
+    if _safe_float(features.get("distance_to_coast_km"), 99) < NEAR_KM:
         cat_base += 12
-    if _safe_float(features.get("distance_to_fire_zone_miles"), 99) < 1:
+    if _safe_float(features.get("distance_to_forest_km"), 99) < NEAR_KM:
         cat_base += 12
     cat_score = _clamp(cat_base - (20 if flood_protection_enabled and cat_zone == "Flood" else 0) - relief.get("seismic_design", 0) - relief.get("cyclone_roof", 0))
 
@@ -227,14 +228,14 @@ def risk_score_calculator(features: dict) -> dict:
         flags.append("high_seismic_zone")
 
     # Use _safe_float with explicit non-negative guard to prevent bad inputs triggering flags
-    _coast = _safe_float(features.get("distance_to_coast_miles"), 99)
-    if features.get("distance_to_coast_miles") is not None and 0 <= _coast < 1:
+    _coast = _safe_float(features.get("distance_to_coast_km"), 99)
+    if features.get("distance_to_coast_km") is not None and 0 <= _coast < NEAR_KM:
         score += _COASTAL_SCORE
         breakdown["coastal"] = _COASTAL_SCORE
         flags.append("coastal_wind_surge_exposure")
 
-    _firezone = _safe_float(features.get("distance_to_fire_zone_miles"), 99)
-    if features.get("distance_to_fire_zone_miles") is not None and 0 <= _firezone < 1:
+    _firezone = _safe_float(features.get("distance_to_forest_km"), 99)
+    if features.get("distance_to_forest_km") is not None and 0 <= _firezone < NEAR_KM:
         score += _WILDLAND_SCORE
         breakdown["wildland"] = _WILDLAND_SCORE
         flags.append("wildland_urban_interface")

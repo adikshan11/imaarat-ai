@@ -40,7 +40,7 @@ The project follows the standard's management-system ideas (a defined scope, ris
 
 ## Partner access (A2A and MCP)
 
-- A2A calls need an `X-API-Key`. Keys are stored only as SHA-256 hashes in `A2A_PARTNER_KEYS` (`name:hash`, comma separated), each partner sees only its own tasks, and the agent card advertises the scheme.
+- A2A calls need an `X-API-Key`. An operator issues and revokes keys on the account page; the key is shown once and only its SHA-256 hash is stored. Keys in `A2A_PARTNER_KEYS` (`name:hash`, comma separated) still work. Each partner sees only its own tasks, and the agent card advertises the scheme.
 - MCP stays open for AI assistants because its tools are read-only, store nothing and return no contact details; each visitor gets 300 calls a day.
 
 ## Hazard data source register
@@ -56,7 +56,7 @@ Checked on 12 October 2026 against the issuing body's own pages.
 | Lightning, hail, tsunami, storm surge, forest fire | Not used | | No official downloadable hazard layer found, so the app shows no value |
 | Heat wave | Not used | | Not an insured property peril in IRDAI wordings |
 
-Peril names follow IRDAI policy wordings (storm, tempest, flood and inundation; earthquake; landslide and rockslide; bush and forest fire). Distances are still asked in miles, a carry-over from the original model; they move to kilometres with the next data release.
+Peril names follow IRDAI policy wordings (storm, tempest, flood and inundation; earthquake; landslide and rockslide; bush and forest fire). Distances are asked in kilometres; a site under 1.6 km from the coast or a forest is flagged.
 
 ## Sources
 

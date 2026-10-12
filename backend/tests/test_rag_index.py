@@ -25,3 +25,9 @@ def test_guideline_vectors_are_embedded_once_and_reused_after_a_restart(monkeypa
     monkeypatch.setattr(rag_lookup, "guideline_sections", revised_sections)
     rag_lookup.index_items()
     assert len(batches) == 2
+
+
+def test_hybrid_search():
+    assert rag_lookup.keyword_ranking("roof age")[0] == "G2"
+    dense = [{"id": "G1"}, {"id": "G2"}, {"id": "G3"}]
+    assert [hit["id"] for hit in rag_lookup.fuse(dense, ["G2", "G3", "G1"])] == ["G2", "G1", "G3"]

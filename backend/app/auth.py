@@ -77,6 +77,17 @@ rate_limits = Table(
     Column("window_start", BigInteger, nullable=False),
     Column("count", Integer, nullable=False),
 )
+partner_keys = Table(
+    "partner_keys",
+    metadata,
+    Column("id", String, primary_key=True),
+    Column("name", String, nullable=False),
+    Column("key_hash", String, nullable=False, unique=True),
+    Column("created_by", String, ForeignKey("users.id"), nullable=False),
+    Column("created_at", BigInteger, nullable=False),
+    Column("last_used_at", BigInteger),
+    Column("revoked_at", BigInteger),
+)
 _ready_engines: set[str] = set()
 
 
@@ -251,6 +262,15 @@ def require_reviewer(request: Request) -> Principal:
         raise HTTPException(403, "Only a reviewer can approve or override a referral")
     if not principal.profile_complete:
         raise HTTPException(403, "Add your name and mobile number in your profile before reviewing")
+    return principal
+
+
+def require_operator(request: Request, change: bool = True) -> Principal:
+    principal = resolve_principal(request)
+    if change:
+        require_csrf(request, principal)
+    if principal.role != "operator":
+        raise HTTPException(403, "Only an operator can manage partner keys")
     return principal
 
 

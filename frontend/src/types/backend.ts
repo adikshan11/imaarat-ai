@@ -296,8 +296,8 @@ export interface SubmissionInput {
   earthquake_cover?: boolean
   flood_cover?: boolean
   cyclone_wind_cover?: boolean
-  distance_to_coast_miles?: number
-  distance_to_fire_zone_miles?: number
+  distance_to_coast_km?: number
+  distance_to_forest_km?: number
   prior_claims_count_5yr?: number
   prior_claims_total_amount?: number
   last_loss_date?: string

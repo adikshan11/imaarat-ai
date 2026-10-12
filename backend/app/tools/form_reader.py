@@ -24,7 +24,7 @@ NUMBER_FIELDS = {
     "plant_machinery_value_inr": (0, 1e12),
     "stock_inventory_value_inr": (0, 1e12),
     "other_contents_value_inr": (0, 1e12),
-    "distance_to_coast_miles": (0, 2000),
+    "distance_to_coast_km": (0, 2000),
 }
 CHOICE_FIELDS = {
     "construction_type": ["Frame", "Joisted Masonry", "Non-Combustible", "Masonry Non-Combustible", "Fire Resistive"],

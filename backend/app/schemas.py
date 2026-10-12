@@ -76,8 +76,8 @@ class PropertySubmission(BaseModel):
     earthquake_cover: bool | None = None
     flood_cover: bool | None = None
     cyclone_wind_cover: bool | None = None
-    distance_to_coast_miles: float | None = None
-    distance_to_fire_zone_miles: float | None = None
+    distance_to_coast_km: float | None = None
+    distance_to_forest_km: float | None = None
     prior_claims_count_5yr: int | None = None
     prior_claims_total_amount: float | None = None
     last_loss_date: date | None = None

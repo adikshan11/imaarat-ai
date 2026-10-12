@@ -12,7 +12,7 @@ Roofs older than 20 years are considered aging and may trigger referral reviews.
 
 ## G3. CAT Zone Appetite
 
-Exposure in wildfire, flood, or wind zones materially increases risk and is not generally considered low risk. Proximity to coast or interface areas compounds this concern. Properties located within designated catastrophe exposure zones require enhanced scrutiny and may command higher premiums or stricter underwriting requirements. Natural disaster exposure is a primary driver of overall risk classification.
+Exposure in forest fire, flood, or cyclone and storm zones materially increases risk and is not generally considered low risk. Proximity to coast or interface areas compounds this concern. Properties located within designated catastrophe exposure zones require enhanced scrutiny and may command higher premiums or stricter underwriting requirements. Natural disaster exposure is a primary driver of overall risk classification.
 
 ## G4. Prior Loss History Appetite
 
@@ -20,7 +20,7 @@ Properties with more than two prior claims in five years suggest a negative loss
 
 ## G5. TIV Concentration Limits
 
-Total insured value above USD 20 million requires enhanced risk review because of concentration exposure and more significant loss severity. Large single-location concentrations of value create potential for catastrophic loss. Properties with very high TIV require additional scrutiny regarding building condition, occupancy hazards, and business continuity considerations.
+Total insured value above ₹2 crore (20 million rupees) at one location requires enhanced risk review because of concentration exposure and more significant loss severity. Large single-location concentrations of value create potential for catastrophic loss. Properties with very high TIV require additional scrutiny regarding building condition, occupancy hazards, and business continuity considerations.
 
 ## G6. Referral vs Decline Criteria
 
@@ -30,13 +30,13 @@ Scores from 0 to 30 are generally acceptable for approval. Scores 31 to 60 warra
 
 India's seismic zoning map (BIS IS 1893) places sites in zones II to V. Properties in zones IV and V carry high earthquake shaking hazard and add to the risk score; zones II and III are captured but not scored in this prototype. Structural design, building height and construction type should be reviewed for high-seismic sites, and earthquake cover requests should be checked against the declared zone.
 
-## G8. Coastal and Wildland Proximity
+## G8. Coastal and Forest Proximity
 
-A site less than one mile from the coast is exposed to wind and storm-surge losses, and a site less than one mile from a fire zone sits in the wildland-urban interface. Each condition adds to the risk score independently of the CAT zone. Distances must come from the submission; a missing distance is treated as unknown, never as safe.
+A site less than 1.6 km from the coast is exposed to cyclone wind and storm-surge losses, and a site less than 1.6 km from a forest is exposed to bush and forest fire. Each condition adds to the risk score independently of the CAT zone. Distances must come from the submission; a missing distance is treated as unknown, never as safe.
 
 ## G9. Protection and Mitigation
 
-Automatic sprinklers, fire alarms and flood protection reduce expected loss and are shown as indicative mitigation benefits. Flood protection only counts where the property is in a flood zone. Generators, drainage and security safeguards are recorded but carry no scored benefit. Mitigation benefits inform the indicative risk view and referral discussions; they never change the authoritative deterministic score.
+Automatic sprinklers, fire alarms, fire hydrants, a valid fire NOC, fire extinguishers and lightning conductors reduce expected loss and are shown as indicative mitigation benefits. Flood protection only counts where the property is in a flood zone, earthquake-resistant design only in seismic zones IV and V, and a cyclone-rated roof only in a cyclone or storm zone or within 1.6 km of the coast. Generators, drainage and burglar alarms, CCTV or guards are recorded but carry no scored benefit. Mitigation benefits inform the indicative risk view and referral discussions; they never change the authoritative deterministic score.
 
 ## G10. Product Segments
 

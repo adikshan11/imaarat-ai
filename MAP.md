@@ -108,6 +108,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `interop.py`: Interoperability: an MCP server (tools for AI clients) and an A2A agent (for other agents).
 - `llm.py`: The AI gateway: every model call goes through here for budgets, retries, the request deadline and tracing. Vendor code lives in app/providers/.
 - `observability.py`: Langfuse tracing: active only when LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY are set.
+- `partners.py`: Partner keys for the A2A endpoint: shown once, stored only as SHA-256 hashes, and revocable without a redeploy.
 - `profile.py`: Underwriter profile: name and mobile number are required before reviewing; the photo is optional and re-encoded.
 - `reports.py`: build_submission_pdf
 - `schemas.py`: redact, PropertySubmission, UnderwritingMemo, VisionObservations, decision_from_score, indicative_product_segment
@@ -123,7 +124,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 ## backend/app/api
 
 - `__init__.py`: API package.
-- `auth_routes.py`: ProfileForm, oauth_client, oauth_configuration, configured, providers, session, save_profile, save_photo
+- `auth_routes.py`: ProfileForm, PartnerForm, oauth_client, oauth_configuration, configured, providers, session, save_profile
 - `main.py`: lifespan, Interop, record_requests, health, upload_limits, status, property_tiv_from_components, submit_underwriting
 
 ## backend/app/providers
@@ -138,7 +139,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `comparables.py`: comparable_lookup
 - `form_reader.py`: FieldReading, digits, choice, check, validate, read_form
 - `hazard_lookup.py`: hazard_table, lookup, hazard_flags, verify_location, sources
-- `rag_lookup.py`: guideline_sections, corpus_hash, section_document, qdrant_search, cosine, index_items, local_search, retrieve
+- `rag_lookup.py`: guideline_sections, corpus_hash, section_document, qdrant_search, cosine, index_items, local_search, words
 - `risk_calculator.py`: prototype_mitigation_model, risk_score_calculator
 - `vision_extract.py`: extract_property_features
 
@@ -162,7 +163,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 
 - `conftest.py`: photo, isolated_database, no_busy_models, empty_telemetry_queue
 - `test_architecture.py`: imported_modules, app_files_outside_providers, test_vendor_sdks_are_only_imported_by_provider_adapters, test_the_rest_of_the_app_uses_providers_only_through_the_package, test_every_adapter_follows_the_provider_contract, test_an_unknown_provider_fails_with_the_known_names
-- `test_auth.py`: client, signed_in, test_review_needs_a_signed_in_reviewer, test_operator_passes_the_check_but_needs_csrf_and_origin, test_github_sign_in_round_trip, test_sign_in_is_off_until_configured, test_providers_list_only_configured_sign_in, test_google_sign_in_round_trip
+- `test_auth.py`: client, signed_in, test_review_needs_a_signed_in_reviewer, test_operator_passes_the_check_but_needs_csrf_and_origin, test_partner_keys, test_github_sign_in_round_trip, test_sign_in_is_off_until_configured, test_providers_list_only_configured_sign_in
 - `test_budget.py`: store, test_budget_day_follows_pacific_midnight_like_gemini_quotas, test_visitor_cap_then_global_cap, test_failed_visitor_reservation_does_not_spend_global_budget, test_calls_are_capped_and_recorded, test_ai_is_not_ready_without_key_or_shared_store, test_admission_note_reports_reset_time, ApiError
 - `test_database_lifecycle.py`: test_cleanup_is_deterministic_and_retains_canonical_tidell, test_pdf_builder_returns_nonempty_pdf, test_pdf_builder_embeds_submitted_image
 - `test_evals.py`: test_empty_cases, test_missing_report, test_null_report, test_no_live_default, test_live_bound, test_unavailable_memo, test_judge_failure, test_failed_live_exit
@@ -175,7 +176,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `test_portfolio.py`: seed, test_portfolio_totals_match_every_submission, test_history_pages_filters_and_sorts_on_the_server, test_hazard_checks_are_counted_live_from_each_pincode
 - `test_prompt_injection.py`: state, memo, test_an_honest_memo_passes, test_a_memo_that_obeys_an_injection_is_rejected, test_injected_text_stays_data_and_cannot_move_the_score
 - `test_publish_run.py`: lighthouse, test_ci_runs_are_published_and_shown_newest_first, test_app_and_landing_audits_are_kept_apart
-- `test_rag_index.py`: test_guideline_vectors_are_embedded_once_and_reused_after_a_restart
+- `test_rag_index.py`: test_guideline_vectors_are_embedded_once_and_reused_after_a_restart, test_hybrid_search
 - `test_release_check.py`: files, test_a_bumped_documented_release_passes, test_each_rule_reports_its_own_problem, test_unreleased_ci_changes_need_no_version
 - `test_report_agent.py`: test_generate_memo_exposes_resource_exhausted_failure, test_daily_quota_is_not_retried_and_says_so, test_minute_limit_says_try_again_in_a_minute, test_structured_memo_accepts_grounded_response, test_structured_memo_rejects_invalid_contract, test_structured_memo_rejects_returned_score, test_structured_memo_rejects_decision_flag_and_roof_claims, test_coverage_review_rejects_invented_quantitative_claims
 - `test_review_concurrency.py`: app_db, pending_referral, reviewer, test_a_claimed_referral_tells_the_second_reviewer_who_has_it, test_a_released_or_expired_claim_frees_the_referral, test_a_member_cannot_claim, test_the_same_address_and_pin_code_is_flagged, test_only_one_of_many_simultaneous_decisions_is_saved
@@ -254,6 +255,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `AccountPage.tsx`: AccountPage
 - `Avatar.tsx`: Avatar
 - `Onboarding.tsx`: Onboarding
+- `PartnerKeys.tsx`: PartnerKeys
 - `ProfileForm.tsx`: ProfileForm
 
 ## frontend/src/components/assessment
@@ -329,6 +331,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `pages.tsx`: Privacy, Terms, Changelog
 - `render.tsx`: render
 - `site.tsx`: APP, DEMO, REPO, PORTFOLIO, Mark, SkipLink, Header, Footer
+- `stack.ts`: Tool, stack
 - `tabs.ts`
 
 ## frontend/src/lib
