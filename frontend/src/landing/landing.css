@@ -124,7 +124,7 @@
 }
 
 .site-header {
-  background: rgb(250 248 243 / 0.72);
+  background: rgb(250 248 243 / 0.6);
   box-shadow: 0 1px 0 rgb(13 72 56 / 0.08);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
   backdrop-filter: blur(20px) saturate(160%);
@@ -132,8 +132,10 @@
 }
 
 .site-header[data-tone='dark'] {
-  background: rgb(6 42 32 / 0.25);
+  background: transparent;
   box-shadow: none;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
 }
 
 .site-header[data-tone='dark'] .header-brand {

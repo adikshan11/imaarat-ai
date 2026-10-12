@@ -28,7 +28,7 @@ const faqs: Array<[string, ReactNode]> = [
 function Hero() {
   const hero = photo('hero', [640, 1280, 1920, 2560])
   return (
-    <section data-hero className="relative isolate -mt-16 overflow-hidden bg-forest-950 text-white">
+    <section data-dark className="relative isolate -mt-16 overflow-hidden bg-forest-950 text-white">
       <img {...hero} sizes="100vw" alt="" width={2560} height={1440} fetchPriority="high" decoding="async" className="absolute inset-0 -z-20 size-full object-cover object-[70%_center]" />
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-forest-950 via-forest-950/85 to-forest-950/10" />
       <div className="mx-auto max-w-6xl px-4 pt-36 pb-16 sm:px-6 sm:pt-44 sm:pb-24 lg:pt-48">
@@ -224,7 +224,7 @@ const modules: Array<[string, string, ReactNode]> = [
 
 function Modules() {
   return (
-    <section className="bg-forest-950 py-20 text-white sm:py-28">
+    <section data-dark className="bg-forest-950 py-20 text-white sm:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <h2 className="max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">Modular by design.</h2>
         <p className="mt-4 max-w-2xl text-lg text-white/75">Six modules, each usable on its own. Shown here on one real assessment from the demo: an office at TIDEL Park, Chennai, PIN code 600113.</p>
@@ -357,7 +357,7 @@ function Checked() {
     ['Open source', 'The code, the hazard data pipeline and every test run are public on GitHub.', REPO],
   ]
   return (
-    <section className="bg-forest-950 py-20 text-white sm:py-28">
+    <section data-dark className="bg-forest-950 py-20 text-white sm:py-28">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <h2 className="max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">Built to be checked</h2>
         <p className="mt-4 max-w-2xl text-lg text-white/75">Nothing here asks for blind trust. Each claim on this page links to something you can open.</p>
