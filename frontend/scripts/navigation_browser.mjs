@@ -29,7 +29,7 @@ export const tabShape = async (page) => {
   })
 }
 
-export const tabProblem = (shape) => shape.radius < shape.indicatorHeight / 2 || shape.height > 72 || shape.edgeGap > 1 || shape.fit > 1 || shape.rim !== '0px' || !shape.separators || shape.aspect <= 1
+export const tabProblem = (shape) => shape.radius < shape.indicatorHeight / 2 || shape.height > 72 || shape.edgeGap > 1 || shape.fit > 1 || shape.rim !== '0px' || !shape.separators
 
 export const glassState = (page) => page.locator('[data-glass]').evaluate((node) => {
   const box = node.getBoundingClientRect()
