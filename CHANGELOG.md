@@ -13,7 +13,7 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 - Body text on the home page is darker, for easier reading on bright screens.
 - The home page spreads across wide screens with even side margins, and the menu bar is taller with a larger logo.
 - The strip of software logos is gone, and the integrations card says in plain words that your policy, broker or claims software and AI assistants can use the same assessment.
-- The figures say 11 public hazard datasets instead of 11 data sources.
+- The figures say 11 public hazard datasets instead of 11 data sources, and English plus 25 Indian languages instead of 26 Indian languages, matching what the app actually has.
 
 ## [2.48.4] - 2026-10-12
 
