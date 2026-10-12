@@ -17,6 +17,7 @@ async function headerTone(page, dark) {
     window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY + 40, behavior: 'instant' })
   }, dark)
   await page.waitForTimeout(800)
+  await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))))
   return page.evaluate(() => {
     const header = document.querySelector('.site-header')
     const middle = header.offsetHeight / 2
