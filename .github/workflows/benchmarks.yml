@@ -17,7 +17,7 @@ on:
       suite:
         description: What to run
         type: choice
-        options: [evals, lighthouse, load, vision, translate]
+        options: [evals, lighthouse, load, vision, translate, browsers]
         default: evals
       memo_cases:
         description: "Evals: AI risk summaries to generate and judge"
@@ -29,7 +29,7 @@ on:
         type: boolean
         default: false
       urls:
-        description: "Lighthouse: pages to audit, separated by spaces"
+        description: "Lighthouse: pages to audit, separated by spaces; Browsers: the first one's site"
         default: https://imaarat-ai.vercel.app/ https://imaarat-ai.vercel.app/app/
       users:
         description: "Load test: concurrent simulated underwriters"
@@ -48,6 +48,39 @@ permissions:
   contents: read
 
 jobs:
+  browsers:
+    name: Browsers
+    if: github.event_name == 'workflow_dispatch' && inputs.suite == 'browsers'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version: 24
+      - name: Install Playwright with Chromium, Firefox and WebKit
+        run: |
+          npm install --prefix "$RUNNER_TEMP/browser-tools" --no-save --package-lock=false --ignore-scripts playwright@1.63.0
+          "$RUNNER_TEMP/browser-tools/node_modules/.bin/playwright" install --with-deps chromium firefox webkit
+      - name: Check the home glass and tab bar in each browser
+        run: node frontend/scripts/browsers.mjs | tee -a "$GITHUB_STEP_SUMMARY"
+        shell: bash -o pipefail -e {0}
+        env:
+          PLAYWRIGHT_PATH: ${{ runner.temp }}/browser-tools
+          SITE: ${{ inputs.urls }}
+          BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      - name: Upload screenshots
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: browser-screenshots
+          path: browsers/
+          if-no-files-found: warn
+
   evals:
     name: Evals
     if: github.event_name == 'schedule' || inputs.suite == 'evals'

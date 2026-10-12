@@ -50,7 +50,8 @@ void main() {
     backdrop(point - normal * shift(rise, index.g)).g,
     backdrop(point - normal * shift(rise, index.b)).b
   );
-  float rim = pow(rise, 6.0) * (0.12 + 0.4 * max(dot(normal, normalize(light)), 0.0));
+  float inside = -d;
+  float rim = (smoothstep(0.0, 3.0, inside) - smoothstep(3.0, 14.0, inside)) * (0.02 + 0.1 * max(dot(normal, normalize(light)), 0.0));
   float alpha = clamp(0.5 - d, 0.0, 1.0);
   color = vec4((mix(seen, forest, 0.4) + rim) * alpha, alpha);
 }`

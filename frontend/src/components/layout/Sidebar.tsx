@@ -43,8 +43,8 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
     const node = indicator.current
     const row = track.current
     if (!node || !row || !button) return
-    const width = Math.min(button.offsetWidth, button.offsetHeight * 1.35)
-    const left = x === undefined ? button.offsetLeft + (button.offsetWidth - width) / 2 : Math.max(0, Math.min(row.offsetWidth - width, x - width / 2))
+    const width = button.offsetWidth
+    const left = x === undefined ? button.offsetLeft : Math.max(0, Math.min(row.offsetWidth - width, x - width / 2))
     node.style.width = `${width}px`
     node.style.transform = `translateX(${left}px)`
     node.style.opacity = '1'

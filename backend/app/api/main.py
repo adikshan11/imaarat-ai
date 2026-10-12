@@ -12,6 +12,9 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
+from starlette.datastructures import URLPath
+from starlette.routing import BaseRoute, Match, NoMatchFound
+from starlette.types import Receive, Scope, Send
 
 from app import __version__, auth, budget, config, images, llm, telemetry
 from app.api.auth_routes import router as auth_router
@@ -30,7 +33,6 @@ from app.db import (
     seed_demo_database,
 )
 from app.graphql_api import graphql_router
-from app.interop import add_a2a, mcp, mcp_app
 from app.observability import ENABLED as TRACING_ENABLED
 from app.observability import flush
 from app.reports import build_submission_pdf
@@ -45,8 +47,29 @@ from app.tools.hazard_lookup import verify_location
 async def lifespan(app: FastAPI):
     seed_demo_database()
     init_db()
-    async with mcp.session_manager.run():
-        yield
+    yield
+
+
+class Interop(BaseRoute):
+    """Hands MCP and A2A requests to their app, imported on first use so cold starts skip it."""
+
+    def __init__(self) -> None:
+        self.app: Any = None
+
+    def matches(self, scope: Scope) -> tuple[Match, Scope]:
+        path, root = scope.get("path", ""), scope.get("root_path", "")
+        route = path[len(root) :] if root and path.startswith(root) else path
+        return (Match.FULL if scope["type"] == "http" and route.startswith(("/mcp", "/a2a", "/.well-known/")) else Match.NONE), {}
+
+    def url_path_for(self, name: str, /, **path_params: Any) -> URLPath:
+        raise NoMatchFound(name, path_params)
+
+    async def handle(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if self.app is None:
+            from app.interop import interop_app
+
+            self.app = interop_app()
+        await self.app(scope, receive, send)
 
 
 app = FastAPI(title="imaarat.ai", lifespan=lifespan)
@@ -69,10 +92,9 @@ async def record_requests(request: Request, call_next: Any) -> Any:
             telemetry.record_request(route, request.method, status, round((time.perf_counter() - started) * 1000), error_type)
 
 
-app.mount("/mcp", mcp_app())
 app.include_router(graphql_router, prefix="/graphql")
 app.include_router(auth_router)
-add_a2a(app)
+app.router.routes.append(Interop())
 
 app.add_middleware(
     CORSMiddleware,

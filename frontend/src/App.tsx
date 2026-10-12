@@ -3,7 +3,7 @@ import { Activity, Suspense, lazy, useEffect, useRef, useState } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import StatusBanner from '@/components/layout/StatusBanner'
 import Dashboard from '@/components/dashboard/Dashboard'
-import { PageSkeleton, TopProgress } from '@/components/shared/Loader'
+import { PageLoader, TopProgress } from '@/components/shared/Loader'
 import NewAssessment from '@/components/assessment/NewAssessment'
 import BackendAssessmentResult from '@/components/assessment/BackendAssessmentResult'
 import SessionWarning from '@/components/auth/SessionWarning'
@@ -97,7 +97,7 @@ function Application() {
             setView('result')
           }
         }} onCancel={() => { setDraftOpen(false); setPrefill(null); setView('dashboard') }} /></Activity>}
-        <Suspense fallback={<PageSkeleton />}>
+        <Suspense fallback={<PageLoader />}>
         {view === 'how' && <HowItWorks />}
         {view === 'status' && <StatusPage />}
         {view === 'account' && <AccountPage />}
@@ -131,16 +131,16 @@ function Gate() {
     window.addEventListener('hashchange', follow)
     return () => window.removeEventListener('hashchange', follow)
   }, [])
-  if (!ready) return <PageSkeleton />
+  if (!ready) return <PageLoader full />
   if (!session && (!demo || asked)) {
-    return <Suspense fallback={<PageSkeleton />}><SignIn onDemo={() => {
+    return <Suspense fallback={<PageLoader full />}><SignIn onDemo={() => {
       sessionStorage.setItem(DEMO_KEY, '1')
       if (window.location.hash === '#signin') window.history.replaceState(null, '', window.location.pathname)
       setAsked(false)
       setDemo(true)
     }} /></Suspense>
   }
-  if (session && !session.profile?.complete) return <Suspense fallback={<PageSkeleton />}><Onboarding /></Suspense>
+  if (session && !session.profile?.complete) return <Suspense fallback={<PageLoader full />}><Onboarding /></Suspense>
   return <Application />
 }
 
