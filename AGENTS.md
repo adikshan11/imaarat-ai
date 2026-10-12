@@ -46,14 +46,15 @@ CI is the source of truth. These are the commands it runs:
 
 ## Branches and releases
 
-1. Branch from the latest `preprod` (equal to `main` after a reset): `feature/`, `fix/`, `ci/`, `docs/` or `chore/` plus a snake_case name.
-2. `feature/` and `fix/` branches bump the version once in `backend/app/__init__.py`, `frontend/package.json` and both version fields of `frontend/package-lock.json`, and add one plain-English `CHANGELOG.md` entry about what users will notice. `ci/`, `docs/` and `chore/` branches bump nothing.
-3. Open the pull request against `preprod` using `.github/pull_request_template.md`: `Version: *X.Y.Z*`, then one "This PR ..." sentence.
-4. Merge with rebase once every check is green. The push to `preprod` deploys `https://imaarat-ai-preprod.vercel.app` and runs a read-only stress test.
-5. Release with one pull request from `preprod` into `main`, merged with rebase. That push deploys production.
-6. Reset `preprod` to `main` afterwards so the two never drift. CI skips the redeploy because the commit is already on `main`.
+This is a one-person project, so there are exactly two branches: `main` (production) and `preprod` (all work). Do not create feature, fix or other branches, and do not open pull requests into `preprod`.
 
-Deploys happen only from CI on a push. Never deploy from a laptop, never push to `main` or `preprod` directly, and never force-push anything except the post-release `preprod` reset with `--force-with-lease`.
+1. Start every task on an up-to-date `preprod`: `git fetch -q origin && git switch preprod && git reset --keep origin/preprod`. After each release `preprod` is reset to `main`, so this also brings in the latest `main`. If `git log --oneline origin/preprod..origin/main` lists anything, ask before going further.
+2. Commit straight to `preprod`, with commit messages of a few words. The first user-visible change after a release bumps the version once in `backend/app/__init__.py`, `frontend/package.json` and both version fields of `frontend/package-lock.json`, and adds a plain-English `CHANGELOG.md` entry; later changes before the next release add lines to that same entry. CI, docs and tooling changes bump nothing.
+3. Push with `git push origin preprod`. CI tests the commit, deploys `https://imaarat-ai-preprod.vercel.app`, smoke-checks it and runs a read-only stress test. Fix any failure with another commit on `preprod`.
+4. Release with one pull request from `preprod` into `main` using `.github/pull_request_template.md` (`Version: *X.Y.Z*`, then one "This PR ..." sentence), merged with rebase once every check is green. `main` only accepts pull requests; that push deploys production.
+5. Reset `preprod` to `main` afterwards so the two never drift. CI skips the redeploy because the commit is already on `main`.
+
+Deploys happen only from CI on a push. Never deploy from a laptop, never push to `main`, and never force-push anything except the post-release `preprod` reset with `--force-with-lease`.
 
 ## Code conventions
 
@@ -76,7 +77,7 @@ Deploys happen only from CI on a push. Never deploy from a laptop, never push to
 
 ## Definition of done
 
-1. Every CI job on the pull request is green.
-2. After the merge, the `preprod` deploy, smoke check and stress test are green.
+1. Every CI job on the `preprod` push is green, including the deploy, smoke check and stress test.
+2. The release pull request into `main` is green and merged.
 3. After the release, `https://imaarat-ai.vercel.app/api/status` reports the new version and the change is visible on the live site.
 4. State what was verified and how. Re-check live state before reporting it; never claim something is deployed, fixed or passing without that evidence.

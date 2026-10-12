@@ -27,8 +27,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - name: Check branch name, version bump and changelog
-        if: github.event_name == 'pull_request'
+      - name: Check version bump and changelog
         run: python3 .github/scripts/release_check.py
       - name: Scan every commit for secrets with Gitleaks
         run: |

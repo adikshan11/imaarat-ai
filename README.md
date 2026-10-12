@@ -202,13 +202,13 @@ Three workflows, in the same shape as our other repositories:
 - **Benchmarks**: evals and Lighthouse every week, and Lighthouse, the load test or the vision benchmark on demand. Results appear on the app's status page.
 - **Nightly ELT**: the analytics pipeline and the published data lineage.
 
-Branching: work goes into `preprod` first, and only `preprod` is released to `main`, so production changes only after preprod has been deployed and tested.
+Branching: there are two branches, `main` and `preprod`. Work is committed straight to `preprod`, and only `preprod` is released to `main`, so production changes only after preprod has been deployed and tested.
 
-- Open each `feature/`, `fix/`, `ci/`, `docs/` or `chore/` branch (snake_case name) against `preprod`.
+- Commit and push to `preprod`; CI tests, deploys and stress-tests it.
 - Release by opening one pull request from `preprod` into `main`.
 - After a release, reset `preprod` to `main` (`git push --force-with-lease origin origin/main:preprod`; only the repository admin may) so the two never drift.
 
-Conventions: each `feature/` or `fix/` branch bumps the version once and adds one plain-English CHANGELOG line about what users will notice; `ci/`, `docs/` and `chore/` branches bump nothing and stay out of the changelog; commit messages of two or three words.
+Conventions: the first user-visible change after a release bumps the version once and adds a plain-English CHANGELOG entry about what users will notice, and later changes before the release add to it; CI, docs and tooling changes bump nothing; commit messages of a few words.
 
 ### Configuration
 
