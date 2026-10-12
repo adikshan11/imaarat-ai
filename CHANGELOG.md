@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.48.2] - 2026-10-12
+
+### Changed
+- The product screenshots on the home page show the current app: the portfolio, an assessment result, the paper form and the new status charts.
+
 ## [2.48.1] - 2026-10-12
 
 ### Changed
