@@ -12,7 +12,7 @@
 .boot-ring {
   width: 88px;
   height: 88px;
-  border: 3px solid var(--nav-separator);
+  border: 3px solid color-mix(in srgb, var(--loader) 18%, transparent);
   border-top-color: var(--loader);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
