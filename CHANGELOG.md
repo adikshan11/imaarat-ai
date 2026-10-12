@@ -19,6 +19,8 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 - The benefit rows in the live preview have a small gap between them.
 - The phone tab bar keeps a small even gap around the highlighted tab, the highlight no longer spills outside the bar when pressed, and dragging it shows a clear glass lens instead of a solid pill.
 - In the light theme the highlighted tab is a bright white pill and the background glows are softer, so the screen no longer looks dark and muddy on TVs.
+- A2A proposals now become real tasks. A referred case stays working until an underwriter signs off and then turns completed, and `tasks/get` finds it from any server, not only the one that took it. A proposal missing construction, occupancy, hazard zone or sprinkler details is rejected with the list of what is missing. Every result says it is indicative, not a quote or a binding decision.
+- ARCHITECTURE.md has an agent map showing who uses REST, MCP and A2A and why, and MAP.md lists every source file with its purpose so AI coding agents can find code without opening files.
 
 ## [2.49.1] - 2026-10-12
 

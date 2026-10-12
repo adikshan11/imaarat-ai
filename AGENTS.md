@@ -24,7 +24,9 @@ imaarat.ai assesses commercial property proposals for Indian insurers. **Rules d
 | `.github/workflows/` | `ci-cd.yml`, `benchmarks.yml`, `nightly_elt.yml` |
 | `.github/scripts/` | Release rules, smoke check, JSON format check, function size budget, Lighthouse summary |
 
-`README.md` explains the product and configuration, `ARCHITECTURE.md` the design, `CHANGELOG.md` every release.
+`README.md` explains the product and configuration, `ARCHITECTURE.md` the design and the agent map, `CHANGELOG.md` every release.
+
+`MAP.md` lists every tracked source file with its docstring or exported names. Read it before searching, and open only the files it points to. After adding, removing or redocumenting a file, run `python3 .github/scripts/repo_map.py` and commit the result; CI fails when it is stale.
 
 ## Checks
 

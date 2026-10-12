@@ -25,6 +25,56 @@ flowchart TD
 | Providers | `app/providers/` | translating one vendor's SDK into the shared contract, and its errors into `ProviderError` | apply budgets, retries or business rules |
 | Platform | `app/db.py`, `app/budget.py`, `app/telemetry.py`, `app/auth.py` | storage, spending limits, request and trace records, sessions | depend on the layers above |
 
+## Agent map
+
+Three ways in, one workflow, one rule engine. Each door exists for a different caller and a different length of conversation.
+
+```mermaid
+flowchart LR
+    subgraph callers["Who calls"]
+        U["Underwriter or broker<br/>in the web app"]
+        AI["AI assistant<br/>Claude, ChatGPT, Copilot"]
+        P["Partner agent<br/>broker, insurer, surveyor"]
+        S["Your own system"]
+    end
+    U & S -->|REST| API
+    AI -->|"MCP: one question, one answer"| MCP["MCP tools<br/>assess_property · lookup_hazard<br/>search_guidelines · get_assessment<br/>list_assessments"]
+    P -->|"A2A: a case that may wait for a person"| A2A["A2A agent<br/>assess_property task<br/>underwriting_guidance"]
+    API["REST API"] --> WF
+    A2A --> WF
+    MCP -->|"rules only, nothing stored"| RULES
+    subgraph WF["Underwriting workflow (LangGraph)"]
+        direction LR
+        I[intake] --> X[read form and photo] --> G[guidelines] --> R[score] --> C[comparables] --> D[decide] --> M[AI summary] --> H{{"human review<br/>pauses on Refer"}}
+    end
+    R --- RULES["Rule engine<br/>decides every case"]
+    H -->|signs off| REV["Signed-in reviewer"]
+    WF --> DB[("Assessments and<br/>workflow checkpoints")]
+    A2A -. "tasks/get reads the stored case" .-> DB
+```
+
+| Door | For | Conversation | State |
+|---|---|---|---|
+| REST | the web app and your own systems | one request each | stored assessments |
+| MCP | AI assistants that need a fact or a score now | one call, one answer | none; `assess_property` stores nothing |
+| A2A | another organisation's agent handing over a proposal | a task that can stay open for days | the stored assessment and its paused workflow |
+
+A2A task lifecycle, matching how a commercial fire or industrial all-risk proposal moves between a broker and an insurer:
+
+```mermaid
+stateDiagram-v2
+    [*] --> submitted: broker agent sends proposal facts
+    submitted --> rejected: required facts missing (list returned)
+    submitted --> working: rules score the case
+    working --> completed: Accept or Decline decided by the rules
+    working --> working: Refer, waiting for an underwriter
+    working --> completed: underwriter signs off in the app
+    completed --> [*]
+    rejected --> [*]
+```
+
+A referred task is not held in memory. Its id is part of the stored workflow thread, so `tasks/get` rebuilds it from the assessment on any serverless instance, and it turns `completed` as soon as the reviewer's decision is saved. Results say they are indicative, not a quote or a binding decision. Push notifications and streaming are off: a serverless function cannot hold a connection open or send work after it replies.
+
 ## Rules that CI enforces
 
 `backend/tests/test_architecture.py` fails the build if:

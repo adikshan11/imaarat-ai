@@ -6,21 +6,24 @@ import json
 import os
 from typing import Any
 
-from a2a.helpers import get_data_parts, new_data_message, new_text_message
+from a2a.helpers import get_data_parts, new_data_artifact, new_data_part, new_task, new_text_message, new_text_part
 from a2a.server.agent_execution import AgentExecutor, RequestContext
+from a2a.server.context import ServerCallContext
 from a2a.server.events import EventQueue
 from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.routes import add_a2a_routes_to_fastapi, create_agent_card_routes, create_jsonrpc_routes
-from a2a.server.tasks import InMemoryTaskStore
+from a2a.server.tasks import InMemoryTaskStore, TaskUpdater
 from a2a.types import AgentCapabilities, AgentCard, AgentInterface, AgentSkill
+from a2a.types.a2a_pb2 import Task, TaskState
 from fastapi import FastAPI
 from mcp.server.mcpserver import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
+from starlette.concurrency import run_in_threadpool
 from starlette.types import Receive, Scope, Send
 
 from app import budget
 from app.config import GUIDELINES_MD
-from app.db import fetch_history, fetch_submission_detail
+from app.db import fetch_history, fetch_submission_detail, submission_for_thread
 from app.schemas import decision_from_score, indicative_product_segment
 from app.tools.hazard_lookup import lookup as hazard_lookup
 from app.tools.hazard_lookup import verify_location
@@ -145,44 +148,90 @@ def mcp_app():
 
 
 class UnderwritingAgentExecutor(AgentExecutor):
-    """A2A skill handler: property data in, underwriting assessment out; text in, guideline sections out."""
+    """A2A skill handler: property facts start an assessment task; text in, guideline sections out."""
 
     async def execute(self, context: RequestContext, event_queue: EventQueue) -> None:
         data_parts = get_data_parts(context.message.parts) if context.message else []
-        if data_parts:
-            from app.agents.graph import run_graph
-            from app.db import save_submission
-
-            facts = dict(data_parts[0])
-            facts.setdefault("property_id", f"A2A-{context.context_id[:8] if context.context_id else 'request'}")
-            state = run_graph(facts, ai_note=budget.INTEROP_NOTE)
-            state["id"] = save_submission(state)["id"]
-            reply = new_data_message(assessment_summary(state), context_id=context.context_id, task_id=context.task_id)
-        else:
+        if not data_parts:
             question = context.get_user_input()
             hits = retrieve(question, k=3, ai_note=budget.INTEROP_NOTE)
             text = "\n\n".join(f"[{hit['id']}] {hit['title']}: {hit['text']}" for hit in hits) or "No guidance retrieved (retrieval needs AI_API_KEY)."
-            reply = new_text_message(text, context_id=context.context_id, task_id=context.task_id)
-        await event_queue.enqueue_event(reply)
+            await event_queue.enqueue_event(new_text_message(text, context_id=context.context_id, task_id=context.task_id))
+            return
+        if context.current_task:
+            await event_queue.enqueue_event(new_text_message("This task already has an assessment; read it with tasks/get.", context_id=context.context_id, task_id=context.task_id))
+            return
+        from app.agents.graph import run_graph
+        from app.db import save_submission
+
+        updater = TaskUpdater(event_queue, context.task_id, context.context_id)
+        await event_queue.enqueue_event(new_task(context.task_id, context.context_id, TaskState.TASK_STATE_SUBMITTED, history=[context.message]))
+        facts = dict(data_parts[0])
+        missing = [name for name in A2A_REQUIRED if facts.get(name) in (None, "")]
+        if missing:
+            await updater.reject(updater.new_agent_message([new_text_part(f"Missing required facts: {', '.join(missing)}. Send them in a new task.")]))
+            return
+        await updater.start_work()
+        facts.setdefault("property_id", f"A2A-{context.task_id[:8]}")
+        state = run_graph(facts, thread_id=f"a2a:{context.context_id}:{context.task_id}", ai_note=budget.INTEROP_NOTE)
+        detail = fetch_submission_detail(save_submission(state)["id"])
+        await updater.add_artifact([new_data_part(task_result(detail))], name="assessment")
+        if detail["review_status"] == "pending_review":
+            await updater.update_status(TaskState.TASK_STATE_WORKING, message=updater.new_agent_message([new_text_part(AWAITING)]))
+        else:
+            await updater.complete()
 
     async def cancel(self, context: RequestContext, event_queue: EventQueue) -> None:
         raise NotImplementedError("Assessments run to completion and cannot be cancelled")
+
+
+A2A_REQUIRED = ("construction_type", "occupancy_type", "cat_zone", "sprinkler_system")
+AWAITING = "Referred to an underwriter. The task stays working until they sign off; check it again with tasks/get."
+INDICATIVE = "Indicative assessment from a demo service, decided by fixed rules; not a quote, a policy or a binding underwriting decision."
+
+
+def task_result(detail: dict[str, Any]) -> dict[str, Any]:
+    return {**assessment_summary(detail), "reviewer": detail.get("reviewer"), "reviewed_at": detail.get("reviewed_at"), "review_note": detail.get("review_note"), "notice": INDICATIVE}
+
+
+def assessment_task(task_id: str) -> Task | None:
+    """The A2A task rebuilt from its stored assessment, so it outlives the serverless instance."""
+    submission_id = submission_for_thread(f":{task_id}")
+    detail = fetch_submission_detail(submission_id) if submission_id else None
+    if detail is None:
+        return None
+    context_id = detail["thread_id"][4 : -len(task_id) - 1]
+    waiting = detail["review_status"] == "pending_review"
+    task = new_task(task_id, context_id, TaskState.TASK_STATE_WORKING if waiting else TaskState.TASK_STATE_COMPLETED, artifacts=[new_data_artifact("assessment", task_result(detail))])
+    if waiting:
+        task.status.message.CopyFrom(new_text_message(AWAITING, context_id=context_id, task_id=task_id))
+    return task
+
+
+class AssessmentTaskStore(InMemoryTaskStore):
+    """Keeps in-flight tasks in memory and reads settled ones from the assessment table."""
+
+    async def get(self, task_id: str, context: ServerCallContext) -> Task | None:
+        task = await super().get(task_id, context)
+        if task is not None and task.status.state != TaskState.TASK_STATE_WORKING:
+            return task
+        return await run_in_threadpool(assessment_task, task_id) or task
 
 
 def agent_card() -> AgentCard:
     return AgentCard(
         name="imaarat.ai",
         description="Commercial property underwriting agent for Indian properties: deterministic risk scoring, Gemini Vision and RAG evidence, and a validated AI memo.",
-        version="1.0.0",
+        version="1.1.0",
         supported_interfaces=[AgentInterface(url=f"{public_base_url()}/a2a", protocol_binding="JSONRPC", protocol_version="1.0")],
-        capabilities=AgentCapabilities(streaming=False),
+        capabilities=AgentCapabilities(streaming=False, push_notifications=False),
         default_input_modes=["application/json", "text/plain"],
         default_output_modes=["application/json", "text/plain"],
         skills=[
             AgentSkill(
                 id="assess_property",
                 name="Assess property",
-                description="Send property facts as a JSON data part; receive the risk score, decision, review status, rationale and guideline citations.",
+                description="Send property facts as a JSON data part (construction_type, occupancy_type, cat_zone and sprinkler_system are required). The task returns the risk score, decision, rationale and guideline citations. A referred case stays working until an underwriter signs off; read it again with tasks/get.",
                 tags=["underwriting", "risk", "insurance"],
                 examples=[
                     json.dumps(
@@ -207,7 +256,7 @@ def agent_card() -> AgentCard:
 
 def add_a2a(app: FastAPI) -> None:
     card = agent_card()
-    handler = DefaultRequestHandler(agent_executor=UnderwritingAgentExecutor(), task_store=InMemoryTaskStore(), agent_card=card)
+    handler = DefaultRequestHandler(agent_executor=UnderwritingAgentExecutor(), task_store=AssessmentTaskStore(), agent_card=card)
     add_a2a_routes_to_fastapi(
         app,
         agent_card_routes=create_agent_card_routes(card),
