@@ -1,20 +1,23 @@
 const header = document.querySelector<HTMLElement>('.site-header')
-const dark = [...document.querySelectorAll<HTMLElement>('[data-dark]')]
+const dark = document.querySelectorAll<HTMLElement>('[data-dark]')
 
 if (header && dark.length) {
-  let frame = 0
-  const update = () => {
-    frame = 0
-    const middle = header.offsetHeight / 2
-    header.dataset.tone = dark.some((section) => {
-      const box = section.getBoundingClientRect()
-      return box.top <= middle && box.bottom > middle
-    }) ? 'dark' : 'light'
+  const under = new Set<Element>()
+  let observer: IntersectionObserver | undefined
+  const watch = () => {
+    observer?.disconnect()
+    under.clear()
+    const middle = Math.round(header.offsetHeight / 2)
+    const line = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (entry.isIntersecting) under.add(entry.target)
+        else under.delete(entry.target)
+      }
+      header.dataset.tone = under.size ? 'dark' : 'light'
+    }, { rootMargin: `-${middle}px 0px ${middle + 1 - window.innerHeight}px 0px` })
+    dark.forEach((section) => line.observe(section))
+    observer = line
   }
-  const schedule = () => {
-    if (!frame) frame = requestAnimationFrame(update)
-  }
-  addEventListener('scroll', schedule, { passive: true })
-  addEventListener('resize', schedule)
-  update()
+  addEventListener('resize', watch)
+  watch()
 }
