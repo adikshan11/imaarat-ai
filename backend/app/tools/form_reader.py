@@ -31,7 +31,7 @@ CHOICE_FIELDS = {
     "cat_zone": ["None", "Wind", "Hail", "Wildfire", "Flood", "Earthquake"],
     "seismic_zone": ["II", "III", "IV", "V"],
 }
-TICK_FIELDS = ["sprinkler_system", "fire_alarm", "fire_hydrants", "fire_extinguishers", "fire_noc", "lightning_protection", "flood_protection", "drainage", "seismic_design", "cyclone_roof"]
+TICK_FIELDS = ["sprinkler_system", "fire_alarm", "flood_protection"]
 CONFIRM_FIELDS = ["zip", "year_built", "building_value_inr", "plant_machinery_value_inr", "stock_inventory_value_inr", "other_contents_value_inr"]
 FIELDS = ["zip", *TEXT_FIELDS, *NUMBER_FIELDS, *CHOICE_FIELDS, *TICK_FIELDS]
 

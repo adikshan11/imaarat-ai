@@ -22,14 +22,7 @@ const choices = {
   seismic_zone: ['II', 'III', 'IV', 'V'],
   sprinkler_system: ['yes', 'no'],
   fire_alarm: ['yes', 'no'],
-  fire_hydrants: ['yes', 'no'],
-  fire_extinguishers: ['yes', 'no'],
-  fire_noc: ['yes', 'no'],
-  lightning_protection: ['yes', 'no'],
   flood_protection: ['yes', 'no'],
-  drainage: ['yes', 'no'],
-  seismic_design: ['yes', 'no'],
-  cyclone_roof: ['yes', 'no'],
 }
 mkdirSync(outDir, { recursive: true })
 const port = process.env.PREVIEW_PORT ?? '4350'
