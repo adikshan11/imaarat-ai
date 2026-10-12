@@ -46,6 +46,7 @@ for (const name of ['chromium', 'firefox', 'webkit']) {
     const overDark = await headerTone(page, true)
     await page.screenshot({ path: `browsers/${name}-${label}-header-dark.png`, clip: { x: 0, y: 0, width, height: 160 } })
     const overLight = await headerTone(page, false)
+    await page.screenshot({ path: `browsers/${name}-${label}-header-light.png`, clip: { x: 0, y: 0, width, height: 160 } })
     const toneWrong = overDark !== 'dark' || overLight !== 'light'
     if (toneWrong) failed++
     await page.goto(`${site}/app/?demo#how`, { waitUntil: 'networkidle' })

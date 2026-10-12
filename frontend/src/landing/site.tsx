@@ -3,8 +3,8 @@ export const DEMO = '/app/?demo'
 export const REPO = 'https://github.com/adikshan11/imaarat-ai'
 export const PORTFOLIO = 'https://adithya-shankaran.vercel.app'
 
-export function Mark({ className = '' }: { className?: string }) {
-  return <img src="/favicon.svg?v=imaarat-3" alt="" width={32} height={32} className={className} />
+export function Mark({ className = '', on = 'light' }: { className?: string; on?: 'light' | 'dark' }) {
+  return <img src={`/mark-${on}.svg`} alt="" width={32} height={32} className={className} />
 }
 
 export function SkipLink() {
@@ -16,7 +16,8 @@ export function Header({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
     <header data-tone={tone} className="site-header sticky top-0 z-30">
       <nav aria-label="Main" className="shell flex h-20 items-center gap-8">
         <a href="/" className="header-brand flex items-center gap-3 font-semibold tracking-tight text-forest-900">
-          <Mark className="size-10" />
+          <Mark className="mark-on-light size-10" />
+          <Mark on="dark" className="mark-on-dark size-10" />
           <span className="text-xl">imaarat<span className="header-accent text-forest-700">.ai</span></span>
         </a>
         <div className="header-links ml-auto hidden items-center gap-8 text-[15px] font-medium text-muted md:flex">
