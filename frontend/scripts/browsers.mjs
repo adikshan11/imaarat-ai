@@ -25,7 +25,7 @@ for (const name of ['chromium', 'firefox', 'webkit']) {
     const broken = shape !== null && tabProblem(shape)
     if (broken) failed++
     await page.screenshot({ path: `browsers/${name}-${label}-app.png` })
-    rows.push(`| ${name} | ${label} | ${glass.lens ? 'refraction' : `fallback (${glass.backdrop})`} | ${shape ? `${broken ? 'FAIL' : 'ok'}: fit ${shape.fit.toFixed(1)} px, edge ${shape.edgeGap.toFixed(1)} px, rim ${shape.rim}, separators ${shape.separators ? 'ok' : 'wrong'}` : 'sidebar'} |`)
+    rows.push(`| ${name} | ${label} | ${glass.lens ? 'refraction' : `fallback (${glass.backdrop})`} | ${shape ? `${broken ? 'FAIL' : 'ok'}: fit ${shape.fit.toFixed(1)} px, edge ${shape.edgeGap.toFixed(1)} px, rim ${shape.rim}, separators ${shape.separators ? 'present' : 'none'}, lens ${shape.lens ? 'refraction' : 'blur'}` : 'sidebar'} |`)
     await page.close()
   }
   await browser.close()

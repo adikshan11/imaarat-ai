@@ -2,6 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.48.0] - 2026-10-12
+
+### Added
+- The phone tab bar is clearer liquid glass that bends what scrolls behind its edges in Chrome, Edge and other Chromium browsers, and the selected tab swells out of the bar while you press or slide across it, like iOS.
+- Thin fading dividers separate the four figures on the home page.
+
+### Changed
+- The phone tab bar no longer has dividers between tabs.
+- The home page menu bar turns into dark glass over the photo and light glass further down, instead of a pale band over the photo, and the home page pills, buttons and cards lose their white outlines.
+
 ## [2.47.1] - 2026-10-12
 
 ### Changed

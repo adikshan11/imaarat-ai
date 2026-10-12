@@ -28,11 +28,11 @@ const faqs: Array<[string, ReactNode]> = [
 function Hero() {
   const hero = photo('hero', [640, 1280, 1920, 2560])
   return (
-    <section className="relative isolate overflow-hidden bg-forest-950 text-white">
+    <section data-hero className="relative isolate -mt-16 overflow-hidden bg-forest-950 text-white">
       <img {...hero} sizes="100vw" alt="" width={2560} height={1440} fetchPriority="high" decoding="async" className="absolute inset-0 -z-20 size-full object-cover object-[70%_center]" />
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-forest-950 via-forest-950/85 to-forest-950/10" />
-      <div className="mx-auto max-w-6xl px-4 pt-20 pb-16 sm:px-6 sm:pt-28 sm:pb-24 lg:pt-32">
-        <a href="/changelog/" className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-white/90 transition hover:bg-white/20">
+      <div className="mx-auto max-w-6xl px-4 pt-36 pb-16 sm:px-6 sm:pt-44 sm:pb-24 lg:pt-48">
+        <a href="/changelog/" className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/90 transition hover:bg-white/20">
           <span className="rounded-full bg-mint-300 px-2 py-0.5 font-semibold text-forest-950">v{version.split('.').slice(0, 2).join('.')}</span> See what’s new →
         </a>
         <p className="mt-6 text-sm font-semibold uppercase tracking-[0.18em] text-mint-300">Property risk underwriting · India</p>
@@ -44,7 +44,7 @@ function Hero() {
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <a href={`${DEMO}#new`} className="inline-flex h-12 items-center rounded-full bg-mint-300 px-6 font-semibold text-forest-950 shadow-lg shadow-black/20 transition hover:bg-white">Try the live demo</a>
-          <a href={`${DEMO}#paper`} className="inline-flex h-12 items-center rounded-full border border-white/40 px-6 font-semibold text-white transition hover:bg-white/10">See a paper proposal</a>
+          <a href={`${DEMO}#paper`} className="inline-flex h-12 items-center rounded-full bg-white/10 px-6 font-semibold text-white transition hover:bg-white/20">See a paper proposal</a>
         </div>
         <div data-glass className="glass-panel relative isolate mt-14 overflow-hidden rounded-3xl">
           <canvas aria-hidden="true" />
@@ -230,7 +230,7 @@ function Modules() {
         <p className="mt-4 max-w-2xl text-lg text-white/75">Six modules, each usable on its own. Shown here on one real assessment from the demo: an office at TIDEL Park, Chennai, PIN code 600113.</p>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {modules.map(([name, body, example]) => (
-            <div key={name} className="rounded-3xl border border-white/10 bg-white/5 p-7">
+            <div key={name} className="rounded-3xl bg-white/5 p-7">
               <h3 className="text-xl font-semibold">{name}</h3>
               <p className="mt-2 leading-relaxed text-white/75">{body}</p>
               {example}
@@ -363,7 +363,7 @@ function Checked() {
         <p className="mt-4 max-w-2xl text-lg text-white/75">Nothing here asks for blind trust. Each claim on this page links to something you can open.</p>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {items.map(([title, body, href]) => (
-            <a key={title} href={href} className="group rounded-3xl border border-white/10 bg-white/5 p-7 transition hover:border-mint-300/50 hover:bg-white/10">
+            <a key={title} href={href} className="group rounded-3xl bg-white/5 p-7 transition hover:bg-white/10">
               <h3 className="text-xl font-semibold">{title}</h3>
               <p className="mt-3 leading-relaxed text-white/75">{body}</p>
               <span className="mt-5 inline-block text-sm font-semibold text-mint-300 group-hover:underline">Open →</span>
@@ -405,7 +405,7 @@ export default function Landing() {
   return (
     <>
       <SkipLink />
-      <Header />
+      <Header tone="dark" />
       <main id="main">
         <Hero />
         <WorksWith />
