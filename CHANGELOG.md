@@ -9,8 +9,11 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 - The opening section lists the supported Indian languages in their own scripts.
 
 ### Changed
-- The home page follows the order a buyer asks questions in: the problem, how it works, the product, the details, who it is for, then the technical proof and the tools it is built with.
+- The home page follows the order a buyer asks questions in: the problem, how it works, the product, the details, who it is for, then the technical proof.
 - Body text on the home page is darker, for easier reading on bright screens.
+- The home page spreads across wide screens with even side margins, and the menu bar is taller with a larger logo.
+- The strip of software logos is gone, and the integrations card says in plain words that your policy, broker or claims software and AI assistants can use the same assessment.
+- The figures say 11 public hazard datasets instead of 11 data sources.
 
 ## [2.48.4] - 2026-10-12
 

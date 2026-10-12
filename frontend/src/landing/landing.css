@@ -44,24 +44,10 @@
 }
 
 @layer components {
-  .marquee {
-    display: flex;
-    min-width: 0;
-    overflow: hidden;
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
-    mask-image: linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
-  }
-
-  .marquee-group {
-    display: flex;
-    flex-shrink: 0;
-    gap: 2rem;
-    padding-right: 2rem;
-    animation: marquee 32s linear infinite;
-  }
-
-  .marquee:hover .marquee-group {
-    animation-play-state: paused;
+  .shell {
+    margin-inline: auto;
+    max-width: 1920px;
+    padding-inline: clamp(1rem, 5vw, 6rem);
   }
 
   .tour-stage {
@@ -163,27 +149,9 @@
   background: #fff;
 }
 
-@keyframes marquee {
-  to {
-    transform: translateX(-100%);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .tour-stage > [role='tabpanel'] {
     transition: none;
-  }
-  .marquee {
-    -webkit-mask-image: none;
-    mask-image: none;
-  }
-  .marquee-group {
-    flex-shrink: 1;
-    flex-wrap: wrap;
-    animation: none;
-  }
-  .marquee-group[aria-hidden='true'] {
-    display: none;
   }
 }
 

@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { version } from '../../package.json'
 import { LANGUAGES } from '../i18n/languages.ts'
 import { DEMO, Footer, Header, REPO, SkipLink } from './site.tsx'
-import { stack as tools, type Tool } from './stack.ts'
 
 
 const photo = (name: string, widths: number[]) => ({
@@ -29,10 +28,10 @@ const faqs: Array<[string, ReactNode]> = [
 function Hero() {
   const hero = photo('hero', [640, 1280, 1920, 2560])
   return (
-    <section data-dark className="relative isolate -mt-16 overflow-hidden bg-forest-950 text-white">
+    <section data-dark className="relative isolate -mt-20 overflow-hidden bg-forest-950 text-white">
       <img {...hero} sizes="100vw" alt="" width={2560} height={1440} fetchPriority="high" decoding="async" className="absolute inset-0 -z-20 size-full object-cover object-[70%_center]" />
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-forest-950 via-forest-950/85 to-forest-950/10" />
-      <div className="mx-auto max-w-7xl px-4 pt-36 pb-16 sm:px-6 sm:pt-44 sm:pb-24 lg:pt-48">
+      <div className="shell pt-36 pb-16 sm:pt-44 sm:pb-24 lg:pt-48">
         <a href="/changelog/" className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/90 transition hover:bg-white/20">
           <span className="rounded-full bg-mint-300 px-2 py-0.5 font-semibold text-forest-950">v{version.split('.').slice(0, 2).join('.')}</span> See what’s new →
         </a>
@@ -54,7 +53,7 @@ function Hero() {
         <div data-glass className="glass-panel relative isolate mt-14 overflow-hidden rounded-3xl">
           <canvas aria-hidden="true" />
           <dl className="grid grid-cols-2 gap-6 p-6 sm:grid-cols-4 sm:px-8 sm:py-6">
-            {[['19,312', 'PIN codes covered, metro to rural'], ['11', 'official and public data sources'], ['26', 'Indian languages'], ['< 1 min', 'from proposal to decision']].map(([value, label]) => (
+            {[['19,312', 'PIN codes covered, metro to rural'], ['11', 'public hazard datasets'], ['26', 'Indian languages'], ['< 1 min', 'from proposal to decision']].map(([value, label]) => (
               <div key={label}>
                 <dt className="sr-only">{label}</dt>
                 <dd className="text-3xl font-bold tracking-tight">{value}</dd>
@@ -68,23 +67,18 @@ function Hero() {
   )
 }
 
+const sources = ['India Post', 'BIS IS 1893', 'NRSC, ISRO', 'NDEM', 'IMD', 'data.gov.in', 'Chennai and Bengaluru city corporations']
+
 const checks = [
   ['Earthquake zone', 'If a proposal states a lower zone than the IS 1893 map gives for its PIN code, the official zone is scored and the case is flagged.'],
   ['Flood history', 'Satellite-observed flooding from 1998 to 2022, and flooding spots published by city corporations, are added even when the proposal is silent.'],
   ['Cyclone exposure', 'Properties in districts that the India Meteorological Department lists as cyclone-prone are flagged automatically.'],
 ]
 
-function Logo({ tool }: { tool: Tool }) {
-  if (tool.src) return <img src={tool.src} alt="" width={tool.wide ? 64 : 32} height="32" loading="lazy" className={`h-8 ${tool.wide ? 'w-16' : 'w-8'} object-contain`} />
-  return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-8 w-8" fill={tool.color}><path d={tool.path} /></svg>
-}
-
-const sources = ['India Post', 'BIS IS 1893', 'NRSC, ISRO', 'NDEM', 'IMD', 'data.gov.in', 'Chennai and Bengaluru city corporations']
-
 function Sources() {
   return (
     <section aria-labelledby="sources-title" className="border-b border-forest-900/10 bg-white py-6">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 sm:flex-row sm:items-center sm:gap-8 sm:px-6">
+      <div className="shell flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-8">
         <h2 id="sources-title" className="shrink-0 text-xs font-semibold uppercase tracking-[0.16em] text-forest-700">Checked against public data from</h2>
         <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-ink">
           {sources.map((source) => <li key={source}>{source}</li>)}
@@ -94,34 +88,10 @@ function Sources() {
   )
 }
 
-function WorksWith() {
-  return (
-    <section aria-label="Built with" className="border-b border-forest-900/10 bg-white py-8">
-      <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 sm:px-6">
-        <span className="shrink-0 text-xs uppercase tracking-[0.16em] text-forest-700">Built with</span>
-        <div className="marquee">
-          {[0, 1].map((copy) => (
-            <ul key={copy} className="marquee-group" aria-hidden={copy === 1 ? 'true' : undefined}>
-              {tools.map((tool) => (
-                <li key={tool.name} className="shrink-0">
-                  <a href={tool.href} target="_blank" rel="noopener noreferrer" tabIndex={copy === 1 ? -1 : undefined} className="flex items-center gap-3 rounded-lg px-2 py-1 text-base font-semibold text-ink opacity-70 grayscale transition duration-300 hover:opacity-100 hover:grayscale-0 focus-visible:opacity-100 focus-visible:grayscale-0">
-                    <Logo tool={tool} />
-                    {tool.name}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
 function Verified() {
   return (
-    <section id="verify" className="scroll-mt-20 py-20 sm:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+    <section id="verify" className="scroll-mt-24 py-20 sm:py-28">
+      <div className="shell">
         <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">Declared is not the same as verified.</h2>
         <p className="mt-4 max-w-2xl text-lg text-muted">Proposals are filled in by the people asking for cover. imaarat.ai checks what they declare against sources they do not control.</p>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -149,8 +119,8 @@ const stages = [
 
 function Journey() {
   return (
-    <section id="steps" className="scroll-mt-20 bg-white py-20 sm:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+    <section id="steps" className="scroll-mt-24 bg-white py-20 sm:py-28">
+      <div className="shell">
         <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">From paper proposal to signed-off decision.</h2>
         <p className="mt-4 max-w-2xl text-lg text-muted">Six steps. Each one is recorded and can be inspected later.</p>
         <div role="tablist" aria-label="Underwriting steps" data-tabs className="mt-10 flex gap-2 overflow-x-auto pb-1">
@@ -205,7 +175,7 @@ const modules: Array<[string, string, ReactNode]> = [
       <Row label="IMD cyclone grade" value="P2" tone="text-amber-300" />
     </Panel>
   )],
-  ['Rule engine', 'Scores the risk with written rules and shows every point.', (
+  ['Scoring rules', 'Scores the risk with written rules and shows every point.', (
     <Panel key="rules">
       {scoreParts.map(([label, points]) => (
         <div key={label} className="py-1">
@@ -232,12 +202,11 @@ const modules: Array<[string, string, ReactNode]> = [
       <Row label="Report" value="PDF, ready to share" />
     </Panel>
   )],
-  ['Open APIs', 'Lets other systems and AI agents run the same assessment.', (
+  ['Connects to your software', 'Your policy, broker or claims software can send a proposal and get the decision back automatically.', (
     <Panel key="apis">
-      <Row label="AI assistants" value="MCP" />
-      <Row label="Other AI agents" value="A2A" />
-      <Row label="Your own systems" value="GraphQL and REST" />
-      <Row label="Same rules and limits" value="Yes" />
+      <Row label="Policy and broker software" value="Yes" />
+      <Row label="AI assistants" value="Yes" />
+      <Row label="Same rules and daily limits" value="Yes" />
     </Panel>
   )],
 ]
@@ -245,7 +214,7 @@ const modules: Array<[string, string, ReactNode]> = [
 function Modules() {
   return (
     <section data-dark className="bg-forest-950 py-20 text-white sm:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="shell">
         <h2 className="max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">Modular by design.</h2>
         <p className="mt-4 max-w-2xl text-lg text-white/75">Six modules, each usable on its own. Shown here on one real assessment from the demo: an office at TIDEL Park, Chennai, PIN code 600113.</p>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -278,7 +247,7 @@ const reasons = [
 function Audiences() {
   return (
     <section className="py-20 sm:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="shell">
         <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">Who it is for.</h2>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {audiences.map(([title, body]) => (
@@ -307,7 +276,7 @@ function Feature({ image, widths, title, eyebrow, children, flip }: { image: str
   return (
     <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
       <div className={flip ? 'lg:order-2' : ''}>
-        <img {...picture} sizes="(min-width: 1280px) 584px, (min-width: 1024px) 46vw, 100vw" alt="" width={1536} height={1024} loading="lazy" decoding="async" className="aspect-[3/2] w-full rounded-3xl object-cover shadow-xl shadow-forest-950/10" />
+        <img {...picture} sizes="(min-width: 1024px) 42vw, 90vw" alt="" width={1536} height={1024} loading="lazy" decoding="async" className="aspect-[3/2] w-full rounded-3xl object-cover shadow-xl shadow-forest-950/10" />
       </div>
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-forest-700">{eyebrow}</p>
@@ -320,8 +289,8 @@ function Feature({ image, widths, title, eyebrow, children, flip }: { image: str
 
 function Features() {
   return (
-    <section id="features" className="scroll-mt-20 bg-white py-20 sm:py-28">
-      <div className="mx-auto max-w-7xl space-y-20 px-4 sm:space-y-28 sm:px-6">
+    <section id="features" className="scroll-mt-24 bg-white py-20 sm:py-28">
+      <div className="shell space-y-20 sm:space-y-28">
         <Feature image="paper-form" widths={[640, 1024, 1536]} eyebrow="Paper forms" title="Handwritten proposals, read in the proposer’s language">
           <p>Many small businesses still fill proposals on paper. Print the one-page form, let the owner write in their own language, and photograph it.</p>
           <p>AI reads each field into the assessment. Nothing is used until a person has checked it.</p>
@@ -341,8 +310,8 @@ function Features() {
 
 function Tour() {
   return (
-    <section id="tour" className="scroll-mt-20 py-20 sm:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+    <section id="tour" className="scroll-mt-24 py-20 sm:py-28">
+      <div className="shell">
         <h2 className="text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">See the product</h2>
         <p className="mt-4 max-w-2xl text-lg text-muted">Screenshots from the live demo, which uses sample properties only.</p>
         <div data-tabs-region>
@@ -359,7 +328,7 @@ function Tour() {
           <div className="tour-stage mt-6">
             {tour.map((item, index) => (
               <div key={item.id} role="tabpanel" id={`panel-${item.id}`} aria-labelledby={`tab-${item.id}`} data-inactive={index !== 0 ? '' : undefined} inert={index !== 0}>
-                <img src={`/landing/shot-${item.image}-1440.webp`} srcSet={`/landing/shot-${item.image}-720.webp 720w, /landing/shot-${item.image}-1440.webp 1440w`} sizes="(min-width: 1280px) 1232px, 100vw"
+                <img src={`/landing/shot-${item.image}-1440.webp`} srcSet={`/landing/shot-${item.image}-720.webp 720w, /landing/shot-${item.image}-1440.webp 1440w`} sizes="(min-width: 1920px) 1728px, 90vw"
                   alt={item.alt} width={1440} height={900} loading="lazy" decoding="async" className="w-full rounded-2xl border border-forest-900/10 bg-white shadow-2xl shadow-forest-950/15" />
               </div>
             ))}
@@ -378,7 +347,7 @@ function Checked() {
   ]
   return (
     <section data-dark className="bg-forest-950 py-20 text-white sm:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="shell">
         <h2 className="max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">Built to be checked</h2>
         <p className="mt-4 max-w-2xl text-lg text-white/75">Nothing here asks for blind trust. Each claim on this page links to something you can open.</p>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -397,7 +366,7 @@ function Checked() {
 
 function Faq() {
   return (
-    <section id="faq" className="scroll-mt-20 py-20 sm:py-28">
+    <section id="faq" className="scroll-mt-24 py-20 sm:py-28">
       <div className="mx-auto max-w-3xl px-4 sm:px-6">
         <h2 className="text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">Questions</h2>
         <div className="mt-10 divide-y divide-forest-900/10 border-y border-forest-900/10">
@@ -436,7 +405,6 @@ export default function Landing() {
         <Modules />
         <Audiences />
         <Checked />
-        <WorksWith />
         <Faq />
       </main>
       <Footer />
