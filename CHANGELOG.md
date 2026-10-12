@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.49.1] - 2026-10-12
+
+### Changed
+- The home page logo drops its square background and comes in two colourings, one for the dark menu bar and one for the light one.
+- The menu underlines the section you are reading, and the figures under the opening section sit centred in a panel with a soft edge and shadow, so its left side no longer melts into the background.
+
 ## [2.49.0] - 2026-10-12
 
 ### Added

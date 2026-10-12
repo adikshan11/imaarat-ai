@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="imaarat.ai">
+  <defs>
+    <linearGradient id="core" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#082621"/>
+      <stop offset="1" stop-color="#1F8A6C"/>
+    </linearGradient>
+    <linearGradient id="lit" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E08560"/>
+      <stop offset="0.35" stop-color="#E9A77E"/>
+      <stop offset="1" stop-color="#D2A07A"/>
+    </linearGradient>
+    <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C9663F"/>
+      <stop offset="0.35" stop-color="#D58B5F"/>
+      <stop offset="1" stop-color="#B98860"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#shade)" d="M7 52V38L9.25 33V52Z"/>
+  <path fill="url(#lit)" d="M9.25 33 11.5 38V52H9.25Z"/>
+  <path fill="url(#shade)" d="M13 52V31L15.25 25V52Z"/>
+  <path fill="url(#lit)" d="M15.25 25 17.5 31V52H15.25Z"/>
+  <path fill="url(#shade)" d="M19 52V25L21.25 18V52Z"/>
+  <path fill="url(#lit)" d="M21.25 18 23.5 25V52H21.25Z"/>
+  <path fill="url(#lit)" d="M40.5 52V25L42.75 18V52Z"/>
+  <path fill="url(#shade)" d="M42.75 18 45 25V52H42.75Z"/>
+  <path fill="url(#lit)" d="M46.5 52V31L48.75 25V52Z"/>
+  <path fill="url(#shade)" d="M48.75 25 51 31V52H48.75Z"/>
+  <path fill="url(#lit)" d="M52.5 52V38L54.75 33V52Z"/>
+  <path fill="url(#shade)" d="M54.75 33 57 38V52H54.75Z"/>
+  <path fill="#D9774F" d="M24 24.5 32 11V15.6L26.8 24.5Z"/>
+  <path fill="#E8956D" d="M32 11 40 24.5H37.2L32 15.6Z"/>
+  <path fill="url(#core)" d="M25 52V26L32 17L39 26V52Z"/>
+  <circle cx="32" cy="31" r="2.8" fill="#FAF7F2"/>
+  <path fill="#FAF7F2" d="M29.5 52V38.5a2.5 2.5 0 0 1 5 0V52Z"/>
+</svg>

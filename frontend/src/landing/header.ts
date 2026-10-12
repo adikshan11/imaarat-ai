@@ -21,3 +21,17 @@ if (header && dark.length) {
   addEventListener('resize', watch)
   watch()
 }
+
+const links = new Map([...document.querySelectorAll<HTMLAnchorElement>('.header-links a')].map((link) => [link.hash.slice(1), link]))
+const sections = [...links.keys()].map((id) => document.getElementById(id)).filter((section) => section !== null)
+
+if (sections.length) {
+  const reading = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      const link = links.get(entry.target.id)
+      if (entry.isIntersecting) link?.setAttribute('aria-current', 'location')
+      else link?.removeAttribute('aria-current')
+    }
+  }, { rootMargin: '-40% 0px -59% 0px' })
+  sections.forEach((section) => reading.observe(section))
+}
