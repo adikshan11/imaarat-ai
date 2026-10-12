@@ -17,7 +17,12 @@ async function headerTone(page, dark) {
     window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY + 40, behavior: 'instant' })
   }, dark)
   await page.waitForTimeout(800)
-  return page.evaluate(() => document.querySelector('.site-header').dataset.tone)
+  return page.evaluate(() => {
+    const header = document.querySelector('.site-header')
+    const middle = header.offsetHeight / 2
+    const under = [...document.querySelectorAll('[data-dark]')].some((section) => section.getBoundingClientRect().top <= middle && section.getBoundingClientRect().bottom > middle)
+    return header.dataset.tone === (under ? 'dark' : 'light') ? header.dataset.tone : `${header.dataset.tone} (expected ${under ? 'dark' : 'light'} at ${Math.round(window.scrollY)})`
+  })
 }
 
 await mkdir('browsers', { recursive: true })
