@@ -199,7 +199,8 @@ def test_retrieval_gate(monkeypatch, tmp_path, hits):
     assert report["retrieval"]["hit_rate"] == 0
     assert report["retrieval"]["recall"] == 0
     assert report["retrieval"]["passed"] is False
-    assert report["retrieval"]["thresholds"] == {"hit_rate": 1.0, "recall": 0.75}
+    assert report["retrieval"]["cases"] == len(golden_cases())
+    assert report["retrieval"]["thresholds"] == {"hit_rate": 1.0, "recall": runner.mean(1 / len(case["relevant_guidelines"]) for case in golden_cases())}
     assert report["sections"]["retrieval"] == {"status": "completed", "reason": "checks_failed", "passed": False}
     assert report["metadata"]["retrieval_thresholds"] == report["retrieval"]["thresholds"]
 
