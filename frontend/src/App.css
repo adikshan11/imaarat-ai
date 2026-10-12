@@ -260,6 +260,7 @@ input::placeholder { color: var(--text-soft); }
 .preview-call-value { font-weight: 700; color: var(--heading); font-size: 14px; }
 .prototype-view-note { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
 .preview-section-head { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin: 10px 0 6px; }
+.preview-card .risk-line + .risk-line { margin-top: 8px; }
 .preview-mitigation-total { margin-top: 12px; color: var(--refer-fg); font-weight: 700; text-align: center; font-size: 13px; }
 .preview-product-segment { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 13px; }
 .preview-product-segment strong { color: var(--heading); text-align: end; }
@@ -353,15 +354,15 @@ input::placeholder { color: var(--text-soft); }
   .controls-compact { flex: none; flex-wrap: nowrap; }
   .controls-compact .control-button { flex: none; width: 40px; padding: 0; }
   .controls-compact .control-language { justify-content: center; }
-  .tabbar { position: fixed; inset-inline: 0; width: min(calc(100% - 32px), 440px); margin-inline: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 30; display: flex; padding: 0; gap: 2px; border-radius: 40px; border: none; background: var(--nav-glass); -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%); box-shadow: inset 0 1px 0 var(--nav-sheen), 0 6px 24px -8px rgba(5, 38, 26, 0.28); }
+  .tabbar { position: fixed; inset-inline: 0; width: min(calc(100% - 32px), 440px); margin-inline: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 30; display: flex; padding: 4px; gap: 2px; overflow: clip; border-radius: 40px; border: none; background: var(--nav-glass); -webkit-backdrop-filter: var(--nav-filter); backdrop-filter: var(--nav-filter); box-shadow: inset 0 1px 0 var(--nav-sheen), 0 6px 24px -8px rgba(5, 38, 26, 0.28); }
   .tabbar.is-lens { -webkit-backdrop-filter: url(#tab-lens); backdrop-filter: url(#tab-lens); }
   .lens-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
   .tabbar { touch-action: pan-y pinch-zoom; -webkit-user-select: none; user-select: none; }
   .tab-track { position: relative; display: flex; flex: 1; min-width: 0; gap: 2px; }
-  .tab-indicator { position: absolute; left: 0; top: 0; height: 100%; border-radius: 999px; background: var(--nav-active); box-shadow: inset 0 1px 0 var(--nav-sheen); pointer-events: none; opacity: 0; transition: transform 240ms cubic-bezier(.2,.8,.2,1), width 240ms cubic-bezier(.2,.8,.2,1), scale 320ms cubic-bezier(.34,1.56,.64,1), background-color 200ms ease, box-shadow 200ms ease; }
+  .tab-indicator { position: absolute; left: 0; top: 0; height: 100%; border-radius: 999px; background: var(--tab-pill); box-shadow: var(--tab-pill-edge); pointer-events: none; opacity: 0; transition: transform 240ms cubic-bezier(.2,.8,.2,1), width 240ms cubic-bezier(.2,.8,.2,1), scale 320ms cubic-bezier(.34,1.56,.64,1), background-color 200ms ease, box-shadow 200ms ease; }
   .is-scrubbing .tab-indicator { transition: scale 320ms cubic-bezier(.34,1.56,.64,1), background-color 200ms ease, box-shadow 200ms ease; }
-  .tabbar:active .tab-indicator, .is-scrubbing .tab-indicator { scale: 1.1 1.2; background: var(--nav-press); box-shadow: inset 0 1px 0 var(--nav-sheen), 0 8px 22px -8px rgba(5, 38, 26, 0.45); }
-  .tab-item { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; min-height: 60px; padding: 0 2px; border: none; border-radius: 999px; background: transparent; color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; }
+  .tabbar:active .tab-indicator, .is-scrubbing .tab-indicator { z-index: 1; scale: 1.04 1.07; background: radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.28), transparent 60%), var(--tab-lens); box-shadow: var(--tab-rim); -webkit-backdrop-filter: saturate(180%) brightness(1.1); backdrop-filter: saturate(180%) brightness(1.1); }
+  .tab-item { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; min-height: 56px; padding: 0 2px; border: none; border-radius: 999px; background: transparent; color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; }
   .tab-caption { display: flex; justify-content: center; align-items: center; width: 100%; }
   .tab-caption .optical-label { width: 100%; line-height: 20px; overflow-wrap: anywhere; }
   .tabbar .tab-item[data-view="dashboard"]:has(:lang(tcy)) { flex-grow: 2; }

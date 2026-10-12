@@ -9,15 +9,19 @@
 
 :root {
   --bg: #edf2ef;
-  --blob-1: rgba(16, 185, 129, 0.28);
-  --blob-2: rgba(245, 158, 11, 0.2);
-  --blob-3: rgba(59, 130, 246, 0.16);
+  --blob-1: rgba(16, 185, 129, 0.18);
+  --blob-2: rgba(245, 158, 11, 0.12);
+  --blob-3: rgba(59, 130, 246, 0.1);
   --surface: rgba(255, 255, 255, 0.78);
   --surface-strong: rgba(255, 255, 255, 0.86);
   --surface-muted: rgba(255, 255, 255, 0.5);
   --nav-glass: rgba(240, 248, 244, 0.4);
   --nav-sheen: rgba(255, 255, 255, 0.7);
-  --nav-press: rgba(255, 255, 255, 0.55);
+  --nav-filter: blur(20px) saturate(130%) brightness(1.06);
+  --tab-pill: rgba(255, 255, 255, 0.78);
+  --tab-pill-edge: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 3px rgba(5, 38, 26, 0.12), 0 0 0 0.5px rgba(5, 38, 26, 0.06);
+  --tab-lens: rgba(255, 255, 255, 0.16);
+  --tab-rim: inset 0 0 0 1px rgba(255, 255, 255, 0.8), inset 0 1.5px 1px rgba(255, 255, 255, 0.95), inset 0 -1px 2px rgba(5, 38, 26, 0.1), 0 6px 18px -6px rgba(5, 38, 26, 0.22);
   --loader: #1b6d54;
   --nav-active: rgba(13, 72, 56, 0.1);
   --border: rgba(15, 23, 42, 0.08);
@@ -73,7 +77,11 @@
   --surface-muted: rgba(255, 255, 255, 0.035);
   --nav-glass: rgba(18, 36, 29, 0.38);
   --nav-sheen: rgba(255, 255, 255, 0.07);
-  --nav-press: rgba(110, 231, 183, 0.2);
+  --nav-filter: blur(20px) saturate(160%);
+  --tab-pill: rgba(110, 231, 183, 0.12);
+  --tab-pill-edge: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  --tab-lens: rgba(255, 255, 255, 0.05);
+  --tab-rim: inset 0 0 0 1px rgba(255, 255, 255, 0.3), inset 0 1.5px 1px rgba(255, 255, 255, 0.38), inset 0 -1px 2px rgba(0, 0, 0, 0.25), 0 8px 22px -8px rgba(0, 0, 0, 0.5);
   --loader: #10b981;
   --nav-active: rgba(110, 231, 183, 0.12);
   --border: rgba(255, 255, 255, 0.08);
@@ -123,7 +131,11 @@
     --surface-muted: rgba(255, 255, 255, 0.035);
     --nav-glass: rgba(18, 36, 29, 0.38);
     --nav-sheen: rgba(255, 255, 255, 0.07);
-    --nav-press: rgba(110, 231, 183, 0.2);
+    --nav-filter: blur(20px) saturate(160%);
+    --tab-pill: rgba(110, 231, 183, 0.12);
+    --tab-pill-edge: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    --tab-lens: rgba(255, 255, 255, 0.05);
+    --tab-rim: inset 0 0 0 1px rgba(255, 255, 255, 0.3), inset 0 1.5px 1px rgba(255, 255, 255, 0.38), inset 0 -1px 2px rgba(0, 0, 0, 0.25), 0 8px 22px -8px rgba(0, 0, 0, 0.5);
     --loader: #10b981;
     --nav-active: rgba(110, 231, 183, 0.12);
     --border: rgba(255, 255, 255, 0.08);

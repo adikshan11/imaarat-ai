@@ -60,6 +60,12 @@ class PropertySubmission(BaseModel):
     generator: bool | None = None
     drainage: bool | None = None
     security_protective_safeguards: bool | None = None
+    fire_hydrants: bool | None = None
+    fire_extinguishers: bool | None = None
+    fire_noc: bool | None = None
+    lightning_protection: bool | None = None
+    seismic_design: bool | None = None
+    cyclone_roof: bool | None = None
     cat_zone: Literal["Wind", "Hail", "Wildfire", "Flood", "Earthquake", "None"]
     policy_type: Literal["SFSP", "Bharat Sookshma Udyam Suraksha", "Bharat Laghu Udyam Suraksha", "Larger-risk/commercial property segment"] | None = None
     total_value_at_risk_inr: float | None = None

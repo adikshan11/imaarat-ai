@@ -284,6 +284,12 @@ export interface SubmissionInput {
   generator?: boolean
   drainage?: boolean
   security_protective_safeguards?: boolean
+  fire_hydrants?: boolean
+  fire_extinguishers?: boolean
+  fire_noc?: boolean
+  lightning_protection?: boolean
+  seismic_design?: boolean
+  cyclone_roof?: boolean
   cat_zone: string
   seismic_zone: 'II' | 'III' | 'IV' | 'V'
   rsmd_cover: boolean
