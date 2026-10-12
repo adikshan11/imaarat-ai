@@ -353,11 +353,13 @@ input::placeholder { color: var(--text-soft); }
   .controls-compact { flex: none; flex-wrap: nowrap; }
   .controls-compact .control-button { flex: none; width: 40px; padding: 0; }
   .controls-compact .control-language { justify-content: center; }
-  .tabbar { position: fixed; inset-inline: 0; width: min(calc(100% - 32px), 440px); margin-inline: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 30; display: flex; padding: 0; gap: 2px; border-radius: 40px; border: 1px solid var(--nav-rim); background: var(--nav-glass); -webkit-backdrop-filter: blur(24px) saturate(130%); backdrop-filter: blur(24px) saturate(130%); box-shadow: 0 6px 24px -8px rgba(5, 38, 26, 0.28); }
+  .tabbar { position: fixed; inset-inline: 0; width: min(calc(100% - 32px), 440px); margin-inline: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 30; display: flex; padding: 0; gap: 2px; border-radius: 40px; border: none; background: var(--nav-glass); -webkit-backdrop-filter: blur(24px) saturate(130%); backdrop-filter: blur(24px) saturate(130%); box-shadow: inset 0 1px 0 var(--nav-sheen), 0 6px 24px -8px rgba(5, 38, 26, 0.28); }
   .tabbar { touch-action: pan-y pinch-zoom; -webkit-user-select: none; user-select: none; }
   .tab-track { position: relative; display: flex; flex: 1; min-width: 0; gap: 2px; }
-  .tab-indicator { position: absolute; left: 0; top: 0; height: 100%; border-radius: 999px; background: var(--nav-active); pointer-events: none; opacity: 0; transition: transform 240ms cubic-bezier(.2,.8,.2,1), width 240ms cubic-bezier(.2,.8,.2,1); }
+  .tab-indicator { position: absolute; left: 0; top: 0; height: 100%; border-radius: 999px; background: var(--nav-active); box-shadow: inset 0 1px 0 var(--nav-sheen); pointer-events: none; opacity: 0; transition: transform 240ms cubic-bezier(.2,.8,.2,1), width 240ms cubic-bezier(.2,.8,.2,1); }
   .is-scrubbing .tab-indicator { transition: none; }
+  .tab-item + .tab-item::before { content: ''; position: absolute; inset-inline-start: -1.5px; top: 50%; width: 1px; height: 28px; margin-top: -14px; border-radius: 1px; background: var(--nav-separator); transition: opacity 200ms ease; }
+  .tab-item.active::before, .tab-item.active + .tab-item::before, .is-scrubbing .tab-item::before { opacity: 0; }
   .tab-item { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; min-height: 60px; padding: 0 2px; border: none; border-radius: 999px; background: transparent; color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; }
   .tab-caption { display: flex; justify-content: center; align-items: center; width: 100%; }
   .tab-caption .optical-label { width: 100%; line-height: 20px; overflow-wrap: anywhere; }
@@ -380,7 +382,7 @@ input::placeholder { color: var(--text-soft); }
   .tab-indicator { transition: none; }
 }
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
-  .tabbar { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; border-color: currentColor; }
+  .tabbar { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; border: 1px solid currentColor; }
   .tabbar::before { display: none; }
   .tab-item.active { outline: 2px solid currentColor; outline-offset: -2px; }
 }

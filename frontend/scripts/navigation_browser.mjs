@@ -1,5 +1,38 @@
 const APP_URL = process.env.APP_URL ?? 'http://127.0.0.1:3000'
 
+export const tabShape = (page) => page.locator('.tab-indicator').evaluate(node => {
+  const rect = node.getBoundingClientRect()
+  const bar = node.closest('nav')
+  const box = bar.getBoundingClientRect()
+  const items = Array.from(node.parentElement.querySelectorAll('.tab-item'))
+  const active = items.findIndex(button => button.classList.contains('active'))
+  const chosen = items[active].getBoundingClientRect()
+  const bounds = items.map(button => button.getBoundingClientRect())
+  const gaps = [rect.top - box.top, box.bottom - rect.bottom]
+  if (chosen.left <= Math.min(...bounds.map(item => item.left)) + 1) gaps.push(rect.left - box.left)
+  if (chosen.right >= Math.max(...bounds.map(item => item.right)) - 1) gaps.push(box.right - rect.right)
+  const separators = items.slice(1).map((button, index) => ({ shown: getComputedStyle(button, '::before').opacity !== '0', beside: index === active || index + 1 === active }))
+  return {
+    edgeGap: Math.max(...gaps),
+    fit: Math.max(Math.abs(rect.left - chosen.left), Math.abs(rect.right - chosen.right)),
+    rim: getComputedStyle(bar).borderTopWidth,
+    separators: separators.every(separator => separator.shown !== separator.beside),
+    aspect: rect.width / rect.height,
+    radius: parseFloat(getComputedStyle(node).borderRadius),
+    indicatorHeight: rect.height,
+    height: box.height,
+    buttons: items.map(button => ({ text: button.textContent, width: button.offsetWidth, captionHeight: button.querySelector('.optical-label').offsetHeight })),
+  }
+})
+
+export const tabProblem = (shape) => shape.radius < shape.indicatorHeight / 2 || shape.height > 72 || shape.edgeGap > 1 || shape.fit > 1 || shape.rim !== '0px' || !shape.separators || shape.aspect <= 1
+
+export const glassState = (page) => page.locator('[data-glass]').evaluate((node) => {
+  const box = node.getBoundingClientRect()
+  const canvas = node.querySelector('canvas')
+  return { lens: node.hasAttribute('data-lens'), width: canvas.width, expected: Math.round(box.width * Math.min(devicePixelRatio, 2)), canvas: getComputedStyle(canvas).display, backdrop: getComputedStyle(node).backdropFilter ?? getComputedStyle(node).webkitBackdropFilter }
+})
+
 export async function verifySignIn(page) {
   let checks = 0
   const check = (value, name) => {
@@ -263,20 +296,11 @@ export async function verifyLabels(page) {
             overflow: label.scrollWidth > label.clientWidth + 1,
           }
         }))
-        const shape = await page.locator('.tab-indicator').evaluate(node => {
-          const rect = node.getBoundingClientRect()
-          const bar = node.closest('nav')
-          const box = bar.getBoundingClientRect()
-          const items = Array.from(node.parentElement.querySelectorAll('.tab-item')).map(button => button.getBoundingClientRect())
-          const gaps = [rect.top - box.top - bar.clientTop, box.top + bar.clientTop + bar.clientHeight - rect.bottom]
-          if (Math.abs(rect.left - Math.min(...items.map(item => item.left))) < 1) gaps.push(rect.left - box.left - bar.clientLeft)
-          if (Math.abs(rect.right - Math.max(...items.map(item => item.right))) < 1) gaps.push(box.left + bar.clientLeft + bar.clientWidth - rect.right)
-          return { edgeGap: Math.max(...gaps), aspect: rect.width / rect.height, radius: parseFloat(getComputedStyle(node).borderRadius), indicatorHeight: rect.height, height: node.closest('nav').getBoundingClientRect().height, buttons: Array.from(node.parentElement.querySelectorAll('.tab-item')).map(button => ({ text: button.textContent, width: button.offsetWidth, captionHeight: button.querySelector('.optical-label').offsetHeight })) }
-        })
+        const shape = await tabShape(page)
         minAspect = Math.min(minAspect, shape.aspect)
         maxAspect = Math.max(maxAspect, shape.aspect)
         maxHeight = Math.max(maxHeight, shape.height)
-        if (shape.radius < shape.indicatorHeight / 2 || shape.height > 72 || shape.edgeGap > 1) failures.push({ code, width, theme, shape })
+        if (tabProblem(shape)) failures.push({ code, width, theme, shape })
         configurations++
         maxCenter = Math.max(maxCenter, ...labels.map(label => label.center))
         if (labels.some(label => label.center > 5 || label.outside || label.overflow)) failures.push({ code, width, theme, labels })
@@ -408,11 +432,7 @@ export async function verifyGlass(page) {
     if (!value) throw new Error(name)
     checks++
   }
-  const state = () => page.locator('[data-glass]').evaluate((node) => {
-    const box = node.getBoundingClientRect()
-    const canvas = node.querySelector('canvas')
-    return { lens: node.hasAttribute('data-lens'), width: canvas.width, expected: Math.round(box.width * Math.min(devicePixelRatio, 2)), canvas: getComputedStyle(canvas).display, backdrop: getComputedStyle(node).backdropFilter }
-  })
+  const state = () => glassState(page)
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.goto(APP_URL + '/')
   const webgl = await page.evaluate(() => Boolean(document.createElement('canvas').getContext('webgl2')))

@@ -2,19 +2,12 @@ import { useEffect, useState } from 'react'
 import { usePreferences } from '@/context/Preferences'
 import './Loader.css'
 
-export function PageSkeleton({ heading = true }: { heading?: boolean }) {
+export function PageLoader({ full = false }: { full?: boolean }) {
   const { t } = usePreferences()
   return (
-    <div className="skeleton-page" aria-busy="true">
-      <span className="sr-only" role="status">{t('load.loading')}</span>
-      {heading && <>
-        <div className="skeleton skeleton-eyebrow" />
-        <div className="skeleton skeleton-title" />
-        <div className="skeleton skeleton-line" />
-      </>}
-      <div className="skeleton-kpis">{[0, 1, 2, 3].map((item) => <div className="skeleton skeleton-kpi" key={item} />)}</div>
-      <div className="skeleton skeleton-card" />
-      <div className="skeleton skeleton-card" />
+    <div className={full ? 'boot' : 'boot boot-inline'} role="status" aria-label={t('load.loading')}>
+      <img src="/favicon.svg?v=imaarat-3" width="56" height="56" alt="" />
+      <span className="boot-ring" />
     </div>
   )
 }

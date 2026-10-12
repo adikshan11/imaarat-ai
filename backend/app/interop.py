@@ -16,6 +16,7 @@ from a2a.types import AgentCapabilities, AgentCard, AgentInterface, AgentSkill
 from fastapi import FastAPI
 from mcp.server.mcpserver import MCPServer
 from mcp.server.transport_security import TransportSecuritySettings
+from starlette.types import Receive, Scope, Send
 
 from app import budget
 from app.config import GUIDELINES_MD
@@ -212,3 +213,18 @@ def add_a2a(app: FastAPI) -> None:
         agent_card_routes=create_agent_card_routes(card),
         jsonrpc_routes=create_jsonrpc_routes(handler, rpc_url="/a2a"),
     )
+
+
+async def serve_mcp(scope: Scope, receive: Receive, send: Send) -> None:
+    """Serve one stateless MCP request with its own session manager."""
+    app = mcp_app()
+    async with app.router.lifespan_context(app):
+        await app(scope, receive, send)
+
+
+def interop_app() -> FastAPI:
+    """Build the app that serves the MCP server and the A2A agent."""
+    app = FastAPI()
+    app.mount("/mcp", serve_mcp)
+    add_a2a(app)
+    return app
