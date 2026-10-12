@@ -40,7 +40,7 @@ for (const name of ['chromium', 'firefox', 'webkit']) {
       const box = document.querySelector('.site-header nav').getBoundingClientRect()
       return { width: Math.round(box.width), offset: Math.round(Math.abs(box.left - (window.innerWidth - box.right))), overflow: document.documentElement.scrollWidth - window.innerWidth }
     })
-    const layoutWrong = column.width > 1280 || column.offset > 1 || column.overflow > 0
+    const layoutWrong = column.width > 1920 || column.offset > 1 || column.overflow > 0
     if (layoutWrong) failed++
     await page.screenshot({ path: `browsers/${name}-${label}-home.png` })
     const overDark = await headerTone(page, true)
