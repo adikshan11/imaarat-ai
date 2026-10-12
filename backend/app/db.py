@@ -295,6 +295,12 @@ def record_review(submission_id: int, final_decision: str, owner_id: str, review
     return None
 
 
+def submission_for_thread(suffix: str) -> int | None:
+    """Id of the assessment whose workflow thread ends with the suffix."""
+    with get_engine().connect() as conn:
+        return conn.execute(select(submissions.c.id).where(submissions.c.thread_id.endswith(suffix, autoescape=True))).scalar()
+
+
 def address_key(address: Any) -> str:
     return re.sub(r"[^a-z0-9]", "", str(address or "").lower())
 
