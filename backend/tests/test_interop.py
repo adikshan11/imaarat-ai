@@ -37,7 +37,9 @@ def test_a2a_task_follows_the_underwriter_review(tmp_path, monkeypatch):
     assert interop.assessment_task("task-2", "broker-1") is None
 
 
-def test_a2a_needs_a_partner_key(monkeypatch):
+def test_a2a_needs_a_partner_key(tmp_path, monkeypatch):
+    monkeypatch.setattr(db, "PROPERTIES_CSV", tmp_path / "missing.csv")
+    db.init_db()
     monkeypatch.setenv("A2A_PARTNER_KEYS", f"broker-1:{hashlib.sha256(b'right-key').hexdigest()}")
     client = TestClient(main.app)
     request = {"jsonrpc": "2.0", "id": 1, "method": "GetTask", "params": {"id": "missing"}}
