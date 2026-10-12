@@ -19,7 +19,7 @@ for (const name of ['chromium', 'firefox', 'webkit']) {
     const glass = await glassState(page)
     await page.screenshot({ path: `browsers/${name}-${label}-home.png` })
     await page.goto(`${site}/app/?demo#how`, { waitUntil: 'networkidle' })
-    await page.locator('.tab-item.active, .nav-item.active').first().waitFor()
+    await page.locator('[aria-current="page"]:visible').first().waitFor()
     await page.waitForTimeout(500)
     const shape = label === 'phone' ? await tabShape(page) : null
     const broken = shape !== null && tabProblem(shape)
