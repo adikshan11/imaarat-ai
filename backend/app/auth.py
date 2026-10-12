@@ -222,6 +222,13 @@ def signed_in(request: Request) -> bool:
     return True
 
 
+def is_reviewer(request: Request) -> bool:
+    try:
+        return resolve_principal(request).role in REVIEW_ROLES
+    except HTTPException:
+        return False
+
+
 def require_origin(request: Request) -> None:
     origin = app_origin()
     if not origin or request.headers.get("origin") != origin:

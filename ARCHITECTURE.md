@@ -5,7 +5,7 @@ imaarat.ai is built in layers. Each layer talks only to the one below it, so any
 ```mermaid
 flowchart TD
     UI["Web app and landing page<br/>frontend/"] --> API
-    Agents["AI agents and other systems<br/>MCP · A2A · GraphQL"] --> API
+    Agents["AI agents and other systems<br/>MCP · A2A · REST"] --> API
     API["API<br/>app/api"] --> WF["Underwriting workflow<br/>app/agents/graph.py (LangGraph)"]
     WF --> C1["Paper reader"] & C2["Hazard verification"] & C3["Rule engine"] & C4["Photo review"] & C5["Guideline search"] & C6["AI risk summary"]
     C1 & C4 & C5 & C6 --> GW["AI gateway<br/>app/llm.py<br/>budgets · retries · deadline · tracing"]
@@ -18,7 +18,7 @@ flowchart TD
 
 | Layer | Where | What it owns | What it must not do |
 |---|---|---|---|
-| Interfaces | `app/api`, `app/graphql_api.py`, `app/interop.py` | HTTP, GraphQL, MCP and A2A; sign-in; input validation | contain underwriting logic |
+| Interfaces | `app/api`, `app/interop.py` | HTTP, MCP and A2A; sign-in; input validation | contain underwriting logic |
 | Workflow | `app/agents/graph.py` | the order of steps, the review pause, checkpoints | call a model directly |
 | Components | `app/tools/`, `app/agents/report_agent.py`, `app/reports.py` | one underwriting job each: read a form, check hazards, score, review a photo, search guidelines, write the summary, build the PDF | import a vendor SDK |
 | AI gateway | `app/llm.py` | every model call: daily and per-minute budgets, retries for busy errors only, the per-request deadline, tracing and token accounting | know which vendor it is talking to |

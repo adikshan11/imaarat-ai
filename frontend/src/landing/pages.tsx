@@ -85,7 +85,7 @@ export function Terms() {
         <h2>Using it</h2>
         <ul>
           <li>Use sample data only; do not enter personal or confidential information.</li>
-          <li>Do not try to overload the service, get around its limits or attack it. The public APIs (GraphQL, MCP and A2A) follow the same limits as the app.</li>
+          <li>Do not try to overload the service, get around its limits or attack it. The public APIs (REST, MCP and A2A) follow the same limits as the app.</li>
           <li>The demo has a small daily AI allowance shared by everyone. When it runs out, the rules still decide and the page says so.</li>
           <li>Signing in with GitHub or Google is optional. After signing in you add your real full name and a mobile number you can be reached on before using the app. Approving or overriding a referral needs a reviewer account, and you are responsible for what is done with yours. A reviewer who starts a review holds that referral for 30 minutes, and the first decision saved is the one that counts.</li>
         </ul>

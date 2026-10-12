@@ -32,11 +32,10 @@ from app.db import (
     save_submission,
     seed_demo_database,
 )
-from app.graphql_api import graphql_router
 from app.observability import ENABLED as TRACING_ENABLED
 from app.observability import flush
 from app.reports import build_submission_pdf
-from app.schemas import decision_from_score, indicative_product_segment
+from app.schemas import decision_from_score, indicative_product_segment, redact
 from app.tools.form_reader import read_form
 from app.tools.hazard_lookup import lookup as hazard_lookup
 from app.tools.hazard_lookup import sources as hazard_sources
@@ -92,7 +91,6 @@ async def record_requests(request: Request, call_next: Any) -> Any:
             telemetry.record_request(route, request.method, status, round((time.perf_counter() - started) * 1000), error_type)
 
 
-app.include_router(graphql_router, prefix="/graphql")
 app.include_router(auth_router)
 app.router.routes.append(Interop())
 
@@ -526,8 +524,13 @@ def evals() -> dict[str, Any]:
     return data if isinstance(data, dict) else empty_report()
 
 
+def shown(request: Request, data: Any) -> Any:
+    return data if auth.is_reviewer(request) else redact(data)
+
+
 @app.get("/underwrite/history")
 def history(
+    request: Request,
     response: Response,
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
@@ -538,7 +541,7 @@ def history(
 ) -> list[dict[str, Any]]:
     rows, total = history_page(limit, offset, decision, q, sort, direction)
     response.headers["X-Total-Count"] = str(total)
-    return rows
+    return shown(request, rows)
 
 
 @app.get("/ops/summary")
@@ -552,20 +555,20 @@ def portfolio() -> dict[str, Any]:
 
 
 @app.get("/underwrite/history/{submission_id}")
-def history_detail(submission_id: int) -> dict[str, Any]:
+def history_detail(submission_id: int, request: Request) -> dict[str, Any]:
     detail = fetch_submission_detail(submission_id)
     if detail is None:
         raise HTTPException(status_code=404, detail="Submission not found")
-    return detail
+    return shown(request, detail)
 
 
 @app.get("/underwrite/history/{submission_id}/report.pdf")
-def history_report(submission_id: int) -> Response:
+def history_report(submission_id: int, request: Request) -> Response:
     detail = fetch_submission_detail(submission_id)
     if detail is None:
         raise HTTPException(status_code=404, detail="Submission not found")
     try:
-        pdf = build_submission_pdf(detail)
+        pdf = build_submission_pdf(shown(request, detail))
     except Exception as exc:
         raise HTTPException(status_code=503, detail=f"Report generation unavailable: {type(exc).__name__}: {exc}") from exc
     return Response(

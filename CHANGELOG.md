@@ -2,6 +2,15 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.50.0] - 2026-10-12
+
+### Security
+- Proposer names, business names, mobile numbers and email addresses no longer appear in the dashboard, the assessment pages or the PDF report unless a signed-in reviewer opens them. Before, anyone could read them without signing in.
+- Contact details are no longer sent to the AI service when it writes the risk summary; it never needed them.
+
+### Removed
+- The GraphQL API at /graphql and the Strawberry library behind it. The dashboard now uses the same REST endpoints as everything else.
+
 ## [2.49.1] - 2026-10-12
 
 ### Changed

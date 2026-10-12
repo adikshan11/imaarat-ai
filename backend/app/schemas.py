@@ -1,9 +1,20 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
+
+PERSONAL_FIELDS = frozenset({"proposer_name", "insured_legal_name", "business_name", "contact_person", "designation", "mobile", "email"})
+
+
+def redact(value: Any) -> Any:
+    """Copy of a record without the proposer's contact details."""
+    if isinstance(value, dict):
+        return {key: redact(item) for key, item in value.items() if key not in PERSONAL_FIELDS}
+    if isinstance(value, list):
+        return [redact(item) for item in value]
+    return value
 
 
 class PropertySubmission(BaseModel):
