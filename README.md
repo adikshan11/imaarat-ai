@@ -31,7 +31,7 @@
 | **Rule engine** | A 0–100 score with every point explained, and a decision: Accept, Refer, Decline (mitigation possible) or Auto-Decline. |
 | **AI risk summary** | A plain-language explanation that may only use the facts above and cite the guideline sections it was given. |
 | **Sign-off** | Referrals wait for a signed-in reviewer. A reviewer holds a referral while working on it, the first decision saved is final, overrides need a reason, and every decision exports as a PDF. |
-| **Open APIs** | The same assessment for AI assistants (MCP), other agents (A2A) and your own systems (GraphQL and REST), under the same rules and limits. |
+| **Open APIs** | The same assessment for AI assistants (MCP), other agents (A2A) and your own systems (REST), under the same rules and limits. |
 
 ## Quick start
 
@@ -80,7 +80,7 @@ flowchart LR
   gov["Open government data<br/><small>BIS, NRSC, IMD, India Post</small>"]
   uw -- "proposal, photo, paper form" --> sys
   rev -- "approve or change" --> sys
-  agent -- "MCP · A2A · GraphQL" --> sys
+  agent -- "MCP · A2A · REST" --> sys
   sys -- "read forms, embed, summarise" --> ai
   sys -- "OAuth" --> gh
   gov -. "built into hazard tables" .-> sys
@@ -100,7 +100,7 @@ flowchart TB
     web["Landing and web app<br/><small>React 19 · Vite · Tailwind<br/>prerendered static pages</small>"]
   end
   subgraph vercel["Vercel, Singapore"]
-    api["API<br/><small>FastAPI · REST · GraphQL<br/>MCP · A2A · sign-in</small>"]
+    api["API<br/><small>FastAPI · REST<br/>MCP · A2A · sign-in</small>"]
     flow["Underwriting workflow<br/><small>LangGraph with a<br/>human-review pause</small>"]
     gw["AI gateway<br/><small>budgets · retries<br/>deadline · tracing</small>"]
   end
@@ -158,7 +158,7 @@ sequenceDiagram
 | Area | Choice | Why |
 |---|---|---|
 | Web | React 19, TypeScript, Vite, Tailwind CSS | Fast static pages; the landing page ships almost no JavaScript |
-| API | FastAPI, Strawberry GraphQL, MCP and A2A SDKs | One backend for people, agents and other systems |
+| API | FastAPI, MCP and A2A SDKs | One backend for people, agents and other systems |
 | Workflow | LangGraph with Postgres checkpoints | Fixed steps and a resumable human review |
 | AI | Gemini through a provider adapter | Switch to Bedrock or another provider with configuration; see [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Data | Postgres on Neon, dbt on DuckDB | Transactions for the app, a tested nightly medallion pipeline (raw Parquet, cleaned staging, marts) for analytics |

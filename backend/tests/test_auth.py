@@ -147,3 +147,13 @@ def test_origin_ignores_the_api_path_in_the_base_url(monkeypatch):
     assert auth.app_origin() == "https://imaarat-ai.vercel.app"
     monkeypatch.setenv("PUBLIC_BASE_URL", "")
     assert auth.app_origin() == ""
+
+
+def test_contact_details_reach_only_reviewers(client):
+    saved = db.save_submission({"raw_input": {"property_id": "C-1", "city": "Chennai", "mobile": "98765 43210"}, "decision": "Accept", "risk_score": 10, "risk_flags": []})
+    assert "mobile" not in client.get("/underwrite/history").json()[0]["raw_input"]
+    assert "mobile" not in client.get(f"/underwrite/history/{saved['id']}").json()["raw_input"]
+    signed_in(client, 42)
+    assert "mobile" not in client.get(f"/underwrite/history/{saved['id']}").json()["raw_input"]
+    signed_in(client, 7)
+    assert client.get(f"/underwrite/history/{saved['id']}").json()["raw_input"]["mobile"] == "98765 43210"

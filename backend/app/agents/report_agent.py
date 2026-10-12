@@ -7,7 +7,7 @@ from typing import Any
 from app import llm
 from app.config import AI_API_KEY
 from app.observability import traced
-from app.schemas import UnderwritingMemo
+from app.schemas import PERSONAL_FIELDS, UnderwritingMemo
 
 MEMO_FIELDS = {
     "property_summary",
@@ -107,7 +107,7 @@ guideline_citations must list the IDs (such as G2) of the underwriting_guidance 
 
 def build_prompt(state: dict, fmt: str | None = None) -> str:
     """Assemble the memo prompt; fmt selects TOON or JSON for the evidence block."""
-    facts = {key: value for key, value in state.get("raw_input", {}).items() if value not in (None, "")}
+    facts = {key: value for key, value in state.get("raw_input", {}).items() if value not in (None, "") and key not in PERSONAL_FIELDS}
     evidence = {
         "property_facts": facts,
         "vision_evidence": {key: value for key, value in state.get("extracted_features", {}).items() if key.startswith(("image_", "visible_", "vegetation_", "general_"))},
