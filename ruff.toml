@@ -8,7 +8,7 @@ select = ["E4", "E7", "E9", "F", "I", "B", "UP", "S"]
 ignore = ["B008"]
 
 [lint.per-file-ignores]
-"backend/tests/**" = ["S101"]
+"backend/tests/**" = ["S101", "S603"]
 # Load-test and benchmark data only needs to look varied, not be unpredictable.
 "backend/load/**" = ["S311"]
 "backend/bench/**" = ["S311"]

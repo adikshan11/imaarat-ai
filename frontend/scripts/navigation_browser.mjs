@@ -1,6 +1,8 @@
 const APP_URL = process.env.APP_URL ?? 'http://127.0.0.1:3000'
 
-export const tabShape = (page) => page.locator('.tab-indicator').evaluate(node => {
+export const tabShape = async (page) => {
+  await page.waitForFunction(() => document.querySelector('.tab-indicator').getAnimations().length === 0)
+  return page.locator('.tab-indicator').evaluate(node => {
   const rect = node.getBoundingClientRect()
   const bar = node.closest('nav')
   const box = bar.getBoundingClientRect()
@@ -23,7 +25,8 @@ export const tabShape = (page) => page.locator('.tab-indicator').evaluate(node =
     height: box.height,
     buttons: items.map(button => ({ text: button.textContent, width: button.offsetWidth, captionHeight: button.querySelector('.optical-label').offsetHeight })),
   }
-})
+  })
+}
 
 export const tabProblem = (shape) => shape.radius < shape.indicatorHeight / 2 || shape.height > 72 || shape.edgeGap > 1 || shape.fit > 1 || shape.rim !== '0px' || !shape.separators || shape.aspect <= 1
 
