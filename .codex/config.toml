@@ -1,0 +1,12 @@
+[mcp_servers.vercel]
+url = "https://mcp.vercel.com"
+default_tools_approval_mode = "writes"
+
+[mcp_servers.playwright]
+command = "npx"
+args = ["@playwright/mcp@0.0.83", "--isolated", "--headless"]
+
+[mcp_servers.langfuse]
+url = "https://cloud.langfuse.com/api/public/mcp"
+env_http_headers = { "Authorization" = "LANGFUSE_MCP_AUTHORIZATION" }
+default_tools_approval_mode = "writes"
