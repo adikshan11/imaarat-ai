@@ -401,3 +401,37 @@ export async function verifySessionWarning(page) {
   check(await page.locator('.nav-item').count() > 0, 'app closed after staying signed in')
   return { checks }
 }
+
+export async function verifyGlass(page) {
+  let checks = 0
+  const check = (value, name) => {
+    if (!value) throw new Error(name)
+    checks++
+  }
+  const state = () => page.locator('[data-glass]').evaluate((node) => {
+    const box = node.getBoundingClientRect()
+    const canvas = node.querySelector('canvas')
+    return { lens: node.hasAttribute('data-lens'), width: canvas.width, expected: Math.round(box.width * Math.min(devicePixelRatio, 2)), canvas: getComputedStyle(canvas).display, backdrop: getComputedStyle(node).backdropFilter }
+  })
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto(APP_URL + '/')
+  const webgl = await page.evaluate(() => Boolean(document.createElement('canvas').getContext('webgl2')))
+  if (webgl) await page.locator('[data-glass][data-lens]').waitFor({ state: 'attached', timeout: 5000 })
+  const glass = await state()
+  if (webgl) {
+    check(glass.width === glass.expected, `lens canvas is ${glass.width}px wide instead of ${glass.expected}px`)
+    check(glass.backdrop === 'none', 'blur fallback still runs under the lens')
+  } else {
+    check(glass.backdrop !== 'none', 'glass lost its blur fallback without WebGL2')
+  }
+  await page.setViewportSize({ width: 390, height: 844 })
+  if (webgl) await page.waitForFunction(() => { const node = document.querySelector('[data-glass]'); return node.querySelector('canvas').width === Math.round(node.getBoundingClientRect().width * Math.min(devicePixelRatio, 2)) })
+  await page.emulateMedia({ forcedColors: 'active' })
+  await page.reload()
+  await page.waitForTimeout(500)
+  const quiet = await state()
+  check(!quiet.lens && quiet.canvas === 'none' && quiet.backdrop === 'none', 'glass lens ran with forced colors')
+  await page.emulateMedia({ forcedColors: 'none' })
+  console.log(`glass lens ${webgl ? 'drawn with WebGL2' : 'skipped: no WebGL2, blur fallback'}`)
+  return { checks }
+}

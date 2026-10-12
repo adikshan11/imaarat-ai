@@ -46,15 +46,18 @@ function Hero() {
           <a href={`${DEMO}#new`} className="inline-flex h-12 items-center rounded-full bg-mint-300 px-6 font-semibold text-forest-950 shadow-lg shadow-black/20 transition hover:bg-white">Try the live demo</a>
           <a href={`${DEMO}#paper`} className="inline-flex h-12 items-center rounded-full border border-white/40 px-6 font-semibold text-white transition hover:bg-white/10">See a paper proposal</a>
         </div>
-        <dl className="mt-14 grid max-w-3xl grid-cols-2 gap-6 border-t border-white/15 pt-8 sm:grid-cols-4">
-          {[['19,312', 'PIN codes covered, metro to rural'], ['11', 'official and public data sources'], ['26', 'Indian languages'], ['< 1 min', 'from proposal to decision']].map(([value, label]) => (
-            <div key={label}>
-              <dt className="sr-only">{label}</dt>
-              <dd className="text-3xl font-bold tracking-tight">{value}</dd>
-              <dd className="mt-1 text-sm text-white/70">{label}</dd>
-            </div>
-          ))}
-        </dl>
+        <div data-glass className="glass-panel relative isolate mt-14 overflow-hidden rounded-3xl">
+          <canvas aria-hidden="true" />
+          <dl className="grid grid-cols-2 gap-6 p-6 sm:grid-cols-4 sm:p-8">
+            {[['19,312', 'PIN codes covered, metro to rural'], ['11', 'official and public data sources'], ['26', 'Indian languages'], ['< 1 min', 'from proposal to decision']].map(([value, label]) => (
+              <div key={label}>
+                <dt className="sr-only">{label}</dt>
+                <dd className="text-3xl font-bold tracking-tight">{value}</dd>
+                <dd className="mt-1 text-sm text-white/80">{label}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
       </div>
     </section>
   )
