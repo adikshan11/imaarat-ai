@@ -1,6 +1,7 @@
 const APP_URL = process.env.APP_URL ?? 'http://127.0.0.1:3000'
 
 export const tabShape = async (page) => {
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))))
   await page.waitForFunction(() => document.querySelector('.tab-indicator').getAnimations().length === 0)
   return page.locator('.tab-indicator').evaluate(node => {
   const rect = node.getBoundingClientRect()
