@@ -49,7 +49,7 @@ try {
     const context = await browser.newContext({ viewport: { width: 900, height: 1300 }, deviceScaleFactor: 2 })
     await context.addInitScript((lang) => { localStorage.setItem('imaarat.lang', lang) }, item.lang)
     const page = await context.newPage()
-    await page.goto(`${base}/?form=${item.id}#paper`)
+    await page.goto(`${base}/app/?demo&form=${item.id}#paper`)
     await page.emulateMedia({ media: 'print' })
     await page.waitForSelector('.print-area [data-field="zip"]', { state: 'visible' })
     await page.evaluate(async ({ values, font, choices, seed }) => {
