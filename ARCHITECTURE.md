@@ -73,7 +73,44 @@ stateDiagram-v2
     rejected --> [*]
 ```
 
-A referred task is not held in memory. Its id is part of the stored workflow thread, so `tasks/get` rebuilds it from the assessment on any serverless instance, and it turns `completed` as soon as the reviewer's decision is saved. Results say they are indicative, not a quote or a binding decision. Push notifications and streaming are off: a serverless function cannot hold a connection open or send work after it replies.
+### Memory and database for A2A tasks
+
+| Layer | Holds | Why |
+|---|---|---|
+| Memory (per serverless instance) | A task while its request runs, then a cached copy for 15 minutes | The A2A library reads and writes the task several times per request; a database round trip each time would add latency for nothing |
+| Postgres (shared) | The assessment row and its workflow checkpoint, which carry the task id in their thread id | The only copy that survives a restart, is shared by every instance, and changes when a reviewer signs off |
+
+The pattern is a read-through cache with a time to live. A settled or waiting task is always re-read from Postgres, so a sign-off made on another instance is never hidden by a stale memory copy, and the 15-minute expiry stops memory growing on a long-running container. A separate task table was rejected: it would be a second source of truth that can drift from the assessment. Review claims use the other classic pattern, a lease: a reviewer holds a referral for 30 minutes (`claim_expires`), and if they leave, the lease lapses and someone else can take it, with no lock to clean up.
+
+Partner isolation: A2A calls need an `X-API-Key` (stored hashed), the partner name becomes the task owner, and it is also part of the thread id, so one partner cannot read another's tasks even from the database. Results say they are indicative, not a quote or a binding decision. Push notifications and streaming are off: a serverless function cannot hold a connection open or send work after it replies.
+
+## Why each part exists
+
+| Part | Used for | What breaks without it |
+|---|---|---|
+| FastAPI | REST routes, validation, one ASGI app that also mounts MCP and A2A | Hand-written request parsing and no shared middleware |
+| Pydantic | Request, memo and vision schemas | The model's JSON could not be checked before use |
+| LangGraph + Postgres checkpointer | Fixed workflow steps and the pause for human review | A referral could not wait days for a reviewer and resume where it stopped |
+| SQLAlchemy + psycopg | One data layer for Postgres in production and SQLite in tests | Two code paths for storage |
+| Neon Postgres | Assessments, checkpoints, sessions, AI budget counters | No state across serverless instances |
+| Gemini through `app/llm.py` | Form reading, photo review, embeddings, summaries | Only the rules run; the app degrades, it does not fail |
+| Qdrant (optional) | Vector search over guideline sections | Falls back to vectors cached in Postgres, fine for 12 sections |
+| MCP SDK | Read-only tools for AI assistants | Assistants could not call the engine |
+| A2A SDK | Tasks for partner agents that can wait for a human | Partners would have to poll an ad-hoc API |
+| Langfuse | Traces of each step with contact details masked | No way to see which step was slow or failed |
+| React + Vite | The app and the prerendered landing page | |
+| Vercel | Hosting of the static site and one Python function | |
+| GitHub Actions | Tests, linters, secret scan, deploys, benchmarks | Nothing would stop a broken release |
+| dbt + pipeline | Analytics tables built from the assessments | No reporting layer |
+
+## Guideline search (RAG)
+
+- Corpus: one reviewed Markdown file of 12 underwriting guideline sections (about 5,200 characters). There are no PDFs or scraped pages, so there is no PDF parsing step to get wrong.
+- Chunking: one chunk per section, split on section headings, so a chunk never cuts a rule in half. Fixed-size or overlapping chunks would only help for long documents.
+- Embeddings: Gemini `gemini-embedding-001`, with separate document and query task types.
+- Search: cosine similarity, top 4 for the workflow and top 3 for MCP and A2A, in Qdrant when configured, otherwise over vectors cached in Postgres. With 12 sections an exact scan is faster than any index. k-means or HNSW indexes pay off only at thousands of chunks.
+- Freshness: the index is keyed by a hash of the corpus and rebuilt when the file changes.
+- Measured: retrieval hit rate must be 1.0 at k=4 on the synthetic eval cases.
 
 ## Rules that CI enforces
 

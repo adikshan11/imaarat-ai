@@ -52,7 +52,7 @@ Without an AI key the rules still decide every assessment. To switch the AI on, 
 claude mcp add --transport http imaarat https://imaarat-ai.vercel.app/api/mcp/
 ```
 
-Tools: `assess_property`, `lookup_hazard`, `search_guidelines`, `get_assessment`, `list_assessments`. Other agents can read the A2A card at [`/api/.well-known/agent-card.json`](https://imaarat-ai.vercel.app/api/.well-known/agent-card.json).
+Tools: `assess_property`, `lookup_hazard`, `search_guidelines`, `get_assessment`, `list_assessments`, up to 300 calls a day per visitor. Other agents can read the A2A card at [`/api/.well-known/agent-card.json`](https://imaarat-ai.vercel.app/api/.well-known/agent-card.json); sending them work needs a partner key in the `X-API-Key` header. [GOVERNANCE.md](GOVERNANCE.md) maps the controls to OWASP, NIST, ISO/IEC 42001 and India's DPDP Act, and lists the official source of every hazard value.
 
 ## How a decision is made
 
@@ -223,6 +223,7 @@ Conventions: the first user-visible change after a release bumps the version onc
 | `PROFILE_PHOTO_BYTES`, `FORM_PHOTO_BYTES`, `PROPERTY_PHOTO_BYTES`, `IMAGE_MAX_PIXELS`, `PROFILE_PHOTO_SIDE` | Upload limits for every image, served to the app at `/api/uploads/limits` |
 | `QDRANT_URL`, `QDRANT_API_KEY` | Optional hosted vector store; also install `requirements-qdrant.txt` |
 | `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_SECRET_KEY`, `LANGFUSE_HOST` | Optional AI tracing |
+| `A2A_PARTNER_KEYS` | A2A partners as `name:sha256-of-key`, comma separated; without it every A2A call is refused |
 | `VERCEL_TOKEN`, `VERCEL_AUTOMATION_BYPASS_SECRET` (GitHub only) | Deploys and preview smoke tests |
 
 ## Hazard data sources

@@ -229,6 +229,8 @@ input::placeholder { color: var(--text-soft); }
 .checkbox-field input[type="checkbox"] { width: 16px; height: 16px; min-width: 16px; margin: 0; padding: 0; accent-color: var(--brand); }
 .checkbox-field input[type="checkbox"]:focus-visible { outline: 2px solid var(--brand); outline-offset: 3px; }
 .checkbox-list { display: flex; flex-direction: column; gap: 8px; }
+label:has(> input:required) > .field-label-text::after, .select-field.required > .field-label-text::after { content: " *" / ""; color: var(--danger-fg); }
+.form-required-note { margin: -4px 0 14px; color: var(--text-muted); font-size: 13px; }
 .protection-split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 20px; align-items: start; }
 .protection-split > * { min-width: 0; }
 .coverage-details { margin-top: 14px; }
@@ -333,6 +335,8 @@ input::placeholder { color: var(--text-soft); }
   .pf-ticks i { display: inline-block; width: 4.5mm; height: 4.5mm; border: 1px solid #000; }
   .pf-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 4mm; align-items: end; }
   .pf-row-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pf-row-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .pf-required { color: #c00; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .pf-small { font-size: 9pt; color: #333; margin-top: 3mm; }
 }
 

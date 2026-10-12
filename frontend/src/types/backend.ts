@@ -84,7 +84,6 @@ export interface BackendSubmission {
   ai_memo_reason?: string | null
   memo_model?: string
   guideline_hits?: GuidelineHit[]
-  trace_url?: string | null
   review_status?: ReviewStatus
   final_decision?: string | null
   reviewer?: string | null

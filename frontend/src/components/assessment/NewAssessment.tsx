@@ -407,6 +407,7 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
     <div className="page-subtitle">{t('new.eyebrow')}</div>
     <h1 className="page-title">{t('new.title')}</h1>
     <p className="page-lead">{t('new.lead')}</p>
+    <p className="form-required-note">{t('f.required_note')}</p>
     {initial && <div className="notice" role="status">{t('paper.prefilled')}</div>}
     <form onSubmit={submitForm} className="two-col">
       <div className="left-col">
@@ -446,7 +447,7 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
 
         <Card title={t('sec.building')}>
           <div className="form-grid">
-            <div className="form-row form-row-2"><SelectField label={t('f.construction_type')} value={form.construction_type} onChange={(value) => update('construction_type', value)} options={['Frame', 'Joisted Masonry', 'Non-Combustible', 'Masonry Non-Combustible', 'Fire Resistive'].map((item) => ({ value: item, label: label('opt.con', item) }))} /><Field name="year_built" type="number" /></div>
+            <div className="form-row form-row-2"><SelectField className="required" label={t('f.construction_type')} value={form.construction_type} onChange={(value) => update('construction_type', value)} options={['Frame', 'Joisted Masonry', 'Non-Combustible', 'Masonry Non-Combustible', 'Fire Resistive'].map((item) => ({ value: item, label: label('opt.con', item) }))} /><Field name="year_built" type="number" /></div>
             <div className="form-row form-row-3"><Field name="square_footage" type="number" /><Field name="num_stories" type="number" /><Field name="building_height_m" type="number" optional /></div>
             <div className="form-row form-row-3"><Field name="wall_material" optional /><Field name="floor_material" optional /><Field name="roof_material" optional /></div>
             <div className="form-row form-row-2"><Field name="roof_type" optional /><Field name="roof_age_years" type="number" optional /></div>
@@ -455,7 +456,7 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
 
         <Card title={t('sec.hazards')}>
           <div className="form-grid">
-            <div className="form-row form-row-2"><SelectField label={t('f.cat_zone')} value={form.cat_zone} onChange={(value) => update('cat_zone', value)} options={['None', 'Wind', 'Hail', 'Wildfire', 'Flood', 'Earthquake'].map((item) => ({ value: item, label: label('opt.cat', item) }))} /><SelectField label={t('f.seismic_zone')} value={form.seismic_zone} onChange={(value) => update('seismic_zone', value)} options={['II', 'III', 'IV', 'V'].map((item) => ({ value: item, label: item }))} /></div>
+            <div className="form-row form-row-2"><SelectField className="required" label={t('f.cat_zone')} value={form.cat_zone} onChange={(value) => update('cat_zone', value)} options={['None', 'Wind', 'Hail', 'Wildfire', 'Flood', 'Earthquake'].map((item) => ({ value: item, label: label('opt.cat', item) }))} /><SelectField label={t('f.seismic_zone')} value={form.seismic_zone} onChange={(value) => update('seismic_zone', value)} options={['II', 'III', 'IV', 'V'].map((item) => ({ value: item, label: item }))} /></div>
             <div className="form-row form-row-2">
               <Field name="distance_to_coast_miles" type="number" optional hint={t('hint.coast')} />
               <Field name="distance_to_fire_zone_miles" type="number" optional hint={t('hint.fire')} />

@@ -26,7 +26,7 @@ imaarat.ai assesses commercial property proposals for Indian insurers. **Rules d
 
 `README.md` explains the product and configuration, `ARCHITECTURE.md` the design and the agent map, `CHANGELOG.md` every release.
 
-`MAP.md` lists every tracked source file with its docstring or exported names. Read it before searching, and open only the files it points to. After adding, removing or redocumenting a file, run `python3 .github/scripts/repo_map.py` and commit the result; CI fails when it is stale.
+`MAP.md` lists every tracked source file with its docstring or exported names. Read it before searching, and open only the files it points to. After adding, removing or redocumenting a file, run `python3 .github/scripts/repo_map.py` and commit the result; CI fails when it is stale. Run `git config core.hooksPath .githooks` once per clone and the pre-commit hook does this on every commit.
 
 ## Checks
 
