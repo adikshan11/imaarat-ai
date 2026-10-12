@@ -2,6 +2,19 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.52.0] - 2026-10-13
+
+### Added
+- Operators can create, list and revoke A2A partner keys on the account page. A key is shown once and only its hash is stored, so a new partner no longer needs a redeploy.
+- The online form asks the proposer to confirm the details are true and complete before it can be submitted.
+- A "Built with" strip of the main tools sits at the bottom of the landing page.
+
+### Changed
+- Distances to the coast and to a forest are asked in kilometres. A site under 1.6 km (one mile) is flagged, so scores do not change.
+- Guideline search runs after the rule engine and searches with the risk flags, then merges vector and keyword (BM25) rankings. Before, it searched with the facts alone and found the right guideline for half of the measured cases.
+- The guideline text uses Indian terms: a ₹2 crore value threshold, kilometres, forest fire, and the newer protections.
+- The retrieval eval runs the app's own search over all 24 cases instead of 2.
+
 ## [2.51.0] - 2026-10-12
 
 ### Security

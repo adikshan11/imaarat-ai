@@ -1,4 +1,5 @@
 import Icon from '@/components/shared/Icon'
+import PartnerKeys from '@/components/account/PartnerKeys'
 import ProfileForm from '@/components/account/ProfileForm'
 import { usePreferences } from '@/context/Preferences'
 import { useSession } from '@/context/Session'
@@ -13,6 +14,7 @@ export default function AccountPage() {
       <h1 className="page-title">{t('account.settings')}</h1>
       <p className="page-lead">{t('account.lead')}</p>
       <section className="card account-card"><ProfileForm /></section>
+      {session.role === 'operator' && <section className="card account-card"><PartnerKeys /></section>}
       <section className="card account-card">
         <button type="button" className="btn btn-secondary" onClick={() => { void signOut() }}><Icon name="logout" size={18} />{t('auth.sign_out')}</button>
       </section>

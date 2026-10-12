@@ -70,8 +70,8 @@ type FormState = {
   earthquake_cover: boolean
   flood_cover: boolean
   cyclone_wind_cover: boolean
-  distance_to_coast_miles: string
-  distance_to_fire_zone_miles: string
+  distance_to_coast_km: string
+  distance_to_forest_km: string
   prior_claims_count_5yr: string
   prior_claims_total_amount: string
   last_loss_date: string
@@ -154,8 +154,8 @@ const initialForm: FormState = {
   earthquake_cover: false,
   flood_cover: false,
   cyclone_wind_cover: false,
-  distance_to_coast_miles: '',
-  distance_to_fire_zone_miles: '',
+  distance_to_coast_km: '',
+  distance_to_forest_km: '',
   prior_claims_count_5yr: '',
   prior_claims_total_amount: '',
   last_loss_date: '',
@@ -246,8 +246,8 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
       earthquake_cover: values.earthquake_cover,
       flood_cover: values.flood_cover,
       cyclone_wind_cover: values.cyclone_wind_cover,
-      distance_to_coast_miles: optionalNumber(values.distance_to_coast_miles),
-      distance_to_fire_zone_miles: optionalNumber(values.distance_to_fire_zone_miles),
+      distance_to_coast_km: optionalNumber(values.distance_to_coast_km),
+      distance_to_forest_km: optionalNumber(values.distance_to_forest_km),
       prior_claims_count_5yr: optionalNumber(values.prior_claims_count_5yr),
       prior_claims_total_amount: optionalNumber(values.prior_claims_total_amount),
       last_loss_date: values.last_loss_date || undefined,
@@ -458,8 +458,8 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
           <div className="form-grid">
             <div className="form-row form-row-2"><SelectField className="required" label={t('f.cat_zone')} value={form.cat_zone} onChange={(value) => update('cat_zone', value)} options={['None', 'Wind', 'Hail', 'Wildfire', 'Flood', 'Earthquake'].map((item) => ({ value: item, label: label('opt.cat', item) }))} /><SelectField label={t('f.seismic_zone')} value={form.seismic_zone} onChange={(value) => update('seismic_zone', value)} options={['II', 'III', 'IV', 'V'].map((item) => ({ value: item, label: item }))} /></div>
             <div className="form-row form-row-2">
-              <Field name="distance_to_coast_miles" type="number" optional hint={t('hint.coast')} />
-              <Field name="distance_to_fire_zone_miles" type="number" optional hint={t('hint.fire')} />
+              <Field name="distance_to_coast_km" type="number" optional hint={t('hint.coast')} />
+              <Field name="distance_to_forest_km" type="number" optional hint={t('hint.fire')} />
             </div>
           </div>
         </Card>
@@ -539,10 +539,11 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
         ) : null}
         <HazardCard hazard={preview?.official_hazard} declaredZone={form.seismic_zone} pincode={form.zip} />
         <div className="form-actions-panel">
+          <label className="checkbox-field declaration"><input type="checkbox" required /> {t('f.declaration')}</label>
           {error && <div className="error-banner">{error}</div>}
           <button type="button" className="btn btn-secondary" style={{ width: '100%', marginBottom: 8 }} onClick={onCancel}>{t('new.cancel')}</button>
           <button className="btn btn-primary" style={{ width: '100%' }} disabled={busy}>{busy ? <><Spinner />{t('new.submitting')}</> : t('new.submit')}</button>
-          {busy && <AiProgress title={t('load.assess_title')} hint={t('load.assess_hint')} steps={[t('load.step_hazard'), t('load.step_guidelines'), t('load.step_rules'), t('load.step_memo')]} />}
+          {busy && <AiProgress title={t('load.assess_title')} hint={t('load.assess_hint')} steps={[t('load.step_hazard'), t('load.step_rules'), t('load.step_guidelines'), t('load.step_memo')]} />}
         </div>
       </aside>
     </form>

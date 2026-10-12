@@ -6,7 +6,7 @@ from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse, RedirectResponse, Response
 from pydantic import BaseModel, Field
 
-from app import auth, images, profile
+from app import auth, images, partners, profile
 
 router = APIRouter(prefix="/auth")
 NO_STORE = {"Cache-Control": "no-store"}
@@ -20,6 +20,10 @@ COOKIE = {"secure": True, "httponly": True, "samesite": "lax", "path": "/"}
 class ProfileForm(BaseModel):
     full_name: str = Field(max_length=200)
     phone: str = Field(max_length=40)
+
+
+class PartnerForm(BaseModel):
+    name: str = Field(max_length=40)
 
 
 def oauth_client(**kwargs):
@@ -95,6 +99,25 @@ def logout(request: Request):
     response = Response(status_code=204, headers={**NO_STORE, "Clear-Site-Data": '"cache"'})
     response.delete_cookie(auth.SESSION_COOKIE, **COOKIE)
     return response
+
+
+@router.get("/partner-keys")
+def list_partner_keys(request: Request):
+    auth.require_operator(request, change=False)
+    return JSONResponse(partners.listing(), headers=NO_STORE)
+
+
+@router.post("/partner-keys")
+def create_partner_key(form: PartnerForm, request: Request):
+    principal = auth.require_operator(request)
+    return JSONResponse(partners.create(form.name, principal.owner_id), status_code=201, headers=NO_STORE)
+
+
+@router.delete("/partner-keys/{key_id}")
+def revoke_partner_key(key_id: str, request: Request):
+    auth.require_operator(request)
+    partners.revoke(key_id)
+    return Response(status_code=204, headers=NO_STORE)
 
 
 @router.post("/github/start")

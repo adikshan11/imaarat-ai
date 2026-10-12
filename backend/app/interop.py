@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import hmac
 import json
 import os
 import time
@@ -28,7 +26,7 @@ from starlette.requests import HTTPConnection, Request
 from starlette.responses import JSONResponse
 from starlette.types import Receive, Scope, Send
 
-from app import budget
+from app import budget, partners
 from app.config import GUIDELINES_MD
 from app.db import fetch_history, fetch_submission_detail, submission_for_thread
 from app.schemas import decision_from_score, indicative_product_segment
@@ -93,8 +91,8 @@ def assess_property(
     sprinkler_system: str = "Y",
     roof_age_years: int | None = None,
     seismic_zone: str = "II",
-    distance_to_coast_miles: float | None = None,
-    distance_to_fire_zone_miles: float | None = None,
+    distance_to_coast_km: float | None = None,
+    distance_to_forest_km: float | None = None,
     prior_claims_count_5yr: int | None = None,
     tiv: float | None = None,
     pincode: str | None = None,
@@ -107,8 +105,8 @@ def assess_property(
             "sprinkler_system": sprinkler_system,
             "roof_age_years": roof_age_years,
             "seismic_zone": seismic_zone,
-            "distance_to_coast_miles": distance_to_coast_miles,
-            "distance_to_fire_zone_miles": distance_to_fire_zone_miles,
+            "distance_to_coast_km": distance_to_coast_km,
+            "distance_to_forest_km": distance_to_forest_km,
             "prior_claims_count_5yr": prior_claims_count_5yr,
             "tiv": tiv,
             "zip": pincode,
@@ -246,23 +244,13 @@ class AssessmentTaskStore(InMemoryTaskStore):
         return await run_in_threadpool(assessment_task, task_id, context.user.user_name) or task
 
 
-def partner_for(key: str) -> str | None:
-    """Partner name for an API key, matched by SHA-256 against A2A_PARTNER_KEYS (name:hash, comma separated)."""
-    digest = hashlib.sha256(key.encode()).hexdigest()
-    for entry in os.getenv("A2A_PARTNER_KEYS", "").split(","):
-        name, separator, expected = entry.strip().partition(":")
-        if name and separator and hmac.compare_digest(digest, expected):
-            return name
-    return None
-
-
 class PartnerKeys(AuthenticationBackend):
     """A2A calls need a partner key; the agent card and MCP stay public."""
 
     async def authenticate(self, conn: HTTPConnection) -> tuple[AuthCredentials, SimpleUser] | None:
         if not conn.url.path.rstrip("/").endswith("/a2a"):
             return None
-        partner = partner_for(conn.headers.get("x-api-key", ""))
+        partner = await run_in_threadpool(partners.partner_for, conn.headers.get("x-api-key", ""))
         if partner is None:
             raise AuthenticationError("Send your imaarat.ai partner key in the X-API-Key header")
         return AuthCredentials(["partner"]), SimpleUser(partner)

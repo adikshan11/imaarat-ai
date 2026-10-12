@@ -37,8 +37,10 @@ def extract_features_node(state: UWState) -> dict:
     return {"extracted_features": verify_location(extract_property_features(state.get("image_path"), state["raw_input"], state.get("ai_note")))}
 
 
-def retrieval_query(raw: dict) -> str:
+def retrieval_query(raw: dict, flags: list[str]) -> str:
+    """Search text: the rule flags in words first, then the main facts and the decision criteria."""
     parts = [
+        *(flag.replace("_", " ") for flag in flags),
         f"{raw.get('construction_type', '')} construction",
         f"{raw.get('occupancy_type', '')} occupancy",
         f"roof age {raw.get('roof_age_years')} years" if raw.get("roof_age_years") is not None else "",
@@ -46,7 +48,10 @@ def retrieval_query(raw: dict) -> str:
         f"seismic zone {raw.get('seismic_zone', '')}",
         f"{raw.get('prior_claims_count_5yr')} prior claims" if raw.get("prior_claims_count_5yr") is not None else "",
         "sprinklered" if str(raw.get("sprinkler_system", "")).upper() == "Y" else "no sprinklers",
+        f"{raw.get('distance_to_coast_km')} km from the coast" if raw.get("distance_to_coast_km") is not None else "",
+        f"{raw.get('distance_to_forest_km')} km from a forest" if raw.get("distance_to_forest_km") is not None else "",
         f"total value at risk INR {raw.get('total_value_at_risk_inr') or raw.get('tiv')}",
+        "risk score referral or decline criteria",
     ]
     return ", ".join(part for part in parts if part)
 
@@ -54,7 +59,7 @@ def retrieval_query(raw: dict) -> str:
 @timed("guideline search")
 @traced("guideline search")
 def rag_guidelines_node(state: UWState) -> dict:
-    hits = retrieve(retrieval_query(state["raw_input"]), k=4, ai_note=state.get("ai_note"))
+    hits = retrieve(retrieval_query(state["raw_input"], state.get("risk_flags", [])), k=4, ai_note=state.get("ai_note"))
     return {"guideline_hits": hits, "guideline_chunks": [format_hit(hit) for hit in hits]}
 
 
@@ -141,9 +146,9 @@ def build_graph() -> StateGraph:
 
     workflow.add_edge(START, "intake")
     workflow.add_edge("intake", "extract_features")
-    workflow.add_edge("extract_features", "rag_guidelines")
-    workflow.add_edge("rag_guidelines", "score_risk")
-    workflow.add_conditional_edges("score_risk", route_after_score, {"fetch_comparables": "fetch_comparables", "decide": "decide"})
+    workflow.add_edge("extract_features", "score_risk")
+    workflow.add_edge("score_risk", "rag_guidelines")
+    workflow.add_conditional_edges("rag_guidelines", route_after_score, {"fetch_comparables": "fetch_comparables", "decide": "decide"})
     workflow.add_edge("fetch_comparables", "decide")
     workflow.add_edge("decide", "generate_report")
     workflow.add_edge("generate_report", "human_review")

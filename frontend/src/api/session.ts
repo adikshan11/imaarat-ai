@@ -52,3 +52,22 @@ export async function savePhoto(csrf: string, photo: File | null): Promise<Profi
 export function photoUrl(version: number): string {
   return `${API_BASE_URL}/auth/profile/photo?v=${version}`
 }
+
+export type PartnerKey = { id: string; name: string; created_at: number; last_used_at: number | null; revoked_at: number | null; key?: string }
+
+export async function fetchPartnerKeys(): Promise<PartnerKey[]> {
+  const response = await fetch(`${API_BASE_URL}/auth/partner-keys`)
+  if (!response.ok) throw new Error(await detail(response))
+  return response.json()
+}
+
+export async function createPartnerKey(csrf: string, name: string): Promise<PartnerKey> {
+  const response = await fetch(`${API_BASE_URL}/auth/partner-keys`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf }, body: JSON.stringify({ name }) })
+  if (!response.ok) throw new Error(await detail(response))
+  return response.json()
+}
+
+export async function revokePartnerKey(csrf: string, id: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/auth/partner-keys/${encodeURIComponent(id)}`, { method: 'DELETE', headers: { 'X-CSRF-Token': csrf } })
+  if (!response.ok) throw new Error(await detail(response))
+}

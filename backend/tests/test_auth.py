@@ -2,7 +2,7 @@ from io import BytesIO
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
-from app import auth, db, observability, profile
+from app import auth, db, observability, partners, profile
 from app.api import auth_routes, main
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
@@ -43,6 +43,24 @@ def test_operator_passes_the_check_but_needs_csrf_and_origin(client):
     assert client.post("/underwrite/history/999999/review", json=REVIEW, headers={**operator, "x-csrf-token": "0" * 64}).status_code == 403
     assert client.post("/underwrite/history/999999/review", json=REVIEW, headers={**operator, "origin": "https://evil.test"}).status_code == 403
     assert client.post("/underwrite/history/999999/review", json=REVIEW, headers=operator).status_code == 404
+
+
+def test_partner_keys(client):
+    member = signed_in(client, 42)
+    assert client.get("/auth/partner-keys").status_code == 403
+    assert client.post("/auth/partner-keys", json={"name": "broker-1"}, headers=member).status_code == 403
+    operator = signed_in(client, 7)
+    assert client.post("/auth/partner-keys", json={"name": "broker-1"}, headers={**operator, "x-csrf-token": "0" * 64}).status_code == 403
+    assert client.post("/auth/partner-keys", json={"name": "Bad Name"}, headers=operator).status_code == 422
+    issued = client.post("/auth/partner-keys", json={"name": "broker-1"}, headers=operator).json()
+    assert partners.partner_for(issued["key"]) == "broker-1"
+    with auth.engine().connect() as conn:
+        assert conn.execute(auth.partner_keys.select()).one().key_hash == auth.digest(issued["key"])
+    listed = client.get("/auth/partner-keys").json()
+    assert [row["name"] for row in listed] == ["broker-1"] and "key" not in listed[0] and "key_hash" not in listed[0] and listed[0]["last_used_at"]
+    assert client.delete(f"/auth/partner-keys/{issued['id']}", headers=operator).status_code == 204
+    assert partners.partner_for(issued["key"]) is None
+    assert client.delete(f"/auth/partner-keys/{issued['id']}", headers=operator).status_code == 404
 
 
 def test_github_sign_in_round_trip(client, monkeypatch):

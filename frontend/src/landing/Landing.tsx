@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import { version } from '../../package.json'
 import { LANGUAGES } from '../i18n/languages.ts'
 import { DEMO, Footer, Header, REPO, SkipLink } from './site.tsx'
+import { stack, type Tool } from './stack.ts'
 
 
 const photo = (name: string, widths: number[]) => ({
@@ -390,6 +391,31 @@ function Faq() {
   )
 }
 
+function Logo({ tool }: { tool: Tool }) {
+  if (tool.src) return <img src={tool.src} alt="" width={tool.wide ? 64 : 32} height="32" loading="lazy" className={`h-8 ${tool.wide ? 'w-16' : 'w-8'} object-contain`} />
+  return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-8 w-8" fill={tool.color}><path d={tool.path} /></svg>
+}
+
+function BuiltWith() {
+  return (
+    <section aria-labelledby="built-title" className="border-t border-forest-900/10 bg-white py-8">
+      <div className="shell flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+        <h2 id="built-title" className="shrink-0 text-xs font-semibold uppercase tracking-[0.16em] text-forest-700">Built with</h2>
+        <ul className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          {stack.map((tool) => (
+            <li key={tool.name}>
+              <a href={tool.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg px-2 py-1 text-base font-semibold text-ink opacity-70 grayscale transition duration-300 hover:opacity-100 hover:grayscale-0 focus-visible:opacity-100 focus-visible:grayscale-0">
+                <Logo tool={tool} />
+                {tool.name}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
 export default function Landing() {
   return (
     <>
@@ -406,6 +432,7 @@ export default function Landing() {
         <Audiences />
         <Checked />
         <Faq />
+        <BuiltWith />
       </main>
       <Footer />
     </>
