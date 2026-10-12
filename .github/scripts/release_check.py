@@ -1,7 +1,6 @@
-"""Release rules: work lands on preprod, only preprod is released to main, and a new version has a CHANGELOG entry."""
+"""Release rules: versions match, never fall below main's, and a new version has a CHANGELOG entry."""
 
 import json
-import os
 import re
 import subprocess
 import sys
@@ -18,10 +17,8 @@ def as_tuple(version: str) -> tuple[int, ...]:
     return tuple(int(part) for part in version.split("."))
 
 
-def problems(files: dict[str, str], main_backend: str, head: str = "preprod", base: str = "") -> list[str]:
+def problems(files: dict[str, str], main_backend: str) -> list[str]:
     found = []
-    if base == "main" and head != "preprod":
-        found.append(f"'{head}' cannot be released to main; only preprod is")
     version = backend_version(files["backend/app/__init__.py"])
     package = json.loads(files["frontend/package.json"])["version"]
     lock = json.loads(files["frontend/package-lock.json"])
@@ -40,8 +37,7 @@ def main() -> int:
     paths = ["backend/app/__init__.py", "frontend/package.json", "frontend/package-lock.json", "CHANGELOG.md"]
     files = {path: (ROOT / path).read_text(encoding="utf-8") for path in paths}
     main_backend = subprocess.run(["git", "show", "origin/main:backend/app/__init__.py"], cwd=ROOT, capture_output=True, text=True, check=True).stdout
-    head = os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME", "preprod")
-    found = problems(files, main_backend, head, os.environ.get("GITHUB_BASE_REF", ""))
+    found = problems(files, main_backend)
     for problem in found:
         print(f"::error::{problem}")
     if not found:

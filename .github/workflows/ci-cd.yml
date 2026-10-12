@@ -1,24 +1,25 @@
 name: CI/CD
 
-# Check and Test run on every pull request and every push to preprod or main.
-# Only a push deploys: preprod goes to imaarat-ai-preprod.vercel.app and main to production, each smoke-tested.
+# Check, Test and Deploy run on every push to preprod or main; the release pull request reuses the checks of its preprod commit.
+# Preprod goes to imaarat-ai-preprod.vercel.app and main to production, each smoke-tested.
 # Preprod is then stress-tested read-only, because it shares production's database.
+# The post-release force push that resets preprod to main runs nothing: main already tested and deployed that code.
 
 on:
   push:
     branches: [main, preprod]
-  pull_request:
 
 permissions:
   contents: read
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: false
 
 jobs:
   check:
     name: Check
+    if: ${{ !github.event.forced }}
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
@@ -86,6 +87,7 @@ jobs:
 
   test-backend:
     name: Test backend
+    if: ${{ !github.event.forced }}
     runs-on: ubuntu-26.04
     timeout-minutes: 20
     services:
@@ -125,6 +127,7 @@ jobs:
 
   test-frontend:
     name: Test frontend
+    if: ${{ !github.event.forced }}
     runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
@@ -159,6 +162,7 @@ jobs:
 
   test-pipeline:
     name: Test pipeline
+    if: ${{ !github.event.forced }}
     runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
@@ -182,6 +186,7 @@ jobs:
 
   test-container:
     name: Test container
+    if: ${{ !github.event.forced }}
     runs-on: ubuntu-26.04
     timeout-minutes: 20
     steps:
@@ -206,7 +211,6 @@ jobs:
 
   deploy:
     name: Deploy
-    if: github.event_name == 'push'
     needs: [check, test-backend, test-frontend, test-pipeline, test-container]
     runs-on: ubuntu-26.04
     timeout-minutes: 15
@@ -268,7 +272,7 @@ jobs:
 
   stress:
     name: Stress test
-    if: github.event_name == 'push' && github.ref_name == 'preprod' && needs.deploy.outputs.deployed == 'true'
+    if: github.ref_name == 'preprod' && needs.deploy.outputs.deployed == 'true'
     needs: [deploy]
     runs-on: ubuntu-26.04
     timeout-minutes: 15

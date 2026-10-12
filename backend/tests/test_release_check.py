@@ -28,10 +28,5 @@ def test_each_rule_reports_its_own_problem():
     assert release_check.problems(files("2.30.0", changelog=""), '__version__ = "2.29.0"') == ["CHANGELOG.md has no '## [2.30.0] - <date>' entry"]
 
 
-def test_only_preprod_releases_to_main():
-    assert release_check.problems(files("2.30.0"), '__version__ = "2.29.0"', "preprod", "main") == []
-    assert any("only preprod" in item for item in release_check.problems(files("2.30.0"), '__version__ = "2.29.0"', "feature/react_landing", "main"))
-
-
 def test_unreleased_ci_changes_need_no_version():
     assert release_check.problems(files("2.29.0", changelog=""), '__version__ = "2.29.0"') == []

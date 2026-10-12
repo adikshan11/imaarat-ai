@@ -5,3 +5,7 @@
 __pycache__/
 learning_arch.md
 temp_shots/
+.vscode/
+.codex/
+.claude/settings.local.json
+CLAUDE.local.md

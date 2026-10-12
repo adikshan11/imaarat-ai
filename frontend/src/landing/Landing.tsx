@@ -31,7 +31,7 @@ function Hero() {
     <section data-dark className="relative isolate -mt-16 overflow-hidden bg-forest-950 text-white">
       <img {...hero} sizes="100vw" alt="" width={2560} height={1440} fetchPriority="high" decoding="async" className="absolute inset-0 -z-20 size-full object-cover object-[70%_center]" />
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-forest-950 via-forest-950/85 to-forest-950/10" />
-      <div className="mx-auto max-w-6xl px-4 pt-36 pb-16 sm:px-6 sm:pt-44 sm:pb-24 lg:pt-48">
+      <div className="mx-auto max-w-7xl px-4 pt-36 pb-16 sm:px-6 sm:pt-44 sm:pb-24 lg:pt-48">
         <a href="/changelog/" className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/90 transition hover:bg-white/20">
           <span className="rounded-full bg-mint-300 px-2 py-0.5 font-semibold text-forest-950">v{version.split('.').slice(0, 2).join('.')}</span> See what’s new →
         </a>
@@ -77,7 +77,7 @@ function Logo({ tool }: { tool: Tool }) {
 function WorksWith() {
   return (
     <section aria-label="Built with" className="border-b border-forest-900/10 bg-white py-8">
-      <div className="mx-auto flex max-w-6xl items-center gap-6 px-4 sm:px-6">
+      <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 sm:px-6">
         <span className="shrink-0 text-xs uppercase tracking-[0.16em] text-forest-700">Built with</span>
         <div className="marquee">
           {[0, 1].map((copy) => (
@@ -101,7 +101,7 @@ function WorksWith() {
 function Verified() {
   return (
     <section id="verify" className="scroll-mt-20 py-20 sm:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">Declared is not the same as verified.</h2>
         <p className="mt-4 max-w-2xl text-lg text-muted">Proposals are filled in by the people asking for cover. imaarat.ai checks what they declare against sources they do not control.</p>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
@@ -130,7 +130,7 @@ const stages = [
 function Journey() {
   return (
     <section id="steps" className="scroll-mt-20 bg-white py-20 sm:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">From paper proposal to signed-off decision.</h2>
         <p className="mt-4 max-w-2xl text-lg text-muted">Six steps. Each one is recorded and can be inspected later.</p>
         <div role="tablist" aria-label="Underwriting steps" data-tabs className="mt-10 flex gap-2 overflow-x-auto pb-1">
@@ -225,7 +225,7 @@ const modules: Array<[string, string, ReactNode]> = [
 function Modules() {
   return (
     <section data-dark className="bg-forest-950 py-20 text-white sm:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <h2 className="max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">Modular by design.</h2>
         <p className="mt-4 max-w-2xl text-lg text-white/75">Six modules, each usable on its own. Shown here on one real assessment from the demo: an office at TIDEL Park, Chennai, PIN code 600113.</p>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -258,7 +258,7 @@ const reasons = [
 function Audiences() {
   return (
     <section className="py-20 sm:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <h2 className="max-w-2xl text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">Who it is for.</h2>
         <div className="mt-12 grid gap-6 md:grid-cols-3">
           {audiences.map(([title, body]) => (
@@ -287,7 +287,7 @@ function Feature({ image, widths, title, eyebrow, children, flip }: { image: str
   return (
     <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
       <div className={flip ? 'lg:order-2' : ''}>
-        <img {...picture} sizes="(min-width: 1024px) 560px, 100vw" alt="" width={1536} height={1024} loading="lazy" decoding="async" className="aspect-[3/2] w-full rounded-3xl object-cover shadow-xl shadow-forest-950/10" />
+        <img {...picture} sizes="(min-width: 1280px) 584px, (min-width: 1024px) 46vw, 100vw" alt="" width={1536} height={1024} loading="lazy" decoding="async" className="aspect-[3/2] w-full rounded-3xl object-cover shadow-xl shadow-forest-950/10" />
       </div>
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-forest-700">{eyebrow}</p>
@@ -301,7 +301,7 @@ function Feature({ image, widths, title, eyebrow, children, flip }: { image: str
 function Features() {
   return (
     <section id="features" className="scroll-mt-20 bg-white py-20 sm:py-28">
-      <div className="mx-auto max-w-6xl space-y-20 px-4 sm:space-y-28 sm:px-6">
+      <div className="mx-auto max-w-7xl space-y-20 px-4 sm:space-y-28 sm:px-6">
         <Feature image="paper-form" widths={[640, 1024, 1536]} eyebrow="Paper forms" title="Handwritten proposals, read in the proposer’s language">
           <p>Many small businesses still fill proposals on paper. Print the one-page form, let the owner write in their own language, and photograph it.</p>
           <p>AI reads each field into the assessment. Nothing is used until a person has checked it.</p>
@@ -322,7 +322,7 @@ function Features() {
 function Tour() {
   return (
     <section id="tour" className="scroll-mt-20 py-20 sm:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <h2 className="text-3xl font-bold tracking-tight text-forest-900 sm:text-4xl">See the product</h2>
         <p className="mt-4 max-w-2xl text-lg text-muted">Screenshots from the live demo, which uses sample properties only.</p>
         <div data-tabs-region>
@@ -339,7 +339,7 @@ function Tour() {
           <div className="tour-stage mt-6">
             {tour.map((item, index) => (
               <div key={item.id} role="tabpanel" id={`panel-${item.id}`} aria-labelledby={`tab-${item.id}`} data-inactive={index !== 0 ? '' : undefined} inert={index !== 0}>
-                <img src={`/landing/shot-${item.image}-1440.webp`} srcSet={`/landing/shot-${item.image}-720.webp 720w, /landing/shot-${item.image}-1440.webp 1440w`} sizes="(min-width: 1152px) 1104px, 100vw"
+                <img src={`/landing/shot-${item.image}-1440.webp`} srcSet={`/landing/shot-${item.image}-720.webp 720w, /landing/shot-${item.image}-1440.webp 1440w`} sizes="(min-width: 1280px) 1232px, 100vw"
                   alt={item.alt} width={1440} height={900} loading="lazy" decoding="async" className="w-full rounded-2xl border border-forest-900/10 bg-white shadow-2xl shadow-forest-950/15" />
               </div>
             ))}
@@ -358,7 +358,7 @@ function Checked() {
   ]
   return (
     <section data-dark className="bg-forest-950 py-20 text-white sm:py-28">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <h2 className="max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">Built to be checked</h2>
         <p className="mt-4 max-w-2xl text-lg text-white/75">Nothing here asks for blind trust. Each claim on this page links to something you can open.</p>
         <div className="mt-12 grid gap-6 md:grid-cols-3">

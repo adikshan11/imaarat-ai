@@ -14,7 +14,7 @@ export function SkipLink() {
 export function Header({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
   return (
     <header data-tone={tone} className="site-header sticky top-0 z-30">
-      <nav aria-label="Main" className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
+      <nav aria-label="Main" className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:px-6">
         <a href="/" className="header-brand flex items-center gap-2 font-semibold tracking-tight text-forest-900">
           <Mark className="size-8" />
           <span className="text-lg">imaarat<span className="header-accent text-forest-700">.ai</span></span>
@@ -41,7 +41,7 @@ export function Footer() {
   ]
   return (
     <footer className="border-t border-forest-900/10 bg-white">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[2fr_1fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-[2fr_1fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-2 text-lg font-semibold text-forest-900">
             <Mark className="size-7" /> imaarat.ai
@@ -57,7 +57,7 @@ export function Footer() {
           </nav>
         ))}
       </div>
-      <div className="mx-auto flex max-w-6xl flex-col gap-2 border-t border-forest-900/10 px-4 py-6 text-xs text-muted sm:px-6 md:flex-row md:justify-between">
+      <div className="mx-auto flex max-w-7xl flex-col gap-2 border-t border-forest-900/10 px-4 py-6 text-xs text-muted sm:px-6 md:flex-row md:justify-between">
         <p>© 2026 Adithya Shankaran · Illustrative photographs are generated with AI.</p>
         <p>Made with <span aria-label="love" className="text-red-600">♥</span> by <a href={PORTFOLIO} className="font-semibold text-forest-900 hover:underline">Adithya Shankaran</a></p>
       </div>

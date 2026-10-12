@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.48.4] - 2026-10-12
+
+### Changed
+- The home page uses a wider 1280-pixel column, the same width as GitHub's, so the menu and content sit less tightly in the middle on laptop screens.
+- The menu bar now changes between dark and light glass only when a section boundary passes under it, instead of checking on every scroll frame.
+
 ## [2.48.3] - 2026-10-12
 
 ### Changed
