@@ -77,6 +77,15 @@ function PrintableForm() {
   return (
     <div className="print-area" aria-hidden="true">
       <section className="pf-page">
+        <svg className="pf-watermark" aria-hidden="true" focusable="false">
+          <defs>
+            <pattern id="pf-wm" width="62mm" height="34mm" patternUnits="userSpaceOnUse" patternTransform="rotate(-28)">
+              <text x="2mm" y="14mm">imaarat.ai</text>
+              <text x="2mm" y="26mm">IMR-PF-3</text>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#pf-wm)" />
+        </svg>
         <span className="pf-corner pf-tl" /><span className="pf-corner pf-tr" /><span className="pf-corner pf-bl" /><span className="pf-corner pf-br" />
         <header className="pf-head">
           <span className="pf-brand"><img src="/mark-light.svg" alt="" />imaarat.ai</span>

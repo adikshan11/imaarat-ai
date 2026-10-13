@@ -1,4 +1,4 @@
-.saathi-launch { position: fixed; inset-inline-end: 16px; bottom: 24px; z-index: 31; display: flex; align-items: flex-end; gap: 10px; animation: saathi-rise 520ms cubic-bezier(.2, .9, .3, 1.2) both; }
+.saathi-launch { position: fixed; inset-inline-end: 16px; bottom: calc(var(--footer-h, 0px) + 14px); z-index: 31; display: flex; align-items: flex-end; gap: 10px; animation: saathi-rise 320ms cubic-bezier(.2, .9, .3, 1.2) both; }
 .saathi-fab { width: 64px; height: 64px; padding: 0; border: none; border-radius: 50%; background: var(--surface-strong); box-shadow: 0 8px 22px -6px rgba(5, 38, 26, 0.5), 0 0 0 2px var(--brand); cursor: pointer; display: grid; place-items: center; overflow: hidden; transition: transform 180ms ease; }
 .saathi-fab:hover { transform: translateY(-2px) scale(1.04); }
 .saathi-fab:active { transform: scale(0.96); }
@@ -6,7 +6,7 @@
 .saathi-fab .mascot { animation: saathi-bob 3.2s ease-in-out infinite; }
 .saathi-greeting { order: -1; max-width: 220px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 16px 16px 4px 16px; background: var(--surface-strong); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-align: start; cursor: pointer; box-shadow: 0 8px 22px -10px rgba(5, 38, 26, 0.45); animation: saathi-pop 360ms ease both; }
 
-.saathi-panel { position: fixed; inset-inline-end: 16px; bottom: 24px; z-index: 35; width: min(390px, calc(100vw - 32px)); height: min(580px, calc(100dvh - 48px)); display: flex; flex-direction: column; border-radius: 22px; overflow: hidden; background: var(--surface-strong); border: 1px solid var(--border); box-shadow: 0 24px 60px -18px rgba(5, 38, 26, 0.55); transform-origin: bottom right; animation: saathi-open 260ms cubic-bezier(.2, .9, .3, 1.1) both; }
+.saathi-panel { position: fixed; inset-inline-end: 16px; bottom: calc(var(--footer-h, 0px) + 14px); z-index: 35; width: min(390px, calc(100vw - 32px)); height: min(580px, calc(100dvh - var(--footer-h, 0px) - 40px)); display: flex; flex-direction: column; border-radius: 22px; overflow: hidden; background: var(--surface-strong); border: 1px solid var(--border); box-shadow: 0 24px 60px -18px rgba(5, 38, 26, 0.55); transform-origin: bottom right; animation: saathi-open 260ms cubic-bezier(.2, .9, .3, 1.1) both; }
 .saathi-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: linear-gradient(180deg, var(--sidebar-1), var(--sidebar-2)); color: var(--sidebar-text); }
 .saathi-avatar { flex: none; width: 44px; height: 44px; border-radius: 50%; background: rgba(255, 255, 255, 0.9); display: grid; place-items: center; overflow: hidden; }
 .saathi-title { flex: 1; min-width: 0; display: grid; line-height: 1.25; }

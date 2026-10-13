@@ -88,7 +88,7 @@ jobs:
         working-directory: frontend
 
   test-backend:
-    name: Test backend
+    name: Backend
     if: ${{ !github.event.forced }}
     runs-on: ubuntu-26.04
     timeout-minutes: 20
@@ -128,7 +128,7 @@ jobs:
         working-directory: backend
 
   test-frontend:
-    name: Test frontend
+    name: Frontend
     if: ${{ !github.event.forced }}
     runs-on: ubuntu-26.04
     timeout-minutes: 20
@@ -163,7 +163,7 @@ jobs:
           PLAYWRIGHT_PATH: ${{ runner.temp }}/browser-tools
 
   test-pipeline:
-    name: Test pipeline
+    name: Pipeline
     if: ${{ !github.event.forced }}
     runs-on: ubuntu-26.04
     timeout-minutes: 20
@@ -187,7 +187,7 @@ jobs:
         working-directory: pipeline/dbt
 
   test-container:
-    name: Test container
+    name: Container
     if: ${{ !github.event.forced }}
     runs-on: ubuntu-26.04
     timeout-minutes: 20

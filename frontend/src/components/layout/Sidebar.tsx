@@ -159,12 +159,11 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
           <div className="sidebar-footer">
             <Controls onAccount={() => onNavigate('account')} />
             <div className="sidebar-tagline">{t('footer.underwriter')}</div>
-            <button type="button" className="nav-collapse" aria-expanded={!collapsed} aria-label={t(collapsed ? 'nav.expand' : 'nav.collapse')} title={t(collapsed ? 'nav.expand' : 'nav.collapse')} onClick={() => setCollapsed((current) => !current)}>
-              <Icon name={collapsed ? 'chevrons-right' : 'chevrons-left'} />
-              <span>{t('nav.collapse')}</span>
-            </button>
           </div>
         </div>
+        <button type="button" className="nav-collapse" aria-expanded={!collapsed} aria-label={t(collapsed ? 'nav.expand' : 'nav.collapse')} title={t(collapsed ? 'nav.expand' : 'nav.collapse')} onClick={() => setCollapsed((current) => !current)}>
+          <Icon name={collapsed ? 'chevrons-right' : 'chevrons-left'} size={14} />
+        </button>
       </aside>
 
       <header className="topbar">

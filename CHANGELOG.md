@@ -2,6 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.62.0] - 2026-10-14
+
+### Changed
+- The sidebar collapse is smoother: the labels fade while the bar glides, with no text jumping. The collapse button is now a small arrow at the top right edge of the bar instead of a labelled row at the bottom.
+- The footer is fixed to the bottom of the window in two lines, links above and "© 2026 imaarat.ai · Made with ♥ by Adithya Shankaran · icons" below. Saathi and her chat sit above it.
+- Saathi's code now starts downloading as soon as the app opens, so she appears sooner.
+- Scrollbars are slim and match the green theme, with no arrow buttons.
+- CI job names drop the "Test" prefix: Backend, Frontend, Pipeline and Container.
+- The printed form has a faint repeating "imaarat.ai IMR-PF-3" watermark behind the fields, and its footer line is part of the page flow so it can no longer overlap the note above it.
+
 ## [2.61.1] - 2026-10-14
 
 ### Fixed
