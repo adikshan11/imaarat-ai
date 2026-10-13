@@ -36,6 +36,7 @@ function Application() {
   const currentView = useRef(view)
   const [completedSubmission, setCompletedSubmission] = useState<BackendSubmission | null>(null)
   const [resultSubmission, setResultSubmission] = useState<BackendSubmission | null>(null)
+  const [freshResult, setFreshResult] = useState(false)
   const setView = (next: View) => {
     currentView.current = next
     if (next === 'new') setDraftOpen(true)
@@ -45,6 +46,7 @@ function Application() {
   const navigate = (next: View) => {
     if (next === 'new' && !draftOpen && completedSubmission) {
       setResultSubmission(completedSubmission)
+      setFreshResult(true)
       setView('result')
     } else setView(next)
   }
@@ -79,6 +81,7 @@ function Application() {
       }
     }
     setResultSubmission(result)
+    setFreshResult(false)
     setView('result')
   }
 
@@ -96,6 +99,7 @@ function Application() {
           setPrefill(null)
           if (currentView.current === 'new') {
             setResultSubmission(result)
+            setFreshResult(true)
             setView('result')
           }
         }} onCancel={() => { setDraftOpen(false); setPrefill(null); setView('dashboard') }} /></Activity>}
@@ -105,7 +109,7 @@ function Application() {
         {view === 'account' && <AccountPage />}
         {view === 'dev' && <DevPage />}
         {view === 'paper' && <PaperForm onUse={startDraft} />}
-        {view === 'result' && resultSubmission && <BackendAssessmentResult submission={resultSubmission} onBack={() => setView('dashboard')} onReviewed={(updated) => {
+        {view === 'result' && resultSubmission && <BackendAssessmentResult key={`${resultSubmission.id ?? 'new'}-${freshResult}`} fresh={freshResult} submission={resultSubmission} onBack={() => setView('dashboard')} onReviewed={(updated) => {
           applyReview(updated)
           setResultSubmission(updated)
           setCompletedSubmission((current) => current?.id === updated.id ? updated : current)

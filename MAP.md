@@ -127,7 +127,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `__init__.py`: API package.
 - `auth_routes.py`: ProfileForm, PartnerForm, SignupForm, LoginForm, oauth_client, oauth_configuration, configured, providers
 - `dev_routes.py`: owner_only, overview, architecture, routes, ai_calls, traces, retrieval
-- `main.py`: lifespan, Interop, record_requests, health, upload_limits, status, property_tiv_from_components, submit_underwriting
+- `main.py`: lifespan, Interop, record_requests, health, upload_limits, maps_config, status, property_tiv_from_components
 
 ## backend/app/providers
 
@@ -184,7 +184,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `test_report_agent.py`: test_generate_memo_exposes_resource_exhausted_failure, test_daily_quota_is_not_retried_and_says_so, test_minute_limit_says_try_again_in_a_minute, test_structured_memo_accepts_grounded_response, test_structured_memo_rejects_invalid_contract, test_structured_memo_rejects_returned_score, test_structured_memo_rejects_decision_flag_and_roof_claims, test_coverage_review_rejects_invented_quantitative_claims
 - `test_review_concurrency.py`: app_db, pending_referral, reviewer, test_a_claimed_referral_tells_the_second_reviewer_who_has_it, test_a_released_or_expired_claim_frees_the_referral, test_a_member_cannot_claim, test_the_same_address_and_pin_code_is_flagged, test_only_one_of_many_simultaneous_decisions_is_saved
 - `test_risk_calculator.py`: test_low_risk_accept, test_low_risk_accept_high_seismic_zone_adds_fifteen_points, test_low_risk_accept_default_seismic_zone_preserves_score, test_mid_risk_refer, test_high_risk_auto_decline, mitigation_features, test_prototype_mitigation_baseline_with_none_fields_preserves_score, test_prototype_mitigation_sprinkler
-- `test_status.py`: test_status_reports_capabilities_without_secrets, test_status_reports_qdrant_when_ai_is_configured, test_public_base_url_prefers_explicit_setting
+- `test_status.py`: test_status_reports_capabilities_without_secrets, test_status_reports_qdrant_when_ai_is_configured, test_public_base_url_prefers_explicit_setting, test_maps_config_returns_key_only_when_set
 - `test_telemetry.py`: test_requests_are_logged_by_route_template_without_inputs, test_an_assessment_records_a_trace_with_its_steps, test_a_broken_telemetry_store_never_fails_the_request
 - `test_uploads.py`: Stored, proposal, test_uploaded_photo_gets_a_random_name_inside_the_upload_folder, test_property_photo_must_be_a_real_small_image, test_live_ai_sign_in_switch
 - `test_vision_extract.py`: test_no_image_returns_unavailable, test_missing_file_returns_unavailable, test_corrupt_image_returns_unusable, test_uniform_image_returns_unusable, test_missing_api_key_returns_unavailable, test_invalid_json_response_returns_unavailable, test_unexpected_keys_are_stripped, test_usable_claim_downgraded_when_no_evidence
@@ -246,6 +246,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 ## frontend/src/api
 
 - `dev.ts`: DevOverview, DevArchitecture, DevRoute, DevAiCall, DevTrace, DevRetrieval, fetchDevOverview, fetchDevArchitecture
+- `maps.ts`: LatLng, AddressPart, GeocodeResult, MapClick, MapInstance, MarkerInstance, MapsApi, MapsLoad
 - `session.ts`: Profile, Timing, Session, Provider, Providers, fetchSession, fetchProviders, startSignIn
 - `underwriting.ts`: fetchOpsSummary, fetchHistoryPage, fetchDashboard, fetchSubmissionDetail, submitUnderwriting, previewUnderwriting, checkHealth, readPaperForm
 - `uploads.ts`: ImageKind, UploadLimits, uploadLimits, useUploadLimits, imageProblem
@@ -266,7 +267,11 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `BackendAssessmentResult.tsx`: BackendAssessmentResult
 - `HazardCard.tsx`: HazardCard
 - `NewAssessment.tsx`: NewAssessment
+- `PropertyMap.css`
+- `PropertyMap.tsx`: PropertyMap
 - `ReviewPanel.tsx`: ReviewPanel
+- `RiskChart.css`
+- `RiskChart.tsx`: RiskChart
 
 ## frontend/src/components/auth
 

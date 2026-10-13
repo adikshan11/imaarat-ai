@@ -6,6 +6,8 @@ import { downloadSubmissionReport } from '@/api/underwriting'
 import { usePreferences } from '@/context/Preferences'
 import ReviewPanel from '@/components/assessment/ReviewPanel'
 import HazardCard from '@/components/assessment/HazardCard'
+import RiskChart from '@/components/assessment/RiskChart'
+import PropertyMap from '@/components/assessment/PropertyMap'
 import type { OfficialHazard } from '@/types/backend'
 
 function Memo({ memo }: { memo: StructuredMemo }) {
@@ -21,8 +23,15 @@ function Memo({ memo }: { memo: StructuredMemo }) {
   return <div className="memo-content">{sections.filter(([, lines]) => lines.length > 0).map(([key, lines]) => <section key={key} className="memo-section"><h3>{t(key)}</h3><ul>{lines.map((line, index) => <li key={index}>{line}</li>)}</ul></section>)}</div>
 }
 
-export default function BackendAssessmentResult({ submission, onBack, onReviewed }: { submission: BackendSubmission; onBack: () => void; onReviewed: (updated: BackendSubmission) => void }) {
+export default function BackendAssessmentResult({ submission, onBack, onReviewed, fresh = false }: { submission: BackendSubmission; onBack: () => void; onReviewed: (updated: BackendSubmission) => void; fresh?: boolean }) {
   const { t, label } = usePreferences()
+  const steps = [t('load.step_hazard'), t('load.step_rules'), t('load.step_guidelines'), t('load.step_memo')]
+  const [stage, setStage] = React.useState(() => fresh && !window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : steps.length)
+  React.useEffect(() => {
+    if (stage >= steps.length) return
+    const timer = window.setTimeout(() => setStage((current) => current + 1), 650)
+    return () => window.clearTimeout(timer)
+  }, [stage, steps.length])
   const cited = new Set(submission.memo_json?.guideline_citations ?? [])
   const features = submission.extracted_features ?? {}
   const mitigation = submission.prototype_mitigation_model
@@ -51,7 +60,17 @@ export default function BackendAssessmentResult({ submission, onBack, onReviewed
   }
   const hits = submission.guideline_hits ?? []
 
-  return <div>
+  if (stage < steps.length) {
+    return (
+      <div className="analysis" role="status" aria-live="polite">
+        <h2>{t('chart.analyzing')}</h2>
+        <ul>{steps.map((step, index) => <li key={step} className={index < stage ? 'done' : index === stage ? 'active' : undefined}><span className="analysis-mark" aria-hidden="true">{index < stage ? '✓' : index === stage ? <Spinner /> : ''}</span>{step}</li>)}</ul>
+        <div className="analysis-bar" aria-hidden="true"><i style={{ width: `${(stage / steps.length) * 100}%` }} /></div>
+      </div>
+    )
+  }
+
+  return <div className={fresh ? 'reveal' : undefined}>
     <div className="action-row">
       <button className="btn btn-secondary" onClick={onBack}>{t('res.back')}</button>
       <button className="btn btn-primary" onClick={() => void downloadReport()} disabled={reportBusy}>{reportBusy ? <><Spinner />{t('res.pdf_busy')}</> : t('res.pdf')}</button>
@@ -65,8 +84,10 @@ export default function BackendAssessmentResult({ submission, onBack, onReviewed
       <div className="kpi"><div className="kpi-label">{t('res.indicative')}</div><div className="kpi-value">{mitigation?.risk_adjusted_view ?? t('res.not_available')}</div></div>
       <div className="kpi"><div className="kpi-label">{t('res.segment')}</div><div className="kpi-value kpi-value-text">{segment}</div></div>
     </div>
+    <RiskChart score={submission.risk_score} decision={decision} breakdown={submission.risk_breakdown} hazard={features.official_hazard as OfficialHazard | null | undefined} />
     <ReviewPanel submission={submission} onReviewed={onReviewed} />
     <HazardCard hazard={features.official_hazard as OfficialHazard | null | undefined} declaredZone={String(features.seismic_zone_declared ?? submission.raw_input?.seismic_zone ?? '')} />
+    <PropertyMap framed latitude={Number(submission.raw_input?.latitude)} longitude={Number(submission.raw_input?.longitude)} />
     <div className="dashboard-grid">
       <Card title={t('res.flags_title')}>
         <p>{submission.rationale}</p>
