@@ -148,6 +148,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `__init__.py`
 - `form_cases.py`: Seeded synthetic paper-form cases: what a proposer writes and in which script, for the form-reading benchmark.
 - `forms_bench.py`: Form-reading benchmark: the app's Gemini reader, Sarvam Extract and Qwen3-VL on the same rendered forms, scored with the app's own field checks.
+- `source_text.py`: Download public PDFs and write their text page by page, so sources can be read and cited from a CI artifact.
 
 ## backend/load
 
@@ -331,7 +332,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `pages.tsx`: Privacy, Terms, Changelog
 - `render.tsx`: render
 - `site.tsx`: APP, DEMO, REPO, PORTFOLIO, Mark, SkipLink, Header, Footer
-- `stack.ts`: Tool, stack
+- `stack.ts`: Tool, aiStack, deliveryStack
 - `tabs.ts`
 
 ## frontend/src/lib
