@@ -2,6 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.59.0] - 2026-10-14
+
+### Added
+- A shared store for caches and counters. With `REDIS_URL` set, every instance shares the chat reply cache, the pause after repeated model failures, cached query embeddings and chat allowances; without it they stay in memory, and an unreachable Redis falls back to memory and Postgres. The Docker stack now runs Redis and CI checks that it is really used.
+- A model and thinking level for each stage: `AI_MODEL_<STAGE>` and `AI_THINKING_<STAGE>`. The dev console shows the model each stage uses.
+- Query embeddings are cached, so a repeated search costs no embedding call.
+
+### Changed
+- Saathi's prompt has a fixed first part that no longer changes with the language, and sends fewer, shorter passages, a shorter history and a 60-word answer limit, which keeps each call small and cache-friendly.
+
 ## [2.58.2] - 2026-10-13
 
 ### Added

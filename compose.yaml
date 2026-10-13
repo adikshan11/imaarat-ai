@@ -14,6 +14,14 @@ services:
       interval: 5s
       retries: 20
 
+  redis:
+    image: redis:8-alpine@sha256:3811787313eba226a2ef38658c6ccb91cd5e110edc89c37767de373120a0e5a0
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "64mb", "--maxmemory-policy", "allkeys-lru"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 20
+
   api:
     build:
       context: .
@@ -22,8 +30,11 @@ services:
       DATABASE_URL: postgresql+psycopg://imaarat:${POSTGRES_PASSWORD:-imaarat}@db:5432/imaarat
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080/api}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      REDIS_URL: redis://redis:6379/0
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   web:

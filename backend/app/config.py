@@ -36,8 +36,22 @@ QDRANT_API_KEY = os.getenv("QDRANT_API_KEY", "")
 QDRANT_COLLECTION = "underwriting_guidelines"
 AI_TIMEOUT_MS = 25_000
 AI_REQUEST_SECONDS = 50
+STAGES = ("paper_form", "vision", "memo", "chat")
 STAGE_THINKING = {"paper_form": "LOW", "vision": "LOW", "memo": "LOW", "chat": "LOW"}
 AI_ATTEMPTS = 2
+
+
+def model_for(stage: str) -> str:
+    """The model for one stage: AI_MODEL_<STAGE>, then AI_CHAT_MODEL for chat, then AI_MODEL."""
+    return os.getenv(f"AI_MODEL_{stage.upper()}") or (os.getenv("AI_CHAT_MODEL") if stage == "chat" else "") or AI_MODEL
+
+
+def thinking_for(stage: str) -> str | None:
+    """The thinking level for one stage; AI_THINKING_<STAGE> overrides it and an empty value turns it off."""
+    override = os.getenv(f"AI_THINKING_{stage.upper()}")
+    return (override.strip() or None) if override is not None else STAGE_THINKING.get(stage)
+
+
 AI_DAILY_ADMISSIONS = int(os.getenv("AI_DAILY_ADMISSIONS", "15"))
 AI_SIGN_IN_REQUIRED = os.getenv("AI_SIGN_IN_REQUIRED", "false").lower() == "true"
 AI_CLIENT_DAILY_ADMISSIONS = int(os.getenv("AI_CLIENT_DAILY_ADMISSIONS", "3"))
@@ -46,7 +60,6 @@ AI_DAILY_GENERATIONS = int(os.getenv("AI_DAILY_GENERATIONS", "20"))
 AI_DAILY_CHAT = int(os.getenv("AI_DAILY_CHAT", "40"))
 AI_CLIENT_DAILY_CHAT = int(os.getenv("AI_CLIENT_DAILY_CHAT", "8"))
 AI_CHAT_CALL_RESERVE = int(os.getenv("AI_CHAT_CALL_RESERVE", "60"))
-AI_CHAT_MODEL = os.getenv("AI_CHAT_MODEL", "")
 AI_CHAT_OUTPUT_TOKENS = int(os.getenv("AI_CHAT_OUTPUT_TOKENS", "1500"))
 AI_CHAT_SECONDS = int(os.getenv("AI_CHAT_SECONDS", "20"))
 AI_MINUTE_GENERATIONS = int(os.getenv("AI_MINUTE_GENERATIONS", "5"))

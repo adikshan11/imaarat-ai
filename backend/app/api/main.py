@@ -17,7 +17,7 @@ from starlette.datastructures import URLPath
 from starlette.routing import BaseRoute, Match, NoMatchFound
 from starlette.types import Receive, Scope, Send
 
-from app import __version__, assistant, auth, budget, config, images, llm, telemetry
+from app import __version__, assistant, auth, budget, config, images, llm, store, telemetry
 from app.api.auth_routes import router as auth_router
 from app.api.dev_routes import router as dev_router
 from app.config import AI_API_KEY, DB_PATH, QDRANT_URL
@@ -154,6 +154,7 @@ def status() -> dict[str, Any]:
         "vector_store": "qdrant" if QDRANT_URL and AI_API_KEY else "local",
         "tracing": TRACING_ENABLED,
         "persistent_storage": is_postgres(),
+        "cache": store.kind() if store.healthy() else "unavailable",
     }
 
 

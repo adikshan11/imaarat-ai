@@ -13,9 +13,6 @@ def store(tmp_path, monkeypatch):
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "chat.db")
     monkeypatch.setattr(budget, "ai_ready", lambda: (True, None))
     monkeypatch.setattr(assistant, "retrieve", lambda message, k=4: [{"id": "G1", "title": "Flood", "text": "Check the flood zone."}])
-    assistant.CACHE.clear()
-    assistant.FAILURES.clear()
-    assistant.STATE["paused_until"] = 0.0
     db.metadata.create_all(db.get_engine())
 
 
@@ -87,15 +84,25 @@ def test_history_is_trimmed_before_it_reaches_the_model(store, monkeypatch):
     history = [{"role": "assistant", "text": "x" * 900}] * 8
     assistant.chat("and then?", "en", history, "1.2.3.4")
     contents, tokens, model = seen[0]
-    assert contents.count("Saathi:") == 4 and "x" * 301 not in contents and tokens == config.AI_CHAT_OUTPUT_TOKENS and model is None
+    assert contents.count("Saathi:") == assistant.HISTORY_TURNS and "x" * (assistant.HISTORY_CHARS + 1) not in contents and tokens == config.AI_CHAT_OUTPUT_TOKENS
 
 
-def test_chat_uses_its_own_model_when_set(store, monkeypatch):
-    seen = []
-    monkeypatch.setattr(llm, "generate", reply(seen=seen))
-    monkeypatch.setattr(config, "AI_CHAT_MODEL", "lite-model")
-    assistant.chat("hello there", "en", [], "1.2.3.4")
-    assert seen[0][2] == "lite-model"
+def test_stage_model_comes_from_its_own_setting_then_the_chat_setting(monkeypatch):
+    monkeypatch.setattr(config, "AI_MODEL", "main-model")
+    monkeypatch.delenv("AI_MODEL_CHAT", raising=False)
+    monkeypatch.delenv("AI_CHAT_MODEL", raising=False)
+    assert config.model_for("chat") == config.model_for("memo") == "main-model"
+    monkeypatch.setenv("AI_CHAT_MODEL", "lite-model")
+    assert config.model_for("chat") == "lite-model" and config.model_for("memo") == "main-model"
+    monkeypatch.setenv("AI_MODEL_CHAT", "stage-model")
+    assert config.model_for("chat") == "stage-model"
+
+
+def test_context_keeps_three_unique_passages_cut_to_size():
+    hits = [{"id": f"G{number % 4}", "title": "T", "text": "word " * 400} for number in range(8)]
+    lines = assistant.context(hits).split("\n")
+    assert len(lines) == assistant.PASSAGES and all(len(line) < assistant.PASSAGE_CHARS + 20 for line in lines)
+    assert assistant.context([]) == "(no passages found)"
 
 
 def test_repeated_failures_pause_the_model(store, monkeypatch):

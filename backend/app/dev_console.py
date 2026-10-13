@@ -44,6 +44,8 @@ def overview() -> dict[str, Any]:
         "ai": {
             "provider": config.AI_PROVIDER,
             "model": config.AI_MODEL,
+            "stage_models": {stage: config.model_for(stage) for stage in config.STAGES},
+            "stage_thinking": {stage: config.thinking_for(stage) for stage in config.STAGES},
             "embedding_model": config.AI_EMBEDDING_MODEL,
             "judge_model": config.AI_JUDGE_MODEL,
             "prompt_format": config.PROMPT_FORMAT,

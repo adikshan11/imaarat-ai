@@ -102,7 +102,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `assistant.py`: Saathi: a guideline-grounded chat assistant that can also open app pages.
 - `auth.py`: Sign-in with Google, email or mobile number: hashed opaque sessions, session-bound CSRF tokens and single-use PKCE state, stored in the app database.
 - `budget.py`: Daily AI budget: per-visitor and global admissions plus every Gemini call, reserved atomically before use.
-- `config.py`
+- `config.py`: model_for, thinking_for
 - `db.py`: Submission and reference-property storage: Postgres when DATABASE_URL is set, SQLite otherwise.
 - `dev_console.py`: The owner's dev console: how the running service is built and what it is doing, without any visitor input or secrets.
 - `evaluation.py`: report_metadata, empty_report
@@ -114,6 +114,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `profile.py`: Underwriter profile: name and mobile number are required before reviewing; the photo is optional and re-encoded.
 - `reports.py`: build_submission_pdf
 - `schemas.py`: redact, PropertySubmission, UnderwritingMemo, VisionObservations, decision_from_score, indicative_product_segment
+- `store.py`: Shared key-value store for caches, pauses and daily counters: in memory by default, Redis when REDIS_URL is set.
 - `telemetry.py`: Request, trace and span telemetry kept in the app database for the public status page: route templates and timings only, never inputs.
 
 ## backend/app/agents
@@ -165,7 +166,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 
 ## backend/tests
 
-- `conftest.py`: photo, isolated_database, empty_telemetry_queue
+- `conftest.py`: photo, isolated_database, isolated_store, empty_telemetry_queue
 - `test_architecture.py`: imported_modules, app_files_outside_providers, test_vendor_sdks_are_only_imported_by_provider_adapters, test_the_rest_of_the_app_uses_providers_only_through_the_package, test_every_adapter_follows_the_provider_contract, test_an_unknown_provider_fails_with_the_known_names
 - `test_assistant.py`: store, reply, test_chat_returns_page_language_and_sources, test_chat_ignores_unknown_language_and_none_page, test_chat_stops_at_the_visitor_limit, test_chat_is_offline_without_ai, test_chat_endpoint_rejects_bad_input, test_injection_is_refused_without_a_model_call_or_allowance
 - `test_auth.py`: client, signed_in, test_review_needs_a_signed_in_reviewer, test_operator_passes_the_check_but_needs_csrf_and_origin, test_partner_keys, test_sign_in_is_off_until_configured, test_providers_list_only_configured_sign_in, test_email_and_mobile_sign_up_and_log_in
@@ -187,6 +188,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `test_review_concurrency.py`: app_db, pending_referral, reviewer, test_a_claimed_referral_tells_the_second_reviewer_who_has_it, test_a_released_or_expired_claim_frees_the_referral, test_a_member_cannot_claim, test_the_same_address_and_pin_code_is_flagged, test_only_one_of_many_simultaneous_decisions_is_saved
 - `test_risk_calculator.py`: test_low_risk_accept, test_low_risk_accept_high_seismic_zone_adds_fifteen_points, test_low_risk_accept_default_seismic_zone_preserves_score, test_mid_risk_refer, test_high_risk_auto_decline, mitigation_features, test_prototype_mitigation_baseline_with_none_fields_preserves_score, test_prototype_mitigation_sprinkler
 - `test_status.py`: test_status_reports_capabilities_without_secrets, test_status_reports_qdrant_when_ai_is_configured, test_public_base_url_prefers_explicit_setting, test_maps_config_returns_key_only_when_set
+- `test_store.py`: FakeRedis, BrokenRedis, test_memory_values_expire_and_counters_keep_their_first_expiry, test_redis_store_prefixes_keys_and_sets_the_expiry_once, test_a_failing_store_reads_as_empty_instead_of_raising, test_an_unreachable_redis_falls_back_to_memory, test_daily_allowance_is_counted_in_a_shared_store_without_the_database, test_daily_allowance_uses_the_database_when_the_shared_store_is_down
 - `test_telemetry.py`: test_requests_are_logged_by_route_template_without_inputs, test_an_assessment_records_a_trace_with_its_steps, test_a_broken_telemetry_store_never_fails_the_request
 - `test_uploads.py`: Stored, proposal, test_uploaded_photo_gets_a_random_name_inside_the_upload_folder, test_property_photo_must_be_a_real_small_image, test_live_ai_sign_in_switch
 - `test_vision_extract.py`: test_no_image_returns_unavailable, test_missing_file_returns_unavailable, test_corrupt_image_returns_unusable, test_uniform_image_returns_unusable, test_missing_api_key_returns_unavailable, test_invalid_json_response_returns_unavailable, test_unexpected_keys_are_stripped, test_usable_claim_downgraded_when_no_evidence

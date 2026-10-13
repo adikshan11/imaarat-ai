@@ -12,7 +12,7 @@ from sqlalchemy import Column, DateTime, Integer, String, Table, func, select, u
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
-from app import config
+from app import config, store
 from app.db import get_engine, is_postgres, metadata
 
 PACIFIC = ZoneInfo("America/Los_Angeles")
@@ -121,9 +121,14 @@ def _reserve(connection: Any, day: str, scope: str, amount: int, limit: int) -> 
 
 
 def allow(scope: str, limit: int, now: datetime | None = None) -> bool:
-    """Count one use of a daily allowance; False once the limit is reached."""
+    """Count one use of a daily allowance; False once the limit is reached. A shared store counts it when there is one, so a request costs no database write."""
+    day = budget_day(now)
+    if store.shared():
+        used = store.incr(f"allow:{day}:{scope}", seconds_until_reset(now) + 3600)
+        if used is not None:
+            return used <= limit
     with engine().begin() as connection:
-        return _reserve(connection, budget_day(now), scope, 1, limit)
+        return _reserve(connection, day, scope, 1, limit)
 
 
 def admit(address: str | None, now: datetime | None = None) -> None:

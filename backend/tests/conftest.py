@@ -2,7 +2,7 @@ from io import BytesIO
 from queue import Empty
 
 import pytest
-from app import db, telemetry
+from app import db, store, telemetry
 from PIL import Image
 
 
@@ -20,6 +20,12 @@ def photo():
 def isolated_database(tmp_path, monkeypatch):
     monkeypatch.delenv("DATABASE_URL", raising=False)
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "test.db")
+
+
+@pytest.fixture(autouse=True)
+def isolated_store(monkeypatch):
+    monkeypatch.delenv("REDIS_URL", raising=False)
+    monkeypatch.setattr(store, "current", store.MemoryStore())
 
 
 @pytest.fixture(autouse=True)
