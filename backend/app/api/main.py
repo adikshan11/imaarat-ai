@@ -117,6 +117,25 @@ def upload_limits() -> Response:
     return Response(json.dumps(images.limits()), media_type="application/json", headers={"Cache-Control": "public, max-age=3600"})
 
 
+class ChatTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    text: str = Field(max_length=600)
+
+
+class ChatRequest(BaseModel):
+    message: str = Field(min_length=1, max_length=500)
+    language: str = Field(default="en", max_length=5)
+    history: list[ChatTurn] = Field(default_factory=list, max_length=12)
+
+
+@app.post("/assistant/chat")
+async def assistant_chat(body: ChatRequest, request: Request) -> dict[str, Any]:
+    if config.AI_SIGN_IN_REQUIRED and not await run_in_threadpool(auth.signed_in, request):
+        raise HTTPException(status_code=401, detail="Sign in to chat with Saathi")
+    address = budget.client_address(request.headers, request.client.host if request.client else None)
+    return await run_in_threadpool(assistant.chat, body.message, body.language, [turn.model_dump() for turn in body.history], address)
+
+
 @app.get("/maps/config")
 def maps_config() -> Response:
     key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()

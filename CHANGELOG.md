@@ -7,6 +7,7 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 ### Added
 - Sign up and log in with Google, an email address or a mobile number. Email and mobile accounts use a password, stored only as a salted scrypt hash. The address or number is not verified.
 - GitHub and X links in the app and landing footers.
+- Saathi, a small assistant that pops up at the bottom right. It answers from the underwriting guidelines in the chosen language, by typing or by voice (where the browser supports it), can read replies aloud, and can open a page or switch the app language when asked. Chat has its own small daily allowance, separate from assessments, and never makes a decision.
 - The sources list on the Guide page now has 16 sources, all from the reference library, instead of 3.
 - After you submit an assessment, the result screen first shows the checks running one by one, then reveals a risk gauge, the factors that drove the score and the hazard exposure as bars.
 - A Google Map on the property form: search an address in India, click the map or drag the pin, or use your live location. The latitude, longitude, address, city, state and pin code fill in. The result screen shows the pinned property. The map appears only when `GOOGLE_MAPS_API_KEY` is set.
