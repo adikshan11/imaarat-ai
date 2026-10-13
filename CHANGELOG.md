@@ -2,19 +2,27 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.58.0] - 2026-10-13
+
+### Added
+- Saathi, a small assistant that pops up at the bottom right. It answers from the underwriting guidelines in the chosen language, by typing or by voice (where the browser supports it), can read replies aloud, and can open a page or switch the app language when asked. Chat has its own small daily allowance, separate from assessments, and never makes a decision.
+
+### Changed
+- The mobile tab bar lens now only bends light. The colour split and the extra colour boost at the lens rim are gone, so there is no rainbow; the glass shows only refraction and white highlights, and the bar has no lens filter at rest.
+- The privacy policy covers chat, voice and the map.
+
 ## [2.57.0] - 2026-10-13
 
 ### Added
 - Sign up and log in with Google, an email address or a mobile number. Email and mobile accounts use a password, stored only as a salted scrypt hash. The address or number is not verified.
 - GitHub and X links in the app and landing footers.
-- Saathi, a small assistant that pops up at the bottom right. It answers from the underwriting guidelines in the chosen language, by typing or by voice (where the browser supports it), can read replies aloud, and can open a page or switch the app language when asked. Chat has its own small daily allowance, separate from assessments, and never makes a decision.
 - The sources list on the Guide page now has 16 sources, all from the reference library, instead of 3.
 - After you submit an assessment, the result screen first shows the checks running one by one, then reveals a risk gauge, the factors that drove the score and the hazard exposure as bars.
 - A Google Map on the property form: search an address in India, click the map or drag the pin, or use your live location. The latitude, longitude, address, city, state and pin code fill in. The result screen shows the pinned property. The map appears only when `GOOGLE_MAPS_API_KEY` is set.
 
 ### Changed
 - GitHub sign-in is removed. After signing up you go straight into the app and the account menu holds Sign out; the profile and partner-key settings are for the owner only.
-- The mobile tab bar now follows a refracting glass bar. At rest it is a translucent bar with a slightly darker selected cell. While you press or slide, only the cell changes: it grows out of the bar as a clear lens that magnifies the icons and refracts what is behind it, with no colour split, only bent light and white highlights at the rim. The bar itself stays put, and its tint opens up under the lens. Chrome draws the refraction of the page behind the lens; other browsers still get the magnified icons with the rim refraction.
+- The mobile tab bar now follows a refracting glass bar. At rest it is a translucent bar with a slightly darker selected cell. While you press or slide, only the cell changes: it grows out of the bar as a clear lens that magnifies the icons and refracts what is behind it, with colour fringing only at the lens rim. The bar itself stays put, and its tint opens up under the lens. Chrome draws the refraction of the page behind the lens; other browsers still get the magnified icons with the rim refraction.
 - The privacy policy describes email, mobile and Google accounts.
 
 ## [2.56.0] - 2026-10-13
