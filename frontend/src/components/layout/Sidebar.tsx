@@ -180,9 +180,9 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
       </nav>
       {(lens || rim) && (
         <svg className="lens-defs" aria-hidden="true" width="0" height="0">
-          {lens && <LensFilter id="tab-lens" lens={lens} spread={0.3} blur={0.5} saturate={1.2} />}
-          {bubble && <LensFilter id="tab-bubble" lens={bubble} spread={0.15} blur={0.15} saturate={1.2} />}
-          {rim && <LensFilter id="tab-copy" lens={rim} spread={0.35} blur={0} saturate={1} />}
+          {lens && <LensFilter id="tab-lens" lens={lens} spread={0.1} blur={0.5} saturate={1.1} />}
+          {bubble && <LensFilter id="tab-bubble" lens={bubble} spread={0.06} blur={0.15} saturate={1.1} />}
+          {rim && <LensFilter id="tab-copy" lens={rim} spread={0.12} blur={0} saturate={1} />}
         </svg>
       )}
     </>
