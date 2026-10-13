@@ -5,6 +5,7 @@ import Controls from '@/components/layout/Controls'
 import Icon from '@/components/shared/Icon'
 import OpticalLabel from '@/components/shared/OpticalLabel'
 import { usePreferences } from '@/context/Preferences'
+import { useSession } from '@/context/Session'
 import { type Lens, lensMap, lensSupported } from '@/lib/lens'
 import { navKey, navPoint } from './nav_motion'
 
@@ -15,6 +16,7 @@ interface Props {
 
 export default function Sidebar({ activeView, onNavigate }: Props) {
   const { t, language } = usePreferences()
+  const { session } = useSession()
   const tabbar = useRef<HTMLElement>(null)
   const track = useRef<HTMLDivElement>(null)
   const indicator = useRef<HTMLSpanElement>(null)
@@ -41,8 +43,9 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
     { view: 'paper', icon: 'file', text: t('nav.paper') },
     { view: 'how', icon: 'info', text: t('nav.how') },
     { view: 'status', icon: 'monitor', text: t('nav.status') },
+    ...(session?.role === 'operator' ? [{ view: 'dev', icon: 'code', text: 'Dev' }] : []),
   ]
-  const tabs = items.filter((item) => item.view !== 'status')
+  const tabs = items.filter((item) => item.view !== 'status' && item.view !== 'dev')
   const buttons = () => Array.from(track.current?.querySelectorAll<HTMLButtonElement>('.tab-item') ?? [])
   const place = (button?: HTMLButtonElement, x?: number) => {
     const node = indicator.current
@@ -154,9 +157,16 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
         <svg className="lens-defs" aria-hidden="true" width="0" height="0">
           <filter id="tab-lens" x="0" y="0" width={lens.width} height={lens.height} filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
             <feImage href={lens.href} x="0" y="0" width={lens.width} height={lens.height} preserveAspectRatio="none" result="map" />
-            <feDisplacementMap in="SourceGraphic" in2="map" scale={lens.scale} xChannelSelector="R" yChannelSelector="G" result="bent" />
-            <feGaussianBlur in="bent" stdDeviation="6" result="soft" />
-            <feColorMatrix in="soft" type="saturate" values="1.6" />
+            <feDisplacementMap in="SourceGraphic" in2="map" scale={lens.scale * 0.88} xChannelSelector="R" yChannelSelector="G" result="bentRed" />
+            <feColorMatrix in="bentRed" type="matrix" values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result="red" />
+            <feDisplacementMap in="SourceGraphic" in2="map" scale={lens.scale} xChannelSelector="R" yChannelSelector="G" result="bentGreen" />
+            <feColorMatrix in="bentGreen" type="matrix" values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0" result="green" />
+            <feDisplacementMap in="SourceGraphic" in2="map" scale={lens.scale * 1.12} xChannelSelector="R" yChannelSelector="G" result="bentBlue" />
+            <feColorMatrix in="bentBlue" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0" result="blue" />
+            <feBlend in="red" in2="green" mode="screen" result="redGreen" />
+            <feBlend in="redGreen" in2="blue" mode="screen" result="bent" />
+            <feGaussianBlur in="bent" stdDeviation="4" result="soft" />
+            <feColorMatrix in="soft" type="saturate" values="1.8" />
           </filter>
         </svg>
       )}

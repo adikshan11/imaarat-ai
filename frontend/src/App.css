@@ -368,19 +368,24 @@ label:has(> input:required) > .field-label-text::after, .select-field.required >
   .controls-compact { flex: none; flex-wrap: nowrap; }
   .controls-compact .control-button { flex: none; width: 40px; padding: 0; }
   .controls-compact .control-language { justify-content: center; }
-  .tabbar { position: fixed; inset-inline: 0; width: min(calc(100% - 32px), 440px); margin-inline: auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 30; display: flex; padding: 4px; gap: 2px; overflow: clip; border-radius: 40px; border: none; background: var(--nav-glass); -webkit-backdrop-filter: blur(20px) saturate(140%); backdrop-filter: blur(20px) saturate(140%); box-shadow: inset 0 1px 0 var(--nav-sheen), 0 6px 24px -8px rgba(5, 38, 26, 0.28); }
+  .tabbar { position: fixed; inset-inline: 0; width: min(calc(100% - 20px), 620px); margin-inline: auto; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 30; display: flex; padding: 5px; gap: 2px; overflow: visible; border-radius: 44px; border: none; background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 45%), var(--nav-glass); -webkit-backdrop-filter: blur(14px) saturate(190%) brightness(1.06); backdrop-filter: blur(14px) saturate(190%) brightness(1.06); box-shadow: inset 1.5px 1.5px 1px var(--nav-sheen), inset -1px -1px 1px rgba(255, 255, 255, 0.22), 0 10px 30px -10px rgba(5, 38, 26, 0.34); }
+  .tabbar::before { content: ""; position: absolute; inset: 0; z-index: 2; padding: 1.5px; border-radius: inherit; background: linear-gradient(115deg, rgba(255, 92, 140, 0.75), rgba(255, 200, 80, 0.55) 22%, rgba(110, 255, 200, 0.5) 42%, rgba(90, 170, 255, 0.7) 64%, rgba(190, 110, 255, 0.75) 84%, rgba(255, 92, 140, 0.75)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); opacity: 0.5; pointer-events: none; }
   .tabbar.is-lens { -webkit-backdrop-filter: url(#tab-lens); backdrop-filter: url(#tab-lens); }
   .lens-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
   .tabbar { touch-action: pan-y pinch-zoom; -webkit-user-select: none; user-select: none; }
   .tab-track { position: relative; display: flex; flex: 1; min-width: 0; gap: 2px; }
-  .tab-indicator { position: absolute; left: 0; top: 0; height: 100%; border-radius: 999px; background: var(--tab-pill); box-shadow: var(--tab-pill-edge); pointer-events: none; opacity: 0; transition: transform 240ms cubic-bezier(.2,.8,.2,1), width 240ms cubic-bezier(.2,.8,.2,1), scale 320ms cubic-bezier(.34,1.56,.64,1), background-color 200ms ease, box-shadow 200ms ease; }
+  .tab-indicator { position: absolute; left: 0; top: 0; height: 100%; border-radius: 999px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 55%), var(--tab-pill); box-shadow: var(--tab-pill-edge); pointer-events: none; opacity: 0; transition: transform 240ms cubic-bezier(.2,.8,.2,1), width 240ms cubic-bezier(.2,.8,.2,1), scale 320ms cubic-bezier(.34,1.56,.64,1), background-color 200ms ease, box-shadow 200ms ease; }
+  .tab-indicator::after { content: ""; position: absolute; inset: 0; padding: 2px; border-radius: inherit; background: conic-gradient(from 200deg, rgba(255, 92, 140, 0.9), rgba(255, 200, 80, 0.8), rgba(110, 255, 200, 0.75), rgba(90, 170, 255, 0.9), rgba(190, 110, 255, 0.9), rgba(255, 92, 140, 0.9)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); opacity: 0; transition: opacity 200ms ease; }
+  .tabbar:active .tab-indicator::after, .is-scrubbing .tab-indicator::after { opacity: 1; }
   .is-scrubbing .tab-indicator { transition: scale 320ms cubic-bezier(.34,1.56,.64,1), background-color 200ms ease, box-shadow 200ms ease; }
-  .tabbar:active .tab-indicator, .is-scrubbing .tab-indicator { z-index: 1; scale: 1.04 1.07; background: radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.28), transparent 60%), var(--tab-lens); box-shadow: var(--tab-rim); -webkit-backdrop-filter: saturate(180%) brightness(1.1); backdrop-filter: saturate(180%) brightness(1.1); }
-  .tab-item { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; min-height: 56px; padding: 0 2px; border: none; border-radius: 999px; background: transparent; color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; }
+  .tabbar:active .tab-indicator, .is-scrubbing .tab-indicator { z-index: 1; scale: 1.06 1.14; background: radial-gradient(120% 90% at 30% 0%, rgba(255, 255, 255, 0.34), transparent 60%), var(--tab-lens); box-shadow: var(--tab-rim); -webkit-backdrop-filter: saturate(180%) brightness(1.1); backdrop-filter: saturate(180%) brightness(1.1); }
+  .tab-item { position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; min-height: 58px; padding: 0 2px; border: none; border-radius: 999px; background: transparent; color: var(--text); font: inherit; font-size: 14px; font-weight: 600; text-align: center; cursor: pointer; }
   .tab-caption { display: flex; justify-content: center; align-items: center; width: 100%; }
   .tab-caption .optical-label { width: 100%; line-height: 20px; overflow-wrap: anywhere; }
   .tabbar .tab-item[data-view="dashboard"]:has(:lang(tcy)) { flex-grow: 2; }
   .tab-item.active { color: var(--heading); }
+  .tab-item svg, .tab-caption { transition: scale 220ms cubic-bezier(.34,1.56,.64,1); }
+  .tab-item:active svg, .tab-item:active .tab-caption { scale: 1.12; }
   .tab-item:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
   .main-content { padding: 18px 16px 40px; max-width: none; }
   .two-col, .dashboard-grid, .protection-split, .paper-steps { grid-template-columns: 1fr; }
@@ -400,6 +405,7 @@ label:has(> input:required) > .field-label-text::after, .select-field.required >
 @media (prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active) {
   .tabbar, .tabbar.is-lens { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; border: 1px solid currentColor; }
   .tabbar::before { display: none; }
+  .tab-indicator::after { display: none; }
   .tab-item.active { outline: 2px solid currentColor; outline-offset: -2px; }
   .control-button, .nav-item.active:not(:focus-visible) { outline: 1px solid currentColor; outline-offset: -1px; }
 }
@@ -427,3 +433,4 @@ label:has(> input:required) > .field-label-text::after, .select-field.required >
 .signin-demo { width: 100%; min-height: 46px; border-style: dashed; background: transparent; }
 .signin-note { margin: 10px 0 0; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
 .signin-privacy { margin: 22px 0 0; color: var(--text-soft); font-size: 12px; line-height: 1.5; }
+.signin-owner { margin: 10px 0 0; padding: 0; border: none; background: none; color: var(--text-soft); font: inherit; font-size: 12px; text-decoration: underline; cursor: pointer; }

@@ -14,6 +14,7 @@ const StatusPage = lazy(() => import('@/components/status/StatusPage'))
 const SignIn = lazy(() => import('@/components/auth/SignIn'))
 const Onboarding = lazy(() => import('@/components/account/Onboarding'))
 const AccountPage = lazy(() => import('@/components/account/AccountPage'))
+const DevPage = lazy(() => import('@/components/dev/DevPage'))
 import { useRiskContext } from '@/context/RiskContext'
 import { RiskProvider } from '@/context/RiskProvider'
 import { useSession } from '@/context/Session'
@@ -22,13 +23,13 @@ import { usePreferences } from '@/context/Preferences'
 import { PreferencesProvider } from '@/context/PreferencesProvider'
 import type { BackendSubmission } from '@/types/backend'
 
-type View = 'dashboard' | 'new' | 'paper' | 'how' | 'status' | 'result' | 'account'
+type View = 'dashboard' | 'new' | 'paper' | 'how' | 'status' | 'result' | 'account' | 'dev'
 
 function Application() {
   const [view, setViewState] = useState<View>(() => {
     const hash = window.location.hash.slice(1)
     if (hash === 'quality' || hash === 'integrations') return 'status'
-    return hash === 'new' || hash === 'paper' || hash === 'how' || hash === 'status' || hash === 'account' ? hash : 'dashboard'
+    return hash === 'new' || hash === 'paper' || hash === 'how' || hash === 'status' || hash === 'account' || hash === 'dev' ? hash : 'dashboard'
   })
   const [draftOpen, setDraftOpen] = useState(view === 'new')
   const [draftId, setDraftId] = useState(0)
@@ -56,6 +57,7 @@ function Application() {
   useEffect(() => { window.scrollTo(0, 0) }, [view])
   const { session } = useSession()
   useEffect(() => { if (view === 'account' && !session) setView('dashboard') })
+  useEffect(() => { if (view === 'dev' && session && session.role !== 'operator') setView('dashboard') })
   const [detailError, setDetailError] = useState<string | null>(null)
   const [opening, setOpening] = useState(false)
   const [prefill, setPrefill] = useState<Record<string, unknown> | null>(null)
@@ -101,6 +103,7 @@ function Application() {
         {view === 'how' && <HowItWorks />}
         {view === 'status' && <StatusPage />}
         {view === 'account' && <AccountPage />}
+        {view === 'dev' && <DevPage />}
         {view === 'paper' && <PaperForm onUse={startDraft} />}
         {view === 'result' && resultSubmission && <BackendAssessmentResult submission={resultSubmission} onBack={() => setView('dashboard')} onReviewed={(updated) => {
           applyReview(updated)
@@ -108,7 +111,7 @@ function Application() {
           setCompletedSubmission((current) => current?.id === updated.id ? updated : current)
         }} />}
         </Suspense>
-        <footer className="site-footer">Made with <span className="heart" aria-label="love">♥</span> by <a href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> · © 2026 imaarat.ai · <a href="#status" onClick={(event) => { event.preventDefault(); setView('status') }}>{t('nav.status')}</a> · <span lang="en"><a href="/changelog/">Changelog</a> · <a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms of Service</a></span></footer>
+        <footer className="site-footer">Made with <span className="heart" aria-label="love">♥</span> by <a href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> · © 2026 imaarat.ai · <a href="#status" onClick={(event) => { event.preventDefault(); setView('status') }}>{t('nav.status')}</a> · <span lang="en">{session?.role === 'operator' && <><a href="#dev" onClick={(event) => { event.preventDefault(); setView('dev') }}>Dev console</a> · </>}<a href="/changelog/">Changelog</a> · <a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms of Service</a></span></footer>
       </main>
     </div>
   )

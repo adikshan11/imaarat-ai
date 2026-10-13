@@ -3,7 +3,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000
 export type Profile = { full_name: string | null; phone: string | null; has_photo: boolean; complete: boolean }
 export type Timing = { now: number; idle_seconds: number; max_seconds: number; expires_at: number }
 export type Session = { role: 'member' | 'reviewer' | 'operator'; github_id: number | null; name: string | null; csrf_token: string; profile: Profile; timing: Timing }
-export type Provider = 'github' | 'google'
+export type Provider = 'github' | 'google' | 'owner'
 export type Providers = Record<Provider, boolean>
 
 async function detail(response: Response) {
@@ -18,7 +18,7 @@ export async function fetchSession(): Promise<Session | null> {
 
 export async function fetchProviders(): Promise<Providers> {
   const response = await fetch(`${API_BASE_URL}/auth/providers`)
-  return response.ok ? response.json() : { github: true, google: false }
+  return response.ok ? response.json() : { github: true, google: false, owner: false }
 }
 
 export async function startSignIn(provider: Provider = 'github'): Promise<void> {

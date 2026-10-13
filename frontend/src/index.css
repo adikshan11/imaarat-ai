@@ -15,9 +15,9 @@
   --surface: rgba(255, 255, 255, 0.78);
   --surface-strong: rgba(255, 255, 255, 0.86);
   --surface-muted: rgba(255, 255, 255, 0.5);
-  --nav-glass: rgba(240, 248, 244, 0.4);
-  --nav-sheen: rgba(255, 255, 255, 0.7);
-  --tab-pill: rgba(255, 255, 255, 0.78);
+  --nav-glass: rgba(240, 248, 244, 0.22);
+  --nav-sheen: rgba(255, 255, 255, 0.85);
+  --tab-pill: rgba(255, 255, 255, 0.56);
   --tab-pill-edge: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 3px rgba(5, 38, 26, 0.12), 0 0 0 0.5px rgba(5, 38, 26, 0.06);
   --tab-lens: rgba(255, 255, 255, 0.16);
   --tab-rim: inset 0 0 0 1px rgba(255, 255, 255, 0.8), inset 0 1.5px 1px rgba(255, 255, 255, 0.95), inset 0 -1px 2px rgba(5, 38, 26, 0.1), 0 6px 18px -6px rgba(5, 38, 26, 0.22);
@@ -74,9 +74,9 @@
   --surface: rgba(26, 40, 35, 0.94);
   --surface-strong: #1f302a;
   --surface-muted: rgba(255, 255, 255, 0.035);
-  --nav-glass: rgba(18, 36, 29, 0.38);
-  --nav-sheen: rgba(255, 255, 255, 0.07);
-  --tab-pill: rgba(110, 231, 183, 0.12);
+  --nav-glass: rgba(18, 36, 29, 0.24);
+  --nav-sheen: rgba(255, 255, 255, 0.2);
+  --tab-pill: rgba(110, 231, 183, 0.16);
   --tab-pill-edge: inset 0 1px 0 rgba(255, 255, 255, 0.07);
   --tab-lens: rgba(255, 255, 255, 0.05);
   --tab-rim: inset 0 0 0 1px rgba(255, 255, 255, 0.3), inset 0 1.5px 1px rgba(255, 255, 255, 0.38), inset 0 -1px 2px rgba(0, 0, 0, 0.25), 0 8px 22px -8px rgba(0, 0, 0, 0.5);
@@ -127,9 +127,9 @@
     --surface: rgba(26, 40, 35, 0.94);
     --surface-strong: #1f302a;
     --surface-muted: rgba(255, 255, 255, 0.035);
-    --nav-glass: rgba(18, 36, 29, 0.38);
-    --nav-sheen: rgba(255, 255, 255, 0.07);
-    --tab-pill: rgba(110, 231, 183, 0.12);
+    --nav-glass: rgba(18, 36, 29, 0.24);
+    --nav-sheen: rgba(255, 255, 255, 0.2);
+    --tab-pill: rgba(110, 231, 183, 0.16);
     --tab-pill-edge: inset 0 1px 0 rgba(255, 255, 255, 0.07);
     --tab-lens: rgba(255, 255, 255, 0.05);
     --tab-rim: inset 0 0 0 1px rgba(255, 255, 255, 0.3), inset 0 1.5px 1px rgba(255, 255, 255, 0.38), inset 0 -1px 2px rgba(0, 0, 0, 0.25), 0 8px 22px -8px rgba(0, 0, 0, 0.5);

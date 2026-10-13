@@ -49,7 +49,8 @@ def configured(provider: str) -> bool:
 
 @router.get("/providers")
 def providers():
-    return JSONResponse({"github": configured("github"), "google": configured("google")}, headers=NO_STORE)
+    google = configured("google")
+    return JSONResponse({"github": configured("github"), "google": google, "owner": google and bool(auth.owner_emails())}, headers=NO_STORE)
 
 
 @router.get("/session")
@@ -179,16 +180,28 @@ def signed_in_redirect(grant: auth.SessionGrant) -> RedirectResponse:
     return response
 
 
-@router.post("/google/start")
-def google_start(request: Request):
-    auth.require_origin(request)
+def google_authorization(scope: str, purpose: str | None) -> JSONResponse:
     client_id, _, callback = oauth_configuration("google")
-    flow = auth.create_oauth(callback)
-    with oauth_client(client_id=client_id, redirect_uri=callback, scope="openid", code_challenge_method="S256", timeout=10, follow_redirects=False, trust_env=False) as client:
+    flow = auth.create_oauth(callback, purpose=purpose)
+    with oauth_client(client_id=client_id, redirect_uri=callback, scope=scope, code_challenge_method="S256", timeout=10, follow_redirects=False, trust_env=False) as client:
         url, _ = client.create_authorization_url("https://accounts.google.com/o/oauth2/v2/auth", state=flow.state, code_verifier=flow.code_verifier, prompt="select_account")
     response = JSONResponse({"authorization_url": url}, headers=NO_STORE)
     response.set_cookie(auth.OAUTH_COOKIE, flow.browser_token, max_age=600, **COOKIE)
     return response
+
+
+@router.post("/google/start")
+def google_start(request: Request):
+    auth.require_origin(request)
+    return google_authorization("openid", None)
+
+
+@router.post("/owner/start")
+def owner_start(request: Request):
+    auth.require_origin(request)
+    if not auth.owner_emails():
+        raise HTTPException(503, "Owner sign-in is not configured on this deployment")
+    return google_authorization("openid email", "owner")
 
 
 def google_identity(transaction: dict, code: str) -> dict:
@@ -206,7 +219,8 @@ def google_identity(transaction: dict, code: str) -> dict:
             trust_env=False,
         ) as client:
             token = client.fetch_token("https://oauth2.googleapis.com/token", code=code, code_verifier=transaction["code_verifier"], grant_type="authorization_code")
-            if not token.get("access_token") or set(str(token.get("scope", "")).split()) != {"openid"}:
+            granted = {"email" if scope.endswith("/userinfo.email") else scope for scope in str(token.get("scope", "")).split()}
+            if not token.get("access_token") or granted != ({"openid", "email"} if transaction.get("purpose") == "owner" else {"openid"}):
                 raise HTTPException(400, "oauth_scope_invalid")
             response = client.get("https://openidconnect.googleapis.com/v1/userinfo")
             response.raise_for_status()
@@ -230,4 +244,8 @@ def google_callback(request: Request):
         raise HTTPException(400, "oauth_issuer_invalid")
     transaction = auth.consume_oauth(params["state"], request.cookies.get(auth.OAUTH_COOKIE, ""))
     identity = google_identity(transaction, params["code"])
+    if transaction.get("purpose") == "owner":
+        if not auth.is_owner(identity):
+            raise HTTPException(403, "This Google account is not the owner of this deployment")
+        return signed_in_redirect(auth.create_google_member(identity.get("sub"), role="operator"))
     return signed_in_redirect(auth.create_google_member(identity.get("sub")))

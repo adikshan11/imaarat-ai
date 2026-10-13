@@ -60,6 +60,7 @@ oauth_transactions = Table(
     Column("callback", String, nullable=False),
     Column("expires_at", BigInteger, nullable=False),
     Column("consumed_at", BigInteger),
+    Column("purpose", String),
 )
 profiles = Table(
     "profiles",
@@ -132,6 +133,9 @@ def engine() -> Engine:
             with current.begin() as conn:
                 conn.execute(text(f"ALTER TABLE users ADD COLUMN{guard} google_id VARCHAR"))
                 conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS users_google_id ON users (google_id)"))
+        if "purpose" not in {column["name"] for column in inspect(current).get_columns("oauth_transactions")}:
+            with current.begin() as conn:
+                conn.execute(text("ALTER TABLE oauth_transactions ADD COLUMN purpose VARCHAR"))
         _ready_engines.add(str(current.url))
     return current
 
@@ -155,6 +159,16 @@ def app_origin() -> str:
 
 def operator_ids() -> set[int]:
     return {int(value) for value in re.findall(r"\d+", os.getenv("OPERATOR_GITHUB_IDS", ""))}
+
+
+def owner_emails() -> set[str]:
+    return {value.lower() for value in re.findall(r"[^\s,;]+@[^\s,;]+", os.getenv("OWNER_EMAILS", ""))}
+
+
+def is_owner(identity: dict) -> bool:
+    email = identity.get("email")
+    verified = identity.get("email_verified") in (True, "true")
+    return verified and isinstance(email, str) and email.lower() in owner_emails()
 
 
 def upsert(conn):
@@ -184,10 +198,10 @@ def create_member(github_id: int, now: int | None = None, name: str | None = Non
     return open_session(users.c.github_id, github_id, role, clock(now), name)
 
 
-def create_google_member(google_id: str, now: int | None = None) -> SessionGrant:
+def create_google_member(google_id: str, now: int | None = None, role: str = "member") -> SessionGrant:
     if not isinstance(google_id, str) or not re.fullmatch(r"[0-9]{1,255}", google_id):
         raise HTTPException(401, "identity_invalid")
-    return open_session(users.c.google_id, google_id, "member", clock(now), None)
+    return open_session(users.c.google_id, google_id, role, clock(now), None)
 
 
 def open_session(column, value, role: str, now: int, name: str | None) -> SessionGrant:
@@ -265,12 +279,12 @@ def require_reviewer(request: Request) -> Principal:
     return principal
 
 
-def require_operator(request: Request, change: bool = True) -> Principal:
+def require_operator(request: Request, change: bool = True, action: str = "manage partner keys") -> Principal:
     principal = resolve_principal(request)
     if change:
         require_csrf(request, principal)
     if principal.role != "operator":
-        raise HTTPException(403, "Only an operator can manage partner keys")
+        raise HTTPException(403, f"Only an operator can {action}")
     return principal
 
 
@@ -279,13 +293,13 @@ def revoke_session(principal: Principal, now: int | None = None) -> None:
         conn.execute(update(sessions).where(sessions.c.id == principal.session_id, sessions.c.owner_id == principal.owner_id).values(revoked_at=clock(now)))
 
 
-def create_oauth(callback: str, now: int | None = None) -> OAuthFlow:
+def create_oauth(callback: str, now: int | None = None, purpose: str | None = None) -> OAuthFlow:
     now = clock(now)
     flow = OAuthFlow(token_urlsafe(32), token_urlsafe(32), token_urlsafe(48), callback)
     with engine().begin() as conn:
         reserve_identity(conn, "oauth", now, 20)
         conn.execute(
-            insert(oauth_transactions).values(state_hash=digest(flow.state), browser_hash=digest(flow.browser_token), code_verifier=flow.code_verifier, callback=callback, expires_at=now + 600)
+            insert(oauth_transactions).values(state_hash=digest(flow.state), browser_hash=digest(flow.browser_token), code_verifier=flow.code_verifier, callback=callback, expires_at=now + 600, purpose=purpose)
         )
     return flow
 

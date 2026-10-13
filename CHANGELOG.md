@@ -2,6 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.56.0] - 2026-10-13
+
+### Added
+- A dev console for the owner: deployment and AI settings, the LangGraph workflow, a retrieval lab that ranks guideline sections by vector, keyword and fused score, recent AI calls, assessment traces and the API surface. It shows no visitor inputs or secrets, and only an operator can open it.
+- "Owner sign-in" on the sign-in page. It asks Google for the email address once, lets in only the addresses in `OWNER_EMAILS`, and stores no email.
+
+### Changed
+- The mobile tab bar is wider, more transparent and has a rainbow glass edge. The pressed tab becomes a lens with a rainbow ring and a magnified icon, and Chrome adds colour fringing to the distortion.
+- A check of all 25 translated files found every key present, in the right script and not left in English. The status page and the legal links stay English on purpose.
+
 ## [2.55.1] - 2026-10-13
 
 ### Changed
