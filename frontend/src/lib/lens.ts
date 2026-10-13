@@ -1,6 +1,7 @@
 const QUIET = '(prefers-reduced-transparency: reduce), (prefers-contrast: more), (forced-colors: active)'
 
-export const lensSupported = /Chrome\/\d/.test(navigator.userAgent) && !window.matchMedia(QUIET).matches
+export const lensAllowed = !window.matchMedia(QUIET).matches
+export const lensSupported = /Chrome\/\d/.test(navigator.userAgent) && lensAllowed
 
 export interface LensShape {
   bevel: number
@@ -9,8 +10,9 @@ export interface LensShape {
   magnify: number
 }
 
-export const BAR_SHAPE: LensShape = { bevel: 20, slab: 26, index: 1.5, magnify: 0 }
-export const BUBBLE_SHAPE: LensShape = { bevel: 22, slab: 36, index: 1.55, magnify: 1.25 }
+export const BAR_SHAPE: LensShape = { bevel: 16, slab: 10, index: 1.5, magnify: 0 }
+export const BUBBLE_SHAPE: LensShape = { bevel: 18, slab: 12, index: 1.55, magnify: 1.15 }
+export const COPY_SHAPE: LensShape = { bevel: 18, slab: 10, index: 1.5, magnify: 0 }
 
 export interface Lens {
   href: string

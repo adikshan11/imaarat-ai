@@ -11,7 +11,7 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 
 ### Changed
 - GitHub sign-in is removed. After signing up you go straight into the app and the account menu holds Sign out; the profile and partner-key settings are for the owner only.
-- The mobile tab bar now follows the shape of a refracting glass bar. At rest it is a translucent bar with a darker selected cell. While you press or slide, the cell grows out of the bar as a lens that refracts and magnifies what is behind it with colour fringing, the bar stretches, and the bar's own tint opens up under the lens. The rainbow edge is gone. Chrome draws the real refraction; other browsers get a blurred lens with magnified icons.
+- The mobile tab bar now follows a refracting glass bar. At rest it is a translucent bar with a slightly darker selected cell. While you press or slide, only the cell changes: it grows out of the bar as a clear lens that magnifies the icons and refracts what is behind it, with colour fringing only at the lens rim. The bar itself stays put, and its tint opens up under the lens. Chrome draws the refraction of the page behind the lens; other browsers still get the magnified icons with the rim refraction.
 - The privacy policy describes email, mobile and Google accounts.
 
 ## [2.56.0] - 2026-10-13
