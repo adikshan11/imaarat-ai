@@ -2,6 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.63.0] - 2026-10-14
+
+### Added
+- Every printed paper form now carries its own serial number and QR code. The Print button asks the server for a fresh serial, valid for 7 days. Reading a photo of the form needs a valid serial, and each serial works once.
+- The photo is checked against the serial before any AI call when the browser can scan the QR code; otherwise the AI reads the printed serial and the server checks it before returning any values.
+- A public status check at `/paper/printouts/{serial}` reports valid, used, expired or unknown, and each visitor can print up to 20 forms a day.
+
+### Changed
+- The fixed footer has a solid background so cards no longer show through it.
+
 ## [2.62.0] - 2026-10-14
 
 ### Changed

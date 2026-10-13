@@ -111,6 +111,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `llm.py`: The AI gateway: every model call goes through here for budgets, retries, the request deadline and tracing. Vendor code lives in app/providers/.
 - `observability.py`: Langfuse tracing: active only when LANGFUSE_PUBLIC_KEY and LANGFUSE_SECRET_KEY are set.
 - `partners.py`: Partner keys for the A2A endpoint: shown once, stored only as SHA-256 hashes, and revocable without a redeploy.
+- `printouts.py`: Single-use, expiring serial numbers and QR codes for printed paper proposal forms.
 - `profile.py`: Underwriter profile: name and mobile number are required before reviewing; the photo is optional and re-encoded.
 - `reports.py`: build_submission_pdf
 - `schemas.py`: redact, PropertySubmission, UnderwritingMemo, VisionObservations, decision_from_score, indicative_product_segment
@@ -180,6 +181,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `test_interop.py`: test_startup_skips_mcp_and_a2a, test_mcp_and_a2a_load_on_first_request, test_a2a_task_follows_the_underwriter_review, test_a2a_needs_a_partner_key
 - `test_llm_settings.py`: fake_client, test_every_stage_thinks_low_and_thinking_is_billed, test_a_busy_model_is_retried_on_the_same_model_and_never_switched, test_failures_are_explained_the_same_way_for_every_provider
 - `test_portfolio.py`: seed, test_portfolio_totals_match_every_submission, test_history_pages_filters_and_sorts_on_the_server, test_hazard_checks_are_counted_live_from_each_pincode
+- `test_printouts.py`: read, allow_reading, test_serial_survives_misreads_and_rejects_typos, test_a_printout_works_once_and_expires, test_reading_needs_a_fresh_printout_and_uses_it_up, test_the_serial_can_be_read_from_the_photo_text, test_printing_is_limited_per_visitor
 - `test_prompt_injection.py`: state, memo, test_an_honest_memo_passes, test_a_memo_that_obeys_an_injection_is_rejected, test_injected_text_stays_data_and_cannot_move_the_score
 - `test_publish_run.py`: lighthouse, test_ci_runs_are_published_and_shown_newest_first, test_app_and_landing_audits_are_kept_apart
 - `test_rag_index.py`: test_guideline_vectors_are_embedded_once_and_reused_after_a_restart, test_hybrid_search, test_reference_notes, test_references_follow_guidelines
@@ -253,7 +255,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `dev.ts`: DevOverview, DevArchitecture, DevRoute, DevAiCall, DevTrace, DevRetrieval, fetchDevOverview, fetchDevArchitecture
 - `maps.ts`: LatLng, AddressPart, GeocodeResult, MapClick, MapInstance, MarkerInstance, MapsApi, MapsLoad
 - `session.ts`: Profile, Timing, Session, Provider, Providers, fetchSession, fetchProviders, startSignIn
-- `underwriting.ts`: fetchOpsSummary, fetchHistoryPage, fetchDashboard, fetchSubmissionDetail, submitUnderwriting, previewUnderwriting, checkHealth, readPaperForm
+- `underwriting.ts`: fetchOpsSummary, fetchHistoryPage, fetchDashboard, fetchSubmissionDetail, submitUnderwriting, previewUnderwriting, checkHealth, issuePrintout
 - `uploads.ts`: ImageKind, UploadLimits, uploadLimits, useUploadLimits, imageProblem
 
 ## frontend/src/components/about

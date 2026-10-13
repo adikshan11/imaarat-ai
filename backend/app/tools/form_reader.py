@@ -49,6 +49,7 @@ Copy only what is written in each box. If a box is blank, crossed out or unreada
 Never infer, estimate or fill a value from context. Write numbers with the digits 0-9 only, converting Indian-script digits, and drop commas and currency signs.
 For yes/no tick boxes return "yes" or "no" from the English word printed with the ticked box, otherwise null.
 For option groups return the English option text printed with the ticked box, exactly one of: {OPTION_TEXT}.
+Also return the serial printed beside the QR code at the top of the page, in the form XXXX-XXXX-XXXX, as the field serial.
 For each field return box_2d as [ymin, xmin, ymax, xmax] normalised to 0-1000 around the handwriting you read, or null when nothing is written."""
 
 
@@ -58,7 +59,7 @@ class FieldReading(BaseModel):
     box_2d: list[int] | None = Field(default=None, description="[ymin, xmin, ymax, xmax] normalised to 0-1000")
 
 
-PaperFormReading = create_model("PaperFormReading", **{name: (FieldReading, ...) for name in FIELDS})
+PaperFormReading = create_model("PaperFormReading", **{name: (FieldReading, ...) for name in [*FIELDS, "serial"]})
 
 
 def digits(text: str) -> str:
@@ -128,6 +129,8 @@ def read_form(image: bytes, mime_type: str) -> dict[str, Any]:
         schema=PaperFormReading,
         system=SYSTEM,
     )
-    checked = validate(json.loads(result["text"]))
+    reading = json.loads(result["text"])
+    checked = validate(reading)
+    checked["serial_read"] = (reading.get("serial") or {}).get("value")
     checked["model"] = result["model"]
     return checked
