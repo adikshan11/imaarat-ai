@@ -76,7 +76,6 @@ def retrieval(cases: list[dict]) -> dict:
         "thresholds": {"hit_rate": 1.0, "recall": mean(row["recall_threshold"] for row in rows if row["recall_threshold"] is not None)},
         "passed": bool(rows) and all(row["hit"] and row["recall"] is not None and row["recall"] >= row["recall_threshold"] for row in rows),
         "rows": rows,
-        "references": reference_retrieval(),
     }
 
 
@@ -232,6 +231,12 @@ def shown(value: float | None, pattern: str) -> str:
     return format(value, pattern) if value is not None else "n/a"
 
 
+def references_line(references: dict | None) -> str:
+    if not references:
+        return "Reference notes: not measured"
+    return f"Reference notes (measured, not gated): {references['cases']} hand-written questions, hit rate at 3 **{shown(references['hit_rate'], '.0%')}**, MRR **{shown(references['mrr'], '.2f')}**"
+
+
 def markdown(report: dict) -> str:
     lines = [
         f"# Evaluation results ({report['generated_at']})",
@@ -256,7 +261,7 @@ def markdown(report: dict) -> str:
                 f"k={data['k']}: hit rate **{shown(data['hit_rate'], '.0%')}**, recall **{shown(data['recall'], '.0%')}**, MRR **{shown(data['mrr'], '.2f')}**",
                 f"Thresholds: hit rate {shown(data['thresholds']['hit_rate'], '.0%')}; recall {shown(data['thresholds']['recall'], '.0%')}; retrieval passed: {data['passed']}",
                 report["metadata"]["retrieval_acceptance"],
-                f"Reference notes (measured, not gated): {data['references']['cases']} hand-written questions, hit rate at 3 **{shown(data['references']['hit_rate'], '.0%')}**, MRR **{shown(data['references']['mrr'], '.2f')}**",
+                references_line(data.get("references")),
                 "",
             ]
         elif name == "prompt_tokens":
@@ -316,6 +321,7 @@ def main() -> int:
                 passed = name == "prompt_tokens" or report[name].get("passed") is True
                 report["sections"][name] = {"status": "completed" if passed or name == "retrieval" else "failed", "reason": "checks_failed" if not passed else "measured", "passed": passed}
                 if name == "retrieval":
+                    report[name]["references"] = reference_retrieval()
                     report["metadata"]["retrieval_thresholds"] = report[name]["thresholds"]
                 if name == "memos":
                     report["metadata"]["memo_generations"] = report[name]["generation_attempts"]

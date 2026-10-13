@@ -175,7 +175,7 @@ The Indian Tsunami Early Warning Centre at INCOIS runs around the clock and cove
 Source: NRSC (ISRO), Landslide Atlas of India (2023, updated 25 August 2023), page 60 and Table 3. https://www.nrsc.gov.in/nrscnew/resources_atlas_landslide.php
 Authority: official
 
-NRSC built a database of landslides mapped from satellite and aerial images for 1998 to 2022 and used it to rank 147 districts in 17 States and 2 Union Territories by their exposure to landslides, measured with socio-economic factors such as total and working population, literacy and number of houses. Rudraprayag in Uttarakhand, with the highest landslide density in India, ranks first, followed by Tehri Garhwal and Thrissur. All 14 districts of Kerala are ranked, Wayanad at 13, and Mumbai Suburban and Mumbai appear at 139 and 140. The atlas uses older district boundaries, so newer districts take their parent's rank. Source: NRSC, ISRO/DOS; non-commercial use with attribution.
+NRSC built a database of landslides mapped from satellite and aerial images for 1998 to 2022 and used it to rank 147 districts in 17 States and 2 Union Territories by their exposure to landslides, measured with socio-economic factors such as total and working population, literacy and number of houses. Rudraprayag in Uttarakhand, with the highest landslide density in India, ranks first, followed by Tehri Garhwal and Thrissur. All 14 districts of Kerala are ranked, Wayanad at 13, and Mumbai Suburban and Mumbai appear at 139 and 140. The atlas uses older district boundaries, so newer districts take their parent's rank. NRSC allows non-commercial use with the attribution NRSC, ISRO/DOS.
 
 ## R26. El Niño summers bring more extreme monsoon rain
 
