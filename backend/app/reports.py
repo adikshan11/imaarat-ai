@@ -148,7 +148,18 @@ def decision_banner(submission: dict[str, Any]) -> Table:
     left = Paragraph(f"<font size='15'><b>{escape(name)}</b></font><br/>{escape(meaning)}", body)
     right = Paragraph(f"<font size='20'><b>{escape(plain(submission.get('risk_score')))}</b></font> / 100<br/>Risk score, higher is riskier", body)
     table = Table([[left, right]], colWidths=[WIDTH * 0.62, WIDTH * 0.38])
-    table.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(tint)), ("BOX", (0, 0), (-1, -1), 0.5, LINE), ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("TOPPADDING", (0, 0), (-1, -1), 9), ("BOTTOMPADDING", (0, 0), (-1, -1), 9), ("LEFTPADDING", (0, 0), (-1, -1), 10)]))
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(tint)),
+                ("BOX", (0, 0), (-1, -1), 0.5, LINE),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("TOPPADDING", (0, 0), (-1, -1), 9),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+                ("LEFTPADDING", (0, 0), (-1, -1), 10),
+            ]
+        )
+    )
     return table
 
 
@@ -165,12 +176,30 @@ def breakdown_table(breakdown: dict[str, Any]) -> Table:
 
 
 def references_table(comps: list[dict[str, Any]]) -> Table:
-    keys = [("property_id", "Property"), ("city", "City"), ("state", "State"), ("construction_type", "Construction"), ("occupancy_type", "Occupancy"), ("cat_zone", "CAT zone"), ("year_built", "Built"), ("tiv", "Value")]
+    keys = [
+        ("property_id", "Property"),
+        ("city", "City"),
+        ("state", "State"),
+        ("construction_type", "Construction"),
+        ("occupancy_type", "Occupancy"),
+        ("cat_zone", "CAT zone"),
+        ("year_built", "Built"),
+        ("tiv", "Value"),
+    ]
     rows = [[para(name, cell_white) for _, name in keys]]
     rows += [[para(inr(comp.get(key)) if key == "tiv" else comp.get(key)) for key, _ in keys] for comp in comps]
     widths = [32 * mm, 22 * mm, 22 * mm, 26 * mm, 24 * mm, 16 * mm, 12 * mm, 24 * mm]
     table = Table(rows, colWidths=widths, repeatRows=1)
-    table.setStyle(TableStyle([("GRID", (0, 0), (-1, -1), 0.25, LINE), ("BACKGROUND", (0, 0), (-1, 0), GREEN), ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f7faf8")]), ("VALIGN", (0, 0), (-1, -1), "TOP")]))
+    table.setStyle(
+        TableStyle(
+            [
+                ("GRID", (0, 0), (-1, -1), 0.25, LINE),
+                ("BACKGROUND", (0, 0), (-1, 0), GREEN),
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f7faf8")]),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ]
+        )
+    )
     return table
 
 
@@ -222,7 +251,11 @@ def build_submission_pdf(submission: dict[str, Any]) -> bytes:
     if memo.get("suggested_next_steps"):
         section(story, "Suggested next steps", memo["suggested_next_steps"])
     elif not memo:
-        section(story, "Suggested next steps", f"The AI summary was not available ({plain(submission.get('ai_memo_reason'))}). The decision above comes from the rules alone. Review the risk flags and the guideline evidence before acting.")
+        section(
+            story,
+            "Suggested next steps",
+            f"The AI summary was not available ({plain(submission.get('ai_memo_reason'))}). The decision above comes from the rules alone. Review the risk flags and the guideline evidence before acting.",
+        )
 
     if features.get("image_status"):
         story.append(Paragraph("Property photo", heading))

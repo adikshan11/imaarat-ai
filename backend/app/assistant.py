@@ -94,7 +94,15 @@ def clean(text: str, limit: int) -> str:
     return re.sub(r"\s+", " ", re.sub(r"[\x00-\x1f\x7f]+", " ", text)).strip()[:limit]
 
 
-def outcome(code: str, reply: str | None = None, page: str | None = None, language: str | None = None, sources: list[dict[str, str]] | None = None, reason: str | None = None, followups: list[str] | None = None) -> dict[str, Any]:
+def outcome(
+    code: str,
+    reply: str | None = None,
+    page: str | None = None,
+    language: str | None = None,
+    sources: list[dict[str, str]] | None = None,
+    reason: str | None = None,
+    followups: list[str] | None = None,
+) -> dict[str, Any]:
     return {"code": code, "reply": reply, "page": page, "language": language, "sources": sources or [], "reason": reason, "followups": followups or []}
 
 
