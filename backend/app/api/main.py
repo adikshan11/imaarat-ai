@@ -124,12 +124,13 @@ class ChatTurn(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=500)
-    language: str = Field(default="en", max_length=5)
+    language: str = Field(default="en", pattern=r"^[a-z]{2,3}$")
     history: list[ChatTurn] = Field(default_factory=list, max_length=12)
 
 
 @app.post("/assistant/chat")
-async def assistant_chat(body: ChatRequest, request: Request) -> dict[str, Any]:
+async def assistant_chat(body: ChatRequest, request: Request, response: Response) -> dict[str, Any]:
+    response.headers["Cache-Control"] = "no-store"
     if config.AI_SIGN_IN_REQUIRED and not await run_in_threadpool(auth.signed_in, request):
         raise HTTPException(status_code=401, detail="Sign in to chat with Saathi")
     address = budget.client_address(request.headers, request.client.host if request.client else None)

@@ -579,5 +579,6 @@
   "saathi.limit": "आजचा चॅट भत्ता वापरला गेला आहे. कृपया उद्या पुन्हा प्रयत्न करा.",
   "saathi.error": "काहीतरी गडबड झाली. कृपया पुन्हा प्रयत्न करा.",
   "saathi.nothing": "मला ते समजले नाही. कृपया पुन्हा प्रयत्न करा.",
-  "saathi.sources": "यावर आधारित"
+  "saathi.sources": "यावर आधारित",
+  "saathi.refused": "I can only help with imaarat.ai and commercial property underwriting."
 }

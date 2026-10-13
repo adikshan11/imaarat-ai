@@ -579,5 +579,6 @@
   "saathi.limit": "আজকের চ্যাট ভাতা শেষ হয়ে গেছে। অনুগ্রহ করে আগামীকাল আবার চেষ্টা করুন।",
   "saathi.error": "কিছু ভুল হয়েছে। আবার চেষ্টা করুন।",
   "saathi.nothing": "আমি সেটা ধরতে পারিনি। আবার চেষ্টা করুন।",
-  "saathi.sources": "এর উপর ভিত্তি করে"
+  "saathi.sources": "এর উপর ভিত্তি করে",
+  "saathi.refused": "I can only help with imaarat.ai and commercial property underwriting."
 }
