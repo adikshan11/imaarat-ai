@@ -28,6 +28,9 @@ from evals.reference_cases import REFERENCE_CASES
 
 RESULTS = Path(__file__).parent / "results"
 K = 4
+RETRY_SECONDS = 30
+EVAL_TIMEOUT_MS = 60_000
+BUSY_MARKERS = ("429", "500", "502", "503", "504", "UNAVAILABLE", "DEADLINE_EXCEEDED", "Timeout")
 
 
 def mean(values) -> float | None:
@@ -37,6 +40,15 @@ def mean(values) -> float | None:
 
 def pause() -> None:
     time.sleep(float(os.getenv("EVAL_DELAY_S", "7")))
+
+
+def search(query: str, **options) -> list[dict]:
+    """The app's retrieval, asked once more after a pause when the provider gave no answer."""
+    hits = retrieve(query, **options)
+    if not hits:
+        pause()
+        hits = retrieve(query, **options)
+    return hits
 
 
 def deterministic(cases: list[dict]) -> dict:
@@ -51,7 +63,7 @@ def deterministic(cases: list[dict]) -> dict:
 def retrieval(cases: list[dict]) -> dict:
     rows = []
     for case in cases:
-        hits = retrieve(retrieval_query(case["facts"], risk_score_calculator(case["facts"])["flags"]), k=K)
+        hits = search(retrieval_query(case["facts"], risk_score_calculator(case["facts"])["flags"]), k=K)
         ranked = [hit["id"] for hit in hits]
         relevant = set(case["relevant_guidelines"])
         first = next((rank for rank, section in enumerate(ranked, start=1) if section in relevant), None)
@@ -83,7 +95,7 @@ def reference_retrieval() -> dict:
     """Measured, not gated: does the right reference note come back in the top 3 for each hand-written question."""
     rows = []
     for question, expected in REFERENCE_CASES:
-        ranked = [hit["id"] for hit in retrieve(question, k=1, references=3) if hit["id"].startswith("R")]
+        ranked = [hit["id"] for hit in search(question, k=1, references=3) if hit["id"].startswith("R")]
         rank = ranked.index(expected) + 1 if expected in ranked else None
         rows.append({"question": question, "expected": expected, "retrieved": ranked, "hit": rank is not None, "reciprocal_rank": 1 / rank if rank else 0.0})
         pause()
@@ -92,7 +104,7 @@ def reference_retrieval() -> dict:
 
 def memo_state(case: dict) -> dict:
     scored = risk_score_calculator(case["facts"])
-    hits = retrieve(retrieval_query(case["facts"], scored["flags"]), k=K, references=2)
+    hits = search(retrieval_query(case["facts"], scored["flags"]), k=K, references=2)
     return {
         "property_id": case["facts"]["property_id"],
         "raw_input": case["facts"],
@@ -127,13 +139,17 @@ def judge(metric, state: dict, memo: dict) -> dict:
 
 
 def generate_once(state: dict) -> dict:
-    """Generate one memo with a single attempt, so a bounded evaluation never retries."""
-    previous = config.AI_ATTEMPTS, config.AI_FALLBACK_MODEL
+    """Generate one memo without the app's fallback model; a busy or timed-out model gets one slower retry after a pause."""
+    previous = config.AI_ATTEMPTS, config.AI_FALLBACK_MODEL, config.AI_TIMEOUT_MS
     try:
-        config.AI_ATTEMPTS, config.AI_FALLBACK_MODEL = 1, ""
-        return generate_memo(state)
+        config.AI_ATTEMPTS, config.AI_FALLBACK_MODEL, config.AI_TIMEOUT_MS = 1, "", EVAL_TIMEOUT_MS
+        memo = generate_memo(state)
+        if not memo and any(marker in state.get("memo_error", "") for marker in BUSY_MARKERS):
+            time.sleep(RETRY_SECONDS)
+            memo = generate_memo(state)
+        return memo
     finally:
-        config.AI_ATTEMPTS, config.AI_FALLBACK_MODEL = previous
+        config.AI_ATTEMPTS, config.AI_FALLBACK_MODEL, config.AI_TIMEOUT_MS = previous
 
 
 def memos(cases: list[dict]) -> dict:

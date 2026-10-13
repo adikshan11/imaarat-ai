@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { version } from '../../package.json'
 import { LANGUAGES } from '../i18n/languages.ts'
 import { DEMO, Footer, Header, REPO, SkipLink } from './site.tsx'
-import { stack, type Tool } from './stack.ts'
+import { aiStack, deliveryStack, type Tool } from './stack.ts'
 
 
 const photo = (name: string, widths: number[]) => ({
@@ -392,25 +392,40 @@ function Faq() {
 }
 
 function Logo({ tool }: { tool: Tool }) {
-  if (tool.src) return <img src={tool.src} alt="" width={tool.wide ? 64 : 32} height="32" loading="lazy" className={`h-8 ${tool.wide ? 'w-16' : 'w-8'} object-contain`} />
-  return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-8 w-8" fill={tool.color}><path d={tool.path} /></svg>
+  if (tool.src) return <img src={tool.src} alt="" width={tool.wide ? 48 : 24} height="24" loading="lazy" className={`h-6 ${tool.wide ? 'w-12' : 'w-6'} object-contain`} />
+  if (tool.path) return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6" fill={tool.color}><path d={tool.path} /></svg>
+  return <span aria-hidden="true" className="grid h-6 w-6 place-items-center rounded-full bg-forest-900 text-[0.65rem] font-bold text-white">{tool.name.slice(0, 2)}</span>
 }
 
-function BuiltWith() {
+function StackRow({ tools, reverse = false }: { tools: Tool[]; reverse?: boolean }) {
   return (
-    <section aria-labelledby="built-title" className="border-t border-forest-900/10 bg-white py-8">
-      <div className="shell flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
-        <h2 id="built-title" className="shrink-0 text-xs font-semibold uppercase tracking-[0.16em] text-forest-700">Built with</h2>
-        <ul className="flex flex-wrap items-center gap-x-6 gap-y-3">
-          {stack.map((tool) => (
+    <div className={reverse ? 'marquee marquee-reverse' : 'marquee'}>
+      {[0, 1].map((copy) => (
+        <ul key={copy} className="marquee-group" aria-hidden={copy === 1 ? 'true' : undefined}>
+          {tools.map((tool) => (
             <li key={tool.name}>
-              <a href={tool.href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-lg px-2 py-1 text-base font-semibold text-ink opacity-70 grayscale transition duration-300 hover:opacity-100 hover:grayscale-0 focus-visible:opacity-100 focus-visible:grayscale-0">
+              <a href={tool.href} target="_blank" rel="noopener noreferrer" tabIndex={copy === 1 ? -1 : undefined} className="flex shrink-0 items-center gap-3 rounded-full border border-forest-900/10 bg-sand-50 py-2 pr-5 pl-3 text-ink transition hover:border-forest-700/40 hover:bg-white focus-visible:border-forest-700">
                 <Logo tool={tool} />
-                {tool.name}
+                <span className="flex flex-col leading-tight">
+                  <span className="text-sm font-semibold">{tool.name}</span>
+                  <span className="text-xs text-muted">{tool.role}</span>
+                </span>
               </a>
             </li>
           ))}
         </ul>
+      ))}
+    </div>
+  )
+}
+
+function BuiltWith() {
+  return (
+    <section aria-labelledby="built-title" className="border-t border-forest-900/10 bg-white py-10">
+      <div className="shell flex flex-col gap-5">
+        <h2 id="built-title" className="text-xs font-semibold uppercase tracking-[0.16em] text-forest-700">Built with</h2>
+        <StackRow tools={aiStack} />
+        <StackRow tools={deliveryStack} reverse />
       </div>
     </section>
   )

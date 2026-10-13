@@ -26,7 +26,7 @@ def report_metadata() -> dict:
         "max_memo_cases": 2,
         "max_memo_generations": 2,
         "memo_denominator": "Planned case-format slots include preparation and judge setup failures; generation attempts count calls begun, including failed generation calls.",
-        "generation_budget_note": "At most two memo generation requests, in TOON (the production prompt format), with generation retries and fallback disabled for this bounded run. Embedding, token counting and judge subcalls are additional requests.",
+        "generation_budget_note": "At most two memo generations, in TOON (the production prompt format), with the app's fallback model disabled. A memo that fails because the model is busy or timed out is retried once after 30 seconds with a 60-second call timeout. Embedding, token counting and judge subcalls are additional requests.",
     }
 
 

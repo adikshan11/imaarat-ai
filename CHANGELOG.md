@@ -2,6 +2,17 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.54.0] - 2026-10-13
+
+### Added
+- The "Built with" strip shows the whole stack in two endless rows, each tool with its role: Gemini, LangGraph, Qdrant, MCP, A2A, Langfuse, DeepEval, Hugging Face, Sarvam AI, Python, FastAPI, Pydantic, SQLAlchemy, PostgreSQL (Neon), React, TypeScript, Vite, Tailwind CSS, dbt, DuckDB, Docker, GitHub Actions, Playwright, Lighthouse and Vercel. It pauses on hover and stops moving for people who prefer reduced motion.
+- Five reference notes read from the official documents: the insured events and exclusions in IRDAI's Sookshma policy, IS 1893 seismic zone factors, IS 875 wind speeds and the coastal cyclone factor, the National Building Code fire-fighting table, and the MoES climate assessment.
+- A CI job that downloads public PDFs and extracts their text, so sources are read from the publisher's own file.
+
+### Changed
+- The IRDAI notes now cite IRDAI's own guideline PDF instead of a trade-site copy.
+- In the eval only, a search that gets no answer is retried once, and a summary that fails because the model is busy or timed out is retried once after 30 seconds with a 60-second timeout.
+
 ## [2.53.0] - 2026-10-13
 
 ### Added

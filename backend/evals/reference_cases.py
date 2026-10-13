@@ -45,4 +45,9 @@ REFERENCE_CASES = [
     ("What economic loss did Cyclone Biparjoy cause in Kutch in 2023?", "R39"),
     ("What did IRDAI tell insurers to do after the 2024 Wayanad landslides?", "R40"),
     ("How much of the Cyclone Amphan claims was actually paid?", "R41"),
+    ("Is subsidence caused by coastal erosion covered under the Sookshma policy, and is a building unoccupied for 40 days covered?", "R42"),
+    ("What is the seismic zone factor Z for zone IV under IS 1893?", "R43"),
+    ("Which fire-fighting installations does the National Building Code require for a building above 15 m in height?", "R44"),
+    ("How often are extreme rainfall days above 150 mm occurring over central India now compared with 1950?", "R45"),
+    ("What design wind speed and cyclone importance factor apply to an industrial building near the coast in Chennai?", "R46"),
 ]
