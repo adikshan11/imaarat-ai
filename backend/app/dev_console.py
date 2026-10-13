@@ -8,7 +8,6 @@ import time
 from typing import Any
 
 from fastapi import FastAPI
-from fastapi.routing import APIRoute
 from sqlalchemy import select
 
 from app import __version__, budget, config, llm, telemetry
@@ -79,7 +78,7 @@ def architecture() -> dict[str, Any]:
 
 
 def routes(app: FastAPI) -> list[dict[str, str]]:
-    rows = [{"method": method, "path": route.path, "name": route.name} for route in app.routes if isinstance(route, APIRoute) for method in sorted(route.methods or [])]
+    rows = [{"method": method.upper(), "path": path, "name": operation.get("summary", "")} for path, operations in app.openapi()["paths"].items() for method, operation in operations.items()]
     return sorted(rows, key=lambda row: (row["path"], row["method"]))
 
 
@@ -107,11 +106,15 @@ def traces(limit: int = 12) -> list[dict[str, Any]]:
     telemetry.flush()
     with telemetry.engine().connect() as connection:
         recent = connection.execute(
-            select(telemetry.traces.c.trace_id, telemetry.traces.c.created_at, telemetry.traces.c.total_ms, telemetry.traces.c.memo_status, telemetry.traces.c.decision).order_by(telemetry.traces.c.id.desc()).limit(limit)
+            select(telemetry.traces.c.trace_id, telemetry.traces.c.created_at, telemetry.traces.c.total_ms, telemetry.traces.c.memo_status, telemetry.traces.c.decision)
+            .order_by(telemetry.traces.c.id.desc())
+            .limit(limit)
         ).all()
         span_rows = (
             connection.execute(
-                select(telemetry.spans.c.trace_id, telemetry.spans.c.name, telemetry.spans.c.start_ms, telemetry.spans.c.duration_ms, telemetry.spans.c.status).where(telemetry.spans.c.trace_id.in_([row.trace_id for row in recent])).order_by(telemetry.spans.c.id)
+                select(telemetry.spans.c.trace_id, telemetry.spans.c.name, telemetry.spans.c.start_ms, telemetry.spans.c.duration_ms, telemetry.spans.c.status)
+                .where(telemetry.spans.c.trace_id.in_([row.trace_id for row in recent]))
+                .order_by(telemetry.spans.c.id)
             ).all()
             if recent
             else []
