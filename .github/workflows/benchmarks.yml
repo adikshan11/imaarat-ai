@@ -17,7 +17,7 @@ on:
       suite:
         description: What to run
         type: choice
-        options: [evals, lighthouse, load, vision, translate, browsers, screenshots]
+        options: [evals, lighthouse, load, vision, translate, browsers, screenshots, hazard, hazard-text]
         default: evals
       memo_cases:
         description: "Evals: AI risk summaries to generate and judge"
@@ -110,6 +110,35 @@ jobs:
         with:
           name: landing-screenshots
           path: screenshots/
+          if-no-files-found: error
+
+  hazard:
+    name: Hazard data
+    if: github.event_name == 'workflow_dispatch' && startsWith(inputs.suite, 'hazard')
+    runs-on: ubuntu-26.04
+    timeout-minutes: 40
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Install the hazard pipeline
+        run: pip install -r pipeline/hazard/requirements.txt && mkdir -p hazard_out
+      - name: Dump the landslide atlas text
+        if: inputs.suite == 'hazard-text'
+        run: python pipeline/hazard/build_hazard.py --raw-dir pipeline/hazard/raw --dump-landslide hazard_out/landslide_atlas.txt
+      - name: Rebuild the PIN code hazard table
+        if: inputs.suite == 'hazard'
+        run: python pipeline/hazard/build_hazard.py --raw-dir pipeline/hazard/raw --out-json hazard_out/pincode_hazard.json --out-csv hazard_out/pincode_hazard.csv | tee hazard_out/build.log
+      - name: Upload the result
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: ${{ inputs.suite }}
+          path: hazard_out/
           if-no-files-found: error
 
   evals:
