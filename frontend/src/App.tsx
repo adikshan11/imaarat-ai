@@ -15,6 +15,7 @@ const StatusPage = lazy(() => import('@/components/status/StatusPage'))
 const SignIn = lazy(() => import('@/components/auth/SignIn'))
 const AccountPage = lazy(() => import('@/components/account/AccountPage'))
 const DevPage = lazy(() => import('@/components/dev/DevPage'))
+const Saathi = lazy(() => import('@/components/assistant/Saathi'))
 import { useRiskContext } from '@/context/RiskContext'
 import { RiskProvider } from '@/context/RiskProvider'
 import { useSession } from '@/context/Session'
@@ -117,6 +118,7 @@ function Application() {
         </Suspense>
         <footer className="site-footer">Made with <span className="heart" aria-label="love">♥</span> by <a href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> <SocialLinks /> · © 2026 imaarat.ai · <a href="#status" onClick={(event) => { event.preventDefault(); setView('status') }}>{t('nav.status')}</a> · <span lang="en">{session?.role === 'operator' && <><a href="#dev" onClick={(event) => { event.preventDefault(); setView('dev') }}>Dev console</a> · </>}<a href="/changelog/">Changelog</a> · <a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms of Service</a></span></footer>
       </main>
+      <Suspense fallback={null}><Saathi onOpen={(page) => navigate(page)} /></Suspense>
     </div>
   )
 }

@@ -79,9 +79,12 @@ def chat(message: str, language: str, history: list[dict[str, str]], address: st
     system = SYSTEM.format(language=LANGUAGES.get(language, "English"), codes=", ".join(LANGUAGES))
     try:
         result = llm.generate("chat", contents, schema=Reply, system=system)
+        answer = Reply.model_validate_json(result["text"])
     except budget.BudgetExceeded:
         return {"code": "limit", "reply": None, "page": None, "language": None, "sources": []}
-    answer = Reply.model_validate_json(result["text"])
+    except Exception as error:
+        print(f"[assistant] status=failed reason={type(error).__name__}")
+        return {"code": "offline", "reply": None, "page": None, "language": None, "sources": []}
     return {
         "code": "ok",
         "reply": answer.reply.strip(),
