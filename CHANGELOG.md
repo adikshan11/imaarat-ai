@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.58.1] - 2026-10-13
+
+### Fixed
+- Saathi says why it could not answer (the kind of failure, never the question) and has more room for its replies, so longer answers in Indian scripts are not cut off.
+
 ## [2.58.0] - 2026-10-13
 
 ### Added
