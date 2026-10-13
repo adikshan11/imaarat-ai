@@ -13,9 +13,10 @@ export interface ChatReply {
   page: ChatPage | null
   language: string | null
   sources: Array<{ id: string; title: string }>
+  followups: string[]
 }
 
-const NONE: Omit<ChatReply, 'code'> = { reply: null, page: null, language: null, sources: [] }
+const NONE: Omit<ChatReply, 'code'> = { reply: null, page: null, language: null, sources: [], followups: [] }
 
 export async function askSaathi(message: string, language: string, history: ChatTurn[]): Promise<ChatReply> {
   const response = await fetch(`${API_BASE_URL}/assistant/chat`, {

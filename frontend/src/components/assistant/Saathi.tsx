@@ -9,6 +9,7 @@ import './Saathi.css'
 interface Message extends ChatTurn {
   id: number
   sources?: Array<{ id: string; title: string }>
+  followups?: string[]
 }
 
 const GREETED = 'imaarat.saathi.greeted'
@@ -25,6 +26,7 @@ export default function Saathi({ onOpen }: { onOpen: (page: ChatPage) => void })
   const [reading, setReading] = useState(false)
   const [greeting, setGreeting] = useState(false)
   const log = useRef<HTMLDivElement>(null)
+  const launch = useRef<HTMLDivElement>(null)
   const field = useRef<HTMLInputElement>(null)
   const recognition = useRef<{ stop(): void } | null>(null)
   const counter = useRef(0)
@@ -35,6 +37,24 @@ export default function Saathi({ onOpen }: { onOpen: (page: ChatPage) => void })
     const hide = window.setTimeout(() => { setGreeting(false); sessionStorage.setItem(GREETED, '1') }, 9000)
     return () => { window.clearTimeout(show); window.clearTimeout(hide) }
   }, [])
+
+  useEffect(() => {
+    if (open) return
+    const place = () => {
+      const node = launch.current
+      const sidebar = document.querySelector('.sidebar')
+      const footer = document.querySelector('.sidebar-footer')
+      if (!node) return
+      if (!sidebar || !footer || getComputedStyle(sidebar).display === 'none') node.style.removeProperty('--saathi-bottom')
+      else node.style.setProperty('--saathi-bottom', `${Math.round(window.innerHeight - footer.getBoundingClientRect().top + 16)}px`)
+    }
+    place()
+    const observer = new ResizeObserver(place)
+    const footer = document.querySelector('.sidebar-footer')
+    if (footer) observer.observe(footer)
+    window.addEventListener('resize', place)
+    return () => { observer.disconnect(); window.removeEventListener('resize', place) }
+  }, [open])
 
   useEffect(() => { log.current?.scrollTo({ top: log.current.scrollHeight }) }, [messages, busy])
 
@@ -74,7 +94,7 @@ export default function Saathi({ onOpen }: { onOpen: (page: ChatPage) => void })
     try {
       const result = await askSaathi(text, language.code, history)
       if (result.code === 'ok' && result.reply) {
-        push({ role: 'assistant', text: result.reply, sources: result.sources })
+        push({ role: 'assistant', text: result.reply, sources: result.sources, followups: result.followups })
         if (spoken || reading) speak(result.reply, result.language ?? language.code)
         if (result.language) setLanguage(result.language)
         if (result.page) {
@@ -117,7 +137,7 @@ export default function Saathi({ onOpen }: { onOpen: (page: ChatPage) => void })
   return (
     <>
       {!open && (
-        <div className="saathi-launch">
+        <div className="saathi-launch" ref={launch}>
           {greeting && <button type="button" className="saathi-greeting" onClick={() => { setGreeting(false); setOpen(true) }}>{t('saathi.greeting')}</button>}
           <button type="button" className="saathi-fab" aria-label={t('saathi.open')} onClick={() => { setGreeting(false); sessionStorage.setItem(GREETED, '1'); setOpen(true) }}>
             <Mascot size={52} />
@@ -130,7 +150,7 @@ export default function Saathi({ onOpen }: { onOpen: (page: ChatPage) => void })
             <span className="saathi-avatar"><Mascot size={40} talking={busy} /></span>
             <div className="saathi-title"><strong>Saathi</strong><span>{t('saathi.tagline')}</span></div>
             {speakSupported && <button type="button" className="saathi-icon" aria-pressed={reading} aria-label={t('saathi.speak')} title={t('saathi.speak')} onClick={toggleReading}><Icon name="speaker" size={18} /></button>}
-            <button type="button" className="saathi-icon" aria-label={t('saathi.close')} title={t('saathi.close')} onClick={close}><Icon name="close" size={18} /></button>
+            <button type="button" className="saathi-icon" aria-label={t('saathi.close')} title={t('saathi.close')} onClick={close}><Icon name="chevron-down" size={20} /></button>
           </header>
           <div className="saathi-log" ref={log} role="log" aria-live="polite">
             {messages.length === 0 && (
@@ -145,6 +165,9 @@ export default function Saathi({ onOpen }: { onOpen: (page: ChatPage) => void })
                 {message.sources && message.sources.length > 0 && <small>{t('saathi.sources')}: {message.sources.map((source) => source.title).join(', ')}</small>}
               </div>
             ))}
+            {!busy && messages.at(-1)?.role === 'assistant' && (messages.at(-1)?.followups?.length ?? 0) > 0 && (
+              <div className="saathi-chips saathi-next">{messages.at(-1)?.followups?.map((question) => <button type="button" key={question} onClick={() => { void send(question) }}>{question}</button>)}</div>
+            )}
             {busy && <div className="saathi-turn saathi-assistant saathi-typing" role="status" aria-label={t('saathi.thinking')}><i /><i /><i /></div>}
           </div>
           <form className="saathi-form" onSubmit={(event) => { event.preventDefault(); void send(input) }}>
