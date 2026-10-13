@@ -99,6 +99,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 ## backend/app
 
 - `__init__.py`: Imaarat underwriting package.
+- `assistant.py`: Saathi: a guideline-grounded chat assistant that can also open app pages.
 - `auth.py`: Sign-in with Google, email or mobile number: hashed opaque sessions, session-bound CSRF tokens and single-use PKCE state, stored in the app database.
 - `budget.py`: Daily AI budget: per-visitor and global admissions plus every Gemini call, reserved atomically before use.
 - `config.py`

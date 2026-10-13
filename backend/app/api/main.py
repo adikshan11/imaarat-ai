@@ -12,12 +12,12 @@ from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFi
 from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from starlette.datastructures import URLPath
 from starlette.routing import BaseRoute, Match, NoMatchFound
 from starlette.types import Receive, Scope, Send
 
-from app import __version__, auth, budget, config, images, llm, telemetry
+from app import __version__, assistant, auth, budget, config, images, llm, telemetry
 from app.api.auth_routes import router as auth_router
 from app.api.dev_routes import router as dev_router
 from app.config import AI_API_KEY, DB_PATH, QDRANT_URL
