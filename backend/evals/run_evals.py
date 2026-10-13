@@ -139,17 +139,17 @@ def judge(metric, state: dict, memo: dict) -> dict:
 
 
 def generate_once(state: dict) -> dict:
-    """Generate one memo without the app's fallback model; a busy or timed-out model gets one slower retry after a pause."""
-    previous = config.AI_ATTEMPTS, config.AI_FALLBACK_MODEL, config.AI_TIMEOUT_MS
+    """Generate one memo through the app's main-then-fallback model path; a busy or timed-out call gets one slower retry after a pause."""
+    previous = config.AI_ATTEMPTS, config.AI_TIMEOUT_MS
     try:
-        config.AI_ATTEMPTS, config.AI_FALLBACK_MODEL, config.AI_TIMEOUT_MS = 1, "", EVAL_TIMEOUT_MS
+        config.AI_ATTEMPTS, config.AI_TIMEOUT_MS = 1, EVAL_TIMEOUT_MS
         memo = generate_memo(state)
         if not memo and any(marker in state.get("memo_error", "") for marker in BUSY_MARKERS):
             time.sleep(RETRY_SECONDS)
             memo = generate_memo(state)
         return memo
     finally:
-        config.AI_ATTEMPTS, config.AI_FALLBACK_MODEL, config.AI_TIMEOUT_MS = previous
+        config.AI_ATTEMPTS, config.AI_TIMEOUT_MS = previous
 
 
 def memos(cases: list[dict]) -> dict:
