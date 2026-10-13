@@ -20,9 +20,9 @@ def store(tmp_path, monkeypatch):
 
 
 def reply(text="Opening it.", page="none", language="none", seen=None):
-    def generate(name, contents, schema=None, system=None, max_output_tokens=None):
+    def generate(name, contents, schema=None, system=None, max_output_tokens=None, model=None):
         if seen is not None:
-            seen.append((contents, max_output_tokens))
+            seen.append((contents, max_output_tokens, model))
         return {"text": json.dumps({"reply": text, "page": page, "language": language})}
 
     return generate
@@ -86,8 +86,16 @@ def test_history_is_trimmed_before_it_reaches_the_model(store, monkeypatch):
     monkeypatch.setattr(llm, "generate", reply(seen=seen))
     history = [{"role": "assistant", "text": "x" * 900}] * 8
     assistant.chat("and then?", "en", history, "1.2.3.4")
-    contents, tokens = seen[0]
-    assert contents.count("Saathi:") == 4 and "x" * 301 not in contents and tokens == config.AI_CHAT_OUTPUT_TOKENS
+    contents, tokens, model = seen[0]
+    assert contents.count("Saathi:") == 4 and "x" * 301 not in contents and tokens == config.AI_CHAT_OUTPUT_TOKENS and model is None
+
+
+def test_chat_uses_its_own_model_when_set(store, monkeypatch):
+    seen = []
+    monkeypatch.setattr(llm, "generate", reply(seen=seen))
+    monkeypatch.setattr(config, "AI_CHAT_MODEL", "lite-model")
+    assistant.chat("hello there", "en", [], "1.2.3.4")
+    assert seen[0][2] == "lite-model"
 
 
 def test_repeated_failures_pause_the_model(store, monkeypatch):

@@ -157,12 +157,12 @@ def chat(message: str, language: str, history: list[dict[str, str]], address: st
     system = SYSTEM.format(language=LANGUAGES[language], codes=", ".join(LANGUAGES))
     token = llm.deadline.set(time.perf_counter() + config.AI_CHAT_SECONDS)
     try:
-        generated = llm.generate("chat", contents, schema=Reply, system=system, max_output_tokens=config.AI_CHAT_OUTPUT_TOKENS)
+        generated = llm.generate("chat", contents, schema=Reply, system=system, max_output_tokens=config.AI_CHAT_OUTPUT_TOKENS, model=config.AI_CHAT_MODEL or None)
         answer = Reply.model_validate_json(generated["text"])
     except budget.BudgetExceeded:
         return outcome("limit")
     except Exception as error:
-        reason = f"{type(error).__name__} {getattr(error, 'code', '')}".strip()
+        reason = f"{type(error).__name__} {getattr(error, 'code', '')}".strip() + (" daily" if llm.daily_quota(error) else "")
         print(f"[assistant] status=failed reason={reason}")
         record_failure()
         return outcome("offline", reason=reason)
