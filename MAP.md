@@ -386,5 +386,5 @@ One line per tracked source file: its docstring, exported names or title. Regene
 
 ## pipeline/hazard
 
-- `build_hazard.py`: Build the India pincode hazard table (seismic zone, flood share, IMD cyclone grade) from open government data.
+- `build_hazard.py`: Build the India pincode hazard table (seismic zone, flood share, IMD cyclone grade, NRSC landslide rank) from open government data.
 - `requirements.txt`

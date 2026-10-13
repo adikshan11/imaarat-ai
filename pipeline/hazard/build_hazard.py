@@ -1,4 +1,4 @@
-"""Build the India pincode hazard table (seismic zone, flood share, IMD cyclone grade) from open government data."""
+"""Build the India pincode hazard table (seismic zone, flood share, IMD cyclone grade, NRSC landslide rank) from open government data."""
 
 from __future__ import annotations
 
@@ -97,6 +97,28 @@ SOURCES = {
 ZONES = {"Seismic Zone-II": 2, "Seismic Zone-III": 3, "Seismic Zone-IV": 4, "Seismic Zone-V": 5}
 ROMAN = {2: "II", 3: "III", 4: "IV", 5: "V"}
 IMD_GRADE_COUNTS = {"P1": 12, "P2": 25, "P3": 48, "P4": 15}
+LANDSLIDE_DISTRICTS = 147
+LANDSLIDE_STATES = [
+    "Uttaranchal",
+    "Kerala",
+    "J&K",
+    "J&k",
+    "Sikkim",
+    "Manipur",
+    "Karnataka",
+    "Karnatka",
+    "Assam",
+    "Himachal Pradesh",
+    "Meghalaya",
+    "West Bengal",
+    "Tamil Nadu",
+    "Mizoram",
+    "Arunachal Pradesh",
+    "Tripura",
+    "Maharashtra",
+    "Nagaland",
+    "Goa",
+]
 TOWN_RADIUS_KM = 10.0
 CITY_LAYERS = {
     "Greater Chennai Corporation": ("Chennai", ["chennai_inundation", "chennai_2015"]),
@@ -177,6 +199,26 @@ def cyclone_grades(pdf: Path, crosswalk: Path) -> dict[str, tuple[str, str]]:
     return grades
 
 
+def landslide_ranks(pdf: Path, crosswalk: Path) -> dict[tuple[str, str], tuple[int, str]]:
+    """District rank (1 = most exposed of 147) from Table 3 of NRSC's Landslide Atlas, keyed by (district, state) in the district file."""
+    text = "\n".join(page.extract_text() for page in PdfReader(pdf).pages[74:76])
+    states = "|".join(re.escape(state) for state in sorted(LANDSLIDE_STATES, key=len, reverse=True))
+    rows = {int(match.group(1)): (match.group(2).strip(), match.group(3)) for match in re.finditer(rf"^(\d{{1,3}}) (.+?) ({states})\s*$", text, flags=re.MULTILINE)}
+    if sorted(rows) != list(range(1, LANDSLIDE_DISTRICTS + 1)):
+        raise ValueError(f"NRSC table parsed to {len(rows)} ranks, expected 1 to {LANDSLIDE_DISTRICTS}")
+    mapping = {(row["atlas_district"], row["atlas_state"]): row for row in csv.DictReader(crosswalk.open(encoding="utf-8"))}
+    unmapped = [row for row in rows.values() if row not in mapping]
+    if unmapped:
+        raise ValueError(f"NRSC districts missing from the crosswalk: {unmapped}")
+    ranks: dict[tuple[str, str], tuple[int, str]] = {}
+    for rank, row in rows.items():
+        entry = mapping[row]
+        note = f"NRSC lists {row[0]}" if entry["note"] == "same" else f"NRSC lists {row[0]} ({entry['note']})"
+        for district in entry["lgd_districts"].split(";"):
+            ranks[(district, entry["lgd_state"].lower())] = (rank, note)
+    return ranks
+
+
 def kml_points(path: Path) -> np.ndarray:
     text = path.read_text(encoding="utf-8")
     coordinates = re.findall(r"<Point>\s*<coordinates>\s*([-\d.]+),([-\d.]+)", text)
@@ -214,6 +256,11 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
     missing = [name for name in grades if names[name] != 1]
     if missing:
         raise ValueError(f"crosswalk targets not found exactly once in the district file: {missing}")
+    ranks = landslide_ranks(fetch("landslide", raw_dir), HERE / "nrsc_landslide_crosswalk.csv")
+    places = Counter(zip(dist_cols["dtname"], [state.lower() for state in dist_cols["stname"]], strict=True))
+    absent = [place for place in ranks if places[place] != 1]
+    if absent:
+        raise ValueError(f"NRSC crosswalk targets not found exactly once in the district file: {absent}")
 
     count = len(pins)
     points = shapely.point_on_surface(pins)
@@ -264,6 +311,7 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
         touched = [level for level in range(2, 6) if share[i, level] > 0.01]
         dominant = int(np.argmax(share[i])) if share[i].max() > 0 else None
         grade, grade_note = grades.get(district, (None, None)) if district else (None, None)
+        rank, rank_note = ranks.get((district, dist_cols["stname"][d].lower()), (None, None)) if district else (None, None)
         map_zone = ROMAN.get(dominant)
         records.append(
             {
@@ -280,6 +328,8 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
                 "urban_flood_source": city_source[i],
                 "cyclone_grade": grade,
                 "cyclone_note": grade_note,
+                "landslide_rank": rank,
+                "landslide_note": rank_note,
             }
         )
 
@@ -300,6 +350,8 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
         "urban_flood_source",
         "cyclone_grade",
         "cyclone_note",
+        "landslide_rank",
+        "landslide_note",
     ]
     payload = {
         "built_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -315,6 +367,7 @@ def build(raw_dir: Path, out_json: Path, out_csv: Path) -> None:
     print("towns skipped:", skipped)
     print("seismic zone", Counter(r["seismic_zone"] for r in records))
     print("cyclone graded pincodes", Counter(r["cyclone_grade"] for r in records))
+    print("landslide ranked pincodes", sum(r["landslide_rank"] is not None for r in records), "in", len({r["district"] for r in records if r["landslide_rank"]}), "districts")
     print("pincodes with any flood history", sum(r["flood_area_pct"] > 0 for r in records), "with >= 10%", sum(r["flood_area_pct"] >= 10 for r in records))
 
 
