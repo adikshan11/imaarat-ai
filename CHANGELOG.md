@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.61.1] - 2026-10-14
+
+### Fixed
+- The note at the bottom of the printed paper form no longer runs into the footer line.
+
 ## [2.61.0] - 2026-10-14
 
 ### Added
