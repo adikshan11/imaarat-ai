@@ -299,7 +299,9 @@ def create_oauth(callback: str, now: int | None = None, purpose: str | None = No
     with engine().begin() as conn:
         reserve_identity(conn, "oauth", now, 20)
         conn.execute(
-            insert(oauth_transactions).values(state_hash=digest(flow.state), browser_hash=digest(flow.browser_token), code_verifier=flow.code_verifier, callback=callback, expires_at=now + 600, purpose=purpose)
+            insert(oauth_transactions).values(
+                state_hash=digest(flow.state), browser_hash=digest(flow.browser_token), code_verifier=flow.code_verifier, callback=callback, expires_at=now + 600, purpose=purpose
+            )
         )
     return flow
 
