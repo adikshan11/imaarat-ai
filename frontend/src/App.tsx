@@ -15,7 +15,9 @@ const StatusPage = lazy(() => import('@/components/status/StatusPage'))
 const SignIn = lazy(() => import('@/components/auth/SignIn'))
 const AccountPage = lazy(() => import('@/components/account/AccountPage'))
 const DevPage = lazy(() => import('@/components/dev/DevPage'))
-const Saathi = lazy(() => import('@/components/assistant/Saathi'))
+const loadSaathi = () => import('@/components/assistant/Saathi')
+const Saathi = lazy(loadSaathi)
+void loadSaathi()
 const Integrations = lazy(() => import('@/components/integrations/Integrations'))
 import { useRiskContext } from '@/context/RiskContext'
 import { RiskProvider } from '@/context/RiskProvider'
@@ -120,7 +122,6 @@ function Application() {
         }} />}
         </Suspense>
         <footer className="site-footer">
-          <span className="footer-copy">© 2026 imaarat.ai</span>
           <nav className="footer-links" aria-label="imaarat.ai">
             <a href="#status" onClick={(event) => { event.preventDefault(); setView('status') }}>{t('nav.status')}</a>
             <span lang="en">
@@ -131,7 +132,13 @@ function Application() {
               <a href="/terms/">Terms of Service</a>
             </span>
           </nav>
-          <span className="footer-credit">Made with <span className="heart" aria-label="love">♥</span> by <a className="footer-author" href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> <SocialLinks /></span>
+          <p className="footer-credit">
+            <span>© 2026 imaarat.ai</span>
+            <span className="footer-sep" aria-hidden="true">·</span>
+            <span>Made with <span className="heart" aria-label="love">♥</span> by <a className="footer-author" href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a></span>
+            <span className="footer-sep" aria-hidden="true">·</span>
+            <SocialLinks />
+          </p>
         </footer>
       </main>
       <Suspense fallback={null}><Saathi onOpen={(page) => navigate(page)} /></Suspense>
