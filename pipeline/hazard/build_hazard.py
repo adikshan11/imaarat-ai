@@ -85,6 +85,12 @@ SOURCES = {
         "origin": "IMD RSMC New Delhi, Cyclone hazard prone districts of India (June 2023), tables 1.1 and 1.2",
         "licence": "No licence stated; government publication, cited with attribution",
     },
+    "landslide": {
+        "file": "nrsc_landslide_atlas_2023.pdf",
+        "url": "https://www.nrsc.gov.in/nrscnew/assets/pdf/atlas/landslide/Landslides_Atlas_of_India_Updated_25Aug2023.pdf",
+        "origin": "NRSC (ISRO), Landslide Atlas of India (2023, updated 25 August 2023), district ranking by landslide exposure",
+        "licence": "NRSC terms: non-commercial use with attribution (Source: NRSC, ISRO/DOS)",
+    },
 }
 ZONES = {"Seismic Zone-II": 2, "Seismic Zone-III": 3, "Seismic Zone-IV": 4, "Seismic Zone-V": 5}
 ROMAN = {2: "II", 3: "III", 4: "IV", 5: "V"}
@@ -304,7 +310,13 @@ if __name__ == "__main__":
     parser.add_argument("--raw-dir", type=Path, default=HERE / "raw")
     parser.add_argument("--out-json", type=Path, default=HERE.parent.parent / "backend" / "data" / "hazard" / "pincode_hazard.json")
     parser.add_argument("--out-csv", type=Path, default=HERE.parent / "dbt" / "seeds" / "pincode_hazard.csv")
+    parser.add_argument("--dump-landslide", type=Path, help="write the landslide atlas text, page by page, to this file and stop")
     args = parser.parse_args()
+    if args.dump_landslide:
+        pages = PdfReader(fetch("landslide", args.raw_dir)).pages
+        args.dump_landslide.parent.mkdir(parents=True, exist_ok=True)
+        args.dump_landslide.write_text("\n".join(f"=== page {number} ===\n{page.extract_text()}" for number, page in enumerate(pages, start=1)), encoding="utf-8")
+        raise SystemExit(0)
     args.out_json.parent.mkdir(parents=True, exist_ok=True)
     args.out_csv.parent.mkdir(parents=True, exist_ok=True)
     build(args.raw_dir, args.out_json, args.out_csv)
