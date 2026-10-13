@@ -219,7 +219,8 @@ Conventions: the first user-visible change after a release bumps the version onc
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional Google sign-in; the button appears only when both are set |
 | `OWNER_EMAILS` | Comma-separated Google emails allowed to use "Owner sign-in", which makes them an operator and opens the dev console; needs the Google settings above |
 | `AI_DAILY_CHAT`, `AI_CLIENT_DAILY_CHAT`, `AI_CHAT_CALL_RESERVE` | Saathi chat allowances: all visitors per day (40), one visitor per day (8), and how many daily AI calls chat must always leave for assessments (60); repeat questions are answered from a cache and cost nothing |
-| `AI_CHAT_MODEL` | Optional model for Saathi chat only (for example a lighter Flash-Lite model with its own quota); empty uses `AI_MODEL` |
+| `AI_MODEL_<STAGE>`, `AI_CHAT_MODEL`, `AI_THINKING_<STAGE>` | Optional model and thinking level for one stage (`PAPER_FORM`, `VISION`, `MEMO`, `CHAT`), for example a lighter Flash-Lite model for chat with its own quota; empty uses `AI_MODEL` |
+| `REDIS_URL` | Optional Redis shared by every instance for the chat cache, query embeddings, the pause after failures and chat allowances; empty keeps them in memory |
 | `GOOGLE_MAPS_API_KEY` | Optional Google Maps browser key (Maps JavaScript API and Geocoding API enabled, restricted to your site by HTTP referrer); the property map appears only when it is set |
 | `AI_SIGN_IN_REQUIRED` | Set to `true` to limit live AI to signed-in visitors; off by default, so the demo uses AI too |
 | `SESSION_IDLE_SECONDS`, `SESSION_MAX_SECONDS` | Sign-in session limits; 900 (15 minutes idle) and 28800 (8 hours) by default |

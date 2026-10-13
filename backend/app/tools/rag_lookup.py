@@ -9,12 +9,13 @@ from operator import itemgetter
 from sqlalchemy import Column, String, Table, Text, select
 from sqlalchemy.exc import IntegrityError
 
-from app import llm
-from app.config import AI_API_KEY, GUIDELINES_MD, QDRANT_API_KEY, QDRANT_COLLECTION, QDRANT_URL, REFERENCES_MD
+from app import llm, store
+from app.config import AI_API_KEY, AI_EMBEDDING_MODEL, GUIDELINES_MD, QDRANT_API_KEY, QDRANT_COLLECTION, QDRANT_URL, REFERENCES_MD
 from app.db import get_engine, metadata
 from app.observability import traced
 
 _K_MIN, _K_MAX = 1, 10
+EMBED_SECONDS = 7 * 24 * 3600
 HIT_FIELDS = ("id", "title", "text", "source", "authority")
 loaded: dict[str, list[dict]] = {}
 
@@ -137,6 +138,16 @@ def fuse(dense: list[dict], keyword: list[str]) -> list[dict]:
     return sorted(dense, key=lambda hit: -(1 / (61 + dense.index(hit)) + 1 / (61 + keyword.index(hit["id"]))))
 
 
+def embed_query(query: str) -> list[float]:
+    """The query's embedding, from the shared store when the same question was embedded before."""
+    key = "embed:" + hashlib.sha256(f"{AI_EMBEDDING_MODEL}|{query.strip().lower()}".encode()).hexdigest()
+    if (vector := store.get_json(key)) is not None:
+        return vector
+    vector = llm.embed([query], "query")[0]
+    store.set_json(key, vector, EMBED_SECONDS)
+    return vector
+
+
 @traced("rag_retrieval", as_type="retriever")
 def retrieve(query: str, k: int = 4, ai_note: str | None = None, references: int = 0) -> list[dict]:
     """Return the k guideline sections closest to the query, best first, then up to `references` reference notes.
@@ -149,7 +160,7 @@ def retrieve(query: str, k: int = 4, ai_note: str | None = None, references: int
         print(f"[rag_lookup] status=unavailable reason={ai_note or 'missing_api_key'}")
         return []
     try:
-        query_vector = llm.embed([query], "query")[0]
+        query_vector = embed_query(query)
         count = len(guideline_sections())
         dense = qdrant_search(query_vector, count) if QDRANT_URL else local_search(query_vector, count)
         fused = fuse(dense, keyword_ranking(query))

@@ -82,7 +82,7 @@ def budgeted(stage: str, call: Any, attempts: int | None = None, reserve_seconds
 
 def generate(name: str, contents: Any, schema: type[BaseModel] | None = None, system: str | None = None, max_output_tokens: int | None = None, model: str | None = None) -> dict[str, Any]:
     """Call the configured model; a busy error is retried once on the same model."""
-    model = model or config.AI_MODEL
+    model = model or config.model_for(name)
     with generation(name, model, contents) as result:
         reply, call_id, latency_ms = budgeted(
             name,
@@ -92,7 +92,7 @@ def generate(name: str, contents: Any, schema: type[BaseModel] | None = None, sy
             contents=contents if isinstance(contents, list) else [contents],
             system=system,
             schema=schema,
-            thinking=config.STAGE_THINKING.get(name),
+            thinking=config.thinking_for(name),
             temperature=0.2,
             max_output_tokens=max_output_tokens or config.AI_STAGE_OUTPUT_TOKENS,
         )

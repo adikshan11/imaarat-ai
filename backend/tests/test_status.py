@@ -16,6 +16,7 @@ def test_status_reports_capabilities_without_secrets(monkeypatch):
         "vector_store": "local",
         "tracing": main.TRACING_ENABLED,
         "persistent_storage": main.is_postgres(),
+        "cache": "memory",
     }
     assert budget["admissions_left"] == config.AI_DAILY_ADMISSIONS and budget["calls_left"] == config.AI_DAILY_CALLS
 

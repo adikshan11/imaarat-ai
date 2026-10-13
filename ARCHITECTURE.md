@@ -23,7 +23,7 @@ flowchart TD
 | Components | `app/tools/`, `app/agents/report_agent.py`, `app/reports.py` | one underwriting job each: read a form, check hazards, score, review a photo, search guidelines, write the summary, build the PDF | import a vendor SDK |
 | AI gateway | `app/llm.py` | every model call: daily and per-minute budgets, retries for busy errors only, the per-request deadline, tracing and token accounting | know which vendor it is talking to |
 | Providers | `app/providers/` | translating one vendor's SDK into the shared contract, and its errors into `ProviderError` | apply budgets, retries or business rules |
-| Platform | `app/db.py`, `app/budget.py`, `app/telemetry.py`, `app/auth.py` | storage, spending limits, request and trace records, sessions | depend on the layers above |
+| Platform | `app/db.py`, `app/store.py`, `app/budget.py`, `app/telemetry.py`, `app/auth.py` | storage, caches and counters (memory or Redis), spending limits, request and trace records, sessions | depend on the layers above |
 
 ## Agent map
 
@@ -159,6 +159,9 @@ Nothing else changes: the components, workflow, budgets, retries, tracing and st
 | `AI_MODEL` | falls back to `GEMINI_MODEL`, then `gemini-3.8-flash` | the generation and vision model |
 | `AI_EMBEDDING_MODEL` | `models/gemini-embedding-001` | the guideline-search embedding model |
 | `AI_JUDGE_MODEL` | `gemini-3.5-flash-lite` | the evaluation judge |
+| `AI_MODEL_<STAGE>` | `AI_MODEL` | a different model for one stage: `PAPER_FORM`, `VISION`, `MEMO` or `CHAT` (`AI_CHAT_MODEL` also works for chat), so simple jobs can use a lighter model with its own quota |
+| `AI_THINKING_<STAGE>` | `LOW` | the thinking level for one stage; an empty value turns it off |
+| `REDIS_URL` | empty | a Redis that every instance shares for the chat cache, the pause after failures, query embeddings and chat allowances; empty keeps them in memory, and an unreachable Redis falls back to memory |
 | `AI_DAILY_GENERATIONS`, `AI_MINUTE_GENERATIONS` | 20, 5 | spending limits, matched to the provider's quota |
 
 ## Keeping the AI honest
@@ -181,6 +184,7 @@ Every AI call is paid for from a daily budget before it is made, so the public d
 - **Admission:** each assessment or form reading takes one slot from a global daily cap (`AI_DAILY_ADMISSIONS`, 15) and a per-visitor cap (`AI_CLIENT_DAILY_ADMISSIONS`, 3). Visitors are counted by a daily-rotating hash of their address, never the address itself.
 - **Calls:** every attempt, including retries, takes one call from `AI_DAILY_CALLS` (200). Text and image generations also count against `AI_DAILY_GENERATIONS` (20) and `AI_MINUTE_GENERATIONS` (5), matched to the free tier of gemini-3.8-flash.
 - **Atomic:** a reservation is one `UPDATE … SET used = used + n WHERE used + n <= cap`, so concurrent servers never overspend; CI proves it with 20 parallel requests on real Postgres.
+- **Shared store:** chat allowances, the chat reply cache, the pause after repeated model failures and cached query embeddings go through `app/store.py`. Without `REDIS_URL` they live in the process; with it every instance shares them, and chat allowances then cost no database write. If Redis is down the allowances fall back to Postgres and the caches read as empty. The call and admission counters stay in Postgres because they are written together with the usage ledger in one transaction.
 - **Fail closed:** on Vercel, AI runs only when the budget lives in Postgres. `/api/status` shows what is left.
 
 ## Data pipeline
@@ -223,4 +227,4 @@ flowchart LR
   class ci,nightly,static,fn,pages box
 ```
 
-The same code also runs in Docker: `compose.yaml` starts Postgres, the API and nginx serving the website, and CI builds and smoke-tests that stack on every pull request.
+The same code also runs in Docker: `compose.yaml` starts Postgres, Redis, the API and nginx serving the website, and CI builds and smoke-tests that stack on every pull request.

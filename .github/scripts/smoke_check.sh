@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Checks a running site: /api/status reports this checkout's version, every public page returns 200, security headers are set.
-# Usage: smoke_check.sh <site>. Set BYPASS to send Vercel's protection-bypass header for preview deployments.
+# Usage: smoke_check.sh <site>. Set BYPASS to send Vercel's protection-bypass header for preview deployments, and EXPECT_CACHE (memory or redis) to check the cache backend.
 set -euo pipefail
 site=${1%/}
 expected=$(sed -n 's/^__version__ = "\(.*\)"/\1/p' backend/app/__init__.py)
@@ -14,6 +14,11 @@ for _ in $(seq 1 30); do
   sleep 5
 done
 [ "$live" = "$expected" ] || { echo "::error::$site reports version '$live', expected $expected"; exit 1; }
+
+if [ -n "${EXPECT_CACHE:-}" ]; then
+  cache=$(curl -fsS "${header[@]}" "$site/api/status" | python3 -c 'import json,sys; print(json.load(sys.stdin)["cache"])')
+  [ "$cache" = "$EXPECT_CACHE" ] || { echo "::error::$site cache is '$cache', expected $EXPECT_CACHE"; exit 1; }
+fi
 
 for path in / /app/ /privacy/ /terms/ /changelog/; do
   code=$(curl -s -o /dev/null -w "%{http_code}" "${header[@]}" "$site$path")

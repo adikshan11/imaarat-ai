@@ -198,10 +198,10 @@ jobs:
           persist-credentials: false
       - name: Build the API and web images
         run: docker compose build
-      - name: Start Postgres, API and web
+      - name: Start Postgres, Redis, API and web
         run: docker compose up -d --wait --wait-timeout 180
       - name: Smoke test the stack
-        run: .github/scripts/smoke_check.sh http://localhost:8080
+        run: EXPECT_CACHE=redis .github/scripts/smoke_check.sh http://localhost:8080
       - name: Log image sizes
         run: docker image ls --format "{{.Repository}}:{{.Tag}} {{.Size}}" | grep -i imaarat || true
       - name: Log containers on failure
