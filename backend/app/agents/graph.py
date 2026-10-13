@@ -59,7 +59,7 @@ def retrieval_query(raw: dict, flags: list[str]) -> str:
 @timed("guideline search")
 @traced("guideline search")
 def rag_guidelines_node(state: UWState) -> dict:
-    hits = retrieve(retrieval_query(state["raw_input"], state.get("risk_flags", [])), k=4, ai_note=state.get("ai_note"))
+    hits = retrieve(retrieval_query(state["raw_input"], state.get("risk_flags", [])), k=4, ai_note=state.get("ai_note"), references=2)
     return {"guideline_hits": hits, "guideline_chunks": [format_hit(hit) for hit in hits]}
 
 

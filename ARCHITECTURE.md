@@ -105,13 +105,14 @@ Partner isolation: A2A calls need an `X-API-Key` (stored hashed), the partner na
 
 ## Guideline search (RAG)
 
-- Corpus: one reviewed Markdown file of 12 underwriting guideline sections (about 5,200 characters). There are no PDFs or scraped pages, so there is no PDF parsing step to get wrong.
-- Chunking: one chunk per section, split on section headings, so a chunk never cuts a rule in half. Fixed-size or overlapping chunks would only help for long documents.
+- Corpus: two reviewed Markdown files. The 12 underwriting guideline sections (G1 to G12) are the rules. The reference library (R1 to R41) holds short notes in our own words from public Indian sources: IRDAI product guidelines and the 2024 master circular, NDMA, IMD, CWC, INCOIS, BMTPC, BIS, the NRSC Landslide Atlas, open-access papers and press reports. Each note carries its source, date, link and an authority label (official, standard, industry, research or news). Research agents read every source page; nothing is scraped at run time, and PDFs that could not be read were left out rather than guessed.
+- Why paraphrased notes and not full documents: most of these publishers reserve reproduction rights, and a short note per source keeps every chunk citable. News is labelled non-authoritative, and the memo prompt must call it a press report.
+- Chunking: one chunk per section, split on section headings, so a chunk never cuts a rule or a source in half. The Source and Authority lines are stored as metadata, not embedded text.
 - Embeddings: Gemini `gemini-embedding-001`, with separate document and query task types.
 - Query: the workflow searches after the rule engine has scored, so the query starts with the risk flags in words, then the main facts, distances and the decision criteria. Before, the query held only the facts and missed most drivers.
-- Search: hybrid. Cosine similarity over the embeddings (in Qdrant when configured, otherwise over vectors cached in Postgres) and BM25 keyword scoring rank all 12 sections, and reciprocal rank fusion merges the two lists. The workflow keeps the top 4, MCP and A2A the top 3. With 12 sections an exact scan is faster than any index. k-means or HNSW indexes pay off only at thousands of chunks.
-- Freshness: the index is keyed by a hash of the corpus and rebuilt when the file changes.
-- Measured: the live eval retrieves for all 24 golden cases through the same code the app uses, and needs a hit rate of 1.0 at k=4. The cases are rule specifications, not labelled real proposals.
+- Search: hybrid. Cosine similarity over the embeddings (in Qdrant when configured, otherwise over vectors cached in Postgres) and BM25 keyword scoring rank all 53 sections, and reciprocal rank fusion merges the two lists. Guidelines and reference notes are then taken separately, so references never push a rule out: the workflow keeps the top 4 guidelines and top 2 notes, MCP and A2A the top 3 and 2. With 53 sections an exact scan is faster than any index; k-means or HNSW indexes pay off only at thousands of chunks.
+- Freshness: the index is keyed by a hash of both files and rebuilt when either changes.
+- Measured: the live eval retrieves for all 24 golden cases through the same code the app uses, and needs a guideline hit rate of 1.0 at k=4. The cases are rule specifications, not labelled real proposals. It also asks 41 hand-written underwriter questions, one per reference note, and reports how often the right note is in the top 3 (measured, not yet a gate).
 
 ## Rules that CI enforces
 

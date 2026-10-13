@@ -525,5 +525,15 @@
   "partners.revoke": "منسوخ کٔرِو",
   "partners.used": "بنیومُت {created}، آخری استعمال {used}",
   "partners.revoked": "منسوخ",
-  "partners.never": "زانٛہہ نہٕ"
+  "partners.never": "زانٛہہ نہٕ",
+  "hz.landslide": "NRSC زمین کھسکنُک خطرٕ رینک (ضلع، 2023)",
+  "hz.landslide_rank": "147 منٛز {rank}",
+  "hz.landslide_none": "NRSC کِس 147 رینک والین ضلعن منٛز نہٕ",
+  "hzv.landslide": "NRSC زمین کھسکنُک رینک وٲلِس ضلعس منٛز",
+  "flag.nrsc_landslide_district": "NRSC زمین کھسکنُک رینک وول ضلع",
+  "authority.official": "سرکٲری",
+  "authority.standard": "معیار (BIS)",
+  "authority.industry": "صنعت",
+  "authority.research": "تحقیق",
+  "authority.news": "خبر، سرکٲری نہٕ"
 }

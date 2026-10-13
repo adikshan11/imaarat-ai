@@ -525,5 +525,15 @@
   "partners.revoke": "रद्द करा",
   "partners.used": "तयार {created}, शेवटचा वापर {used}",
   "partners.revoked": "रद्द",
-  "partners.never": "कधीच नाही"
+  "partners.never": "कधीच नाही",
+  "hz.landslide": "NRSC भूस्खलन धोका क्रमांक (जिल्हा, 2023)",
+  "hz.landslide_rank": "147 पैकी {rank}",
+  "hz.landslide_none": "NRSC च्या 147 क्रमांकित जिल्ह्यांपैकी नाही",
+  "hzv.landslide": "NRSC भूस्खलन क्रमांकित जिल्ह्यात",
+  "flag.nrsc_landslide_district": "NRSC भूस्खलन क्रमांकित जिल्हा",
+  "authority.official": "अधिकृत",
+  "authority.standard": "मानक (BIS)",
+  "authority.industry": "उद्योग",
+  "authority.research": "संशोधन",
+  "authority.news": "बातमी, अधिकृत नाही"
 }

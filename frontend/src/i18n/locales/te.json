@@ -525,5 +525,15 @@
   "partners.revoke": "రద్దు చేయండి",
   "partners.used": "సృష్టించినది {created}, చివరి వాడకం {used}",
   "partners.revoked": "రద్దైంది",
-  "partners.never": "ఎప్పుడూ లేదు"
+  "partners.never": "ఎప్పుడూ లేదు",
+  "hz.landslide": "NRSC కొండచరియల ప్రమాద ర్యాంక్ (జిల్లా, 2023)",
+  "hz.landslide_rank": "147లో {rank}",
+  "hz.landslide_none": "NRSC యొక్క 147 ర్యాంక్ జిల్లాల్లో లేదు",
+  "hzv.landslide": "NRSC కొండచరియల ర్యాంక్ జిల్లాలో",
+  "flag.nrsc_landslide_district": "NRSC కొండచరియల ర్యాంక్ జిల్లా",
+  "authority.official": "అధికారిక",
+  "authority.standard": "ప్రమాణం (BIS)",
+  "authority.industry": "పరిశ్రమ",
+  "authority.research": "పరిశోధన",
+  "authority.news": "వార్త, అధికారికం కాదు"
 }

@@ -12,7 +12,7 @@ Roofs older than 20 years are considered aging and may trigger referral reviews.
 
 ## G3. CAT Zone Appetite
 
-Exposure in forest fire, flood, or cyclone and storm zones materially increases risk and is not generally considered low risk. Proximity to coast or interface areas compounds this concern. Properties located within designated catastrophe exposure zones require enhanced scrutiny and may command higher premiums or stricter underwriting requirements. Natural disaster exposure is a primary driver of overall risk classification.
+Exposure in forest fire, flood, or cyclone and storm zones materially increases risk and is not generally considered low risk. A hail zone (hailstorm exposure) is a moderate CAT zone exposure: it is captured for review but does not add to the score. Proximity to coast or interface areas compounds this concern. Properties located within designated catastrophe exposure zones require enhanced scrutiny and may command higher premiums or stricter underwriting requirements. Natural disaster exposure is a primary driver of overall risk classification.
 
 ## G4. Prior Loss History Appetite
 

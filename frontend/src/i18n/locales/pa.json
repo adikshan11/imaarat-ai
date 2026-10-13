@@ -525,5 +525,15 @@
   "partners.revoke": "ਰੱਦ ਕਰੋ",
   "partners.used": "ਬਣਾਈ {created}, ਆਖਰੀ ਵਰਤੋਂ {used}",
   "partners.revoked": "ਰੱਦ",
-  "partners.never": "ਕਦੇ ਨਹੀਂ"
+  "partners.never": "ਕਦੇ ਨਹੀਂ",
+  "hz.landslide": "NRSC ਜ਼ਮੀਨ ਖਿਸਕਣ ਜੋਖਮ ਦਰਜਾ (ਜ਼ਿਲ੍ਹਾ, 2023)",
+  "hz.landslide_rank": "147 ਵਿੱਚੋਂ {rank}",
+  "hz.landslide_none": "NRSC ਦੇ 147 ਦਰਜਾਬੰਦ ਜ਼ਿਲ੍ਹਿਆਂ ਵਿੱਚ ਨਹੀਂ",
+  "hzv.landslide": "NRSC ਜ਼ਮੀਨ ਖਿਸਕਣ ਦਰਜਾਬੰਦ ਜ਼ਿਲ੍ਹੇ ਵਿੱਚ",
+  "flag.nrsc_landslide_district": "NRSC ਜ਼ਮੀਨ ਖਿਸਕਣ ਦਰਜਾਬੰਦ ਜ਼ਿਲ੍ਹਾ",
+  "authority.official": "ਸਰਕਾਰੀ",
+  "authority.standard": "ਮਿਆਰ (BIS)",
+  "authority.industry": "ਉਦਯੋਗ",
+  "authority.research": "ਖੋਜ",
+  "authority.news": "ਖ਼ਬਰ, ਅਧਿਕਾਰਤ ਨਹੀਂ"
 }

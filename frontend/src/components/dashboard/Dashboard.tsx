@@ -76,6 +76,7 @@ export default function Dashboard({ onNew, onView }: { onNew: () => void; onView
           <div className="risk-line"><span>{t('hzv.understated')}</span><strong>{portfolio.hazard_checks.declared_seismic_zone_below_official}</strong></div>
           <div className="risk-line"><span>{t('hzv.flood')}</span><strong>{portfolio.hazard_checks.flood_history_at_pincode}</strong></div>
           <div className="risk-line"><span>{t('hzv.cyclone')}</span><strong>{portfolio.hazard_checks.imd_cyclone_prone_district}</strong></div>
+          <div className="risk-line"><span>{t('hzv.landslide')}</span><strong>{portfolio.hazard_checks.nrsc_landslide_district}</strong></div>
         </div>
       </Card>}
 

@@ -52,7 +52,7 @@ Checked on 12 October 2026 against the issuing body's own pages.
 | Earthquake | IS 1893 (Part 1):2016 seismic zones II to V, and Annex E town zones | Zone polygons, towns | Current. A revised map with a Zone VI (PIB, 17 Dec 2025) was withdrawn in March 2026 (PIB, 1 Apr 2026) |
 | Cyclone | IMD RSMC New Delhi, Cyclone Hazard Climatology, June 2023: 100 districts in four classes | District | Current; PDF only, districts predate later splits |
 | Flood | NRSC/NDEM satellite-observed inundation 1998 to 2022; Chennai and Bengaluru corporation flood points | PIN area share, points | No official all-India flood zonation exists; NDMA has atlases for five states only |
-| Landslide | Not used | | NRSC Landslide Atlas of India (2023) ranks 147 districts by exposure; candidate for the next release |
+| Landslide | NRSC Landslide Atlas of India (2023, updated 25 August 2023), Table 3: 147 districts ranked by landslide exposure | District | Current; districts predate later splits, so successor districts inherit the parent's rank. Shown and flagged, not scored |
 | Lightning, hail, tsunami, storm surge, forest fire | Not used | | No official downloadable hazard layer found, so the app shows no value |
 | Heat wave | Not used | | Not an insured property peril in IRDAI wordings |
 

@@ -525,5 +525,15 @@
   "partners.revoke": "રદ કરો",
   "partners.used": "બનાવી {created}, છેલ્લો ઉપયોગ {used}",
   "partners.revoked": "રદ",
-  "partners.never": "ક્યારેય નહીં"
+  "partners.never": "ક્યારેય નહીં",
+  "hz.landslide": "NRSC ભૂસ્ખલન જોખમ ક્રમ (જિલ્લો, 2023)",
+  "hz.landslide_rank": "147 માંથી {rank}",
+  "hz.landslide_none": "NRSC ના 147 ક્રમાંકિત જિલ્લાઓમાં નથી",
+  "hzv.landslide": "NRSC ભૂસ્ખલન ક્રમાંકિત જિલ્લામાં",
+  "flag.nrsc_landslide_district": "NRSC ભૂસ્ખલન ક્રમાંકિત જિલ્લો",
+  "authority.official": "સત્તાવાર",
+  "authority.standard": "ધોરણ (BIS)",
+  "authority.industry": "ઉદ્યોગ",
+  "authority.research": "સંશોધન",
+  "authority.news": "સમાચાર, સત્તાવાર નહીં"
 }

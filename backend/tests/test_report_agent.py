@@ -3,6 +3,7 @@ from unittest.mock import Mock
 
 import app.agents.report_agent as report_agent
 import app.llm as llm
+import pytest
 import requests
 from app.providers import gemini
 from google.genai.errors import ClientError
@@ -215,3 +216,17 @@ def test_memo_accepts_citation_of_retrieved_guidance(monkeypatch):
     state["guideline_hits"] = [{"id": "G5", "title": "TIV Concentration Limits", "text": "..."}]
     assert report_agent.generate_memo(state)["guideline_citations"] == ["G5"]
     assert state["ai_memo_status"] == "Available"
+
+
+@pytest.mark.parametrize("flags,status", [([], "Available"), (["high_tiv_concentration"], "Incomplete")])
+def test_risk_factors_empty_only_without_flags(monkeypatch, flags, status):
+    monkeypatch.setattr(report_agent, "AI_API_KEY", "test-key")
+    client = Mock()
+    monkeypatch.setattr(gemini.genai, "Client", lambda api_key, **kwargs: client)
+    client.models.generate_content.return_value.text = (
+        '{"property_summary":["TIDEL"],"key_risk_factors":[],"coverage_review":["No additional coverage extensions requested."],'
+        '"decision":"Accept","rationale":"x","suggested_next_steps":["x"],"guideline_citations":[]}'
+    )
+    state = {**_valid_state(), "risk_flags": flags}
+    report_agent.generate_memo(state)
+    assert state["ai_memo_status"] == status

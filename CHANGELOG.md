@@ -2,6 +2,20 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.53.0] - 2026-10-13
+
+### Added
+- Landslide check: every PIN code in the 147 districts that NRSC's Landslide Atlas of India (2023) ranks by landslide exposure now shows its district rank and is flagged. The flag is not scored. Districts formed later take their parent's rank.
+- A reference library of 41 short notes from public Indian sources (IRDAI, NDMA, IMD, CWC, INCOIS, BMTPC, BIS, NRSC, open-access papers and press reports), each with source, date, link and authority. The workflow adds the two closest notes next to the guidelines, the result page shows each note's authority, and news is marked as not authoritative.
+- The live eval asks 41 hand-written underwriter questions, one per note, and reports how often the right note comes back.
+- A hazard data job in CI rebuilds the PIN code table from the official sources.
+
+### Changed
+- The paper form prints the English option names that match the online labels, such as "Cyclone or storm", and the reader maps them back. Before, it printed internal names such as "Wind", and "Hailstorm" could not be read back.
+- A risk summary for a property with no risk flags may leave key risk factors empty. Before, such summaries were always rejected.
+- Guideline G3 names hail zones as a moderate exposure that is captured but not scored.
+- The landing page tour shows the current screens.
+
 ## [2.52.0] - 2026-10-13
 
 ### Added

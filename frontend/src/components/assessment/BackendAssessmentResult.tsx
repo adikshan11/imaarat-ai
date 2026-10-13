@@ -104,10 +104,10 @@ export default function BackendAssessmentResult({ submission, onBack, onReviewed
       <Card title={t('res.guidelines')}>
         {!hits.length
           ? <ul>{submission.guideline_chunks.map((chunk, index) => {
-              const id = chunk.match(/^\[(G\d+)\]/)?.[1]
+              const id = chunk.match(/^\[([GR]\d+)\]/)?.[1]
               return <li key={index} className={id && cited.has(id) ? 'cited' : undefined}>{chunk}{id && cited.has(id) ? ` (${t('res.cited_tag')})` : ''}</li>
             })}</ul>
-          : <ul>{hits.map((hit) => <li key={hit.id} className={cited.has(hit.id) ? 'cited' : undefined}>{hit.id} · {hit.title}{cited.has(hit.id) ? ` (${t('res.cited_tag')})` : ''}</li>)}</ul>}
+          : <ul>{hits.map((hit) => <li key={hit.id} className={cited.has(hit.id) ? 'cited' : undefined}>{hit.id} · {hit.title}{hit.authority ? ` · ${label('authority', hit.authority)}` : ''}{cited.has(hit.id) ? ` (${t('res.cited_tag')})` : ''}</li>)}</ul>}
       </Card>
       <Card title={t('res.refs')}><div className="table-wrap"><table><thead><tr><th>{t('ref.property')}</th><th>{t('ref.occupancy')}</th><th>{t('ref.cat')}</th></tr></thead><tbody>{submission.comparables.map((item, index) => <tr key={index}><td>{String(item.property_id ?? '')}</td><td>{String(item.occupancy_type ?? '')}</td><td>{label('opt.cat', String(item.cat_zone ?? 'None'))}</td></tr>)}</tbody></table></div><p className="card-footnote">{t('res.refs_note')}</p></Card>
     </div>

@@ -55,6 +55,8 @@ def evals_summary(paths: list[str]) -> dict:
         "retrieval_hit_rate": retrieval.get("hit_rate"),
         "retrieval_recall": retrieval.get("recall"),
         "retrieval_cases": retrieval.get("cases"),
+        "reference_hit_rate": (retrieval.get("references") or {}).get("hit_rate"),
+        "reference_cases": (retrieval.get("references") or {}).get("cases"),
         "toon_token_saving": tokens.get("saving"),
         "toon_tokens": tokens.get("toon_tokens"),
         "json_tokens": tokens.get("json_tokens"),

@@ -525,5 +525,15 @@
   "partners.revoke": "رد ڪريو",
   "partners.used": "ٺهي {created}، آخري استعمال {used}",
   "partners.revoked": "رد",
-  "partners.never": "ڪڏهن به نه"
+  "partners.never": "ڪڏهن به نه",
+  "hz.landslide": "NRSC زمين کسڪڻ جو خطرو درجو (ضلعو، 2023)",
+  "hz.landslide_rank": "147 مان {rank}",
+  "hz.landslide_none": "NRSC جي 147 درجي وارن ضلعن ۾ ناهي",
+  "hzv.landslide": "NRSC زمين کسڪڻ درجي واري ضلعي ۾",
+  "flag.nrsc_landslide_district": "NRSC زمين کسڪڻ درجي وارو ضلعو",
+  "authority.official": "سرڪاري",
+  "authority.standard": "معيار (BIS)",
+  "authority.industry": "صنعت",
+  "authority.research": "تحقيق",
+  "authority.news": "خبر، سرڪاري نه"
 }

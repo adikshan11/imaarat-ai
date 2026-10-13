@@ -30,6 +30,12 @@ def test_golden_locations(pincode, district, zone, grade):
     assert found["cyclone_grade"] == grade
 
 
+@pytest.mark.parametrize(("pincode", "rank"), [("246171", 1), ("673121", 13), ("737101", 9), ("400001", 140), ("110001", None)])
+def test_nrsc_landslide_rank(pincode, rank):
+    assert lookup(pincode)["landslide_rank"] == rank
+    assert ("nrsc_landslide_district" in verify_location({"zip": pincode})["hazard_flags"]) == (rank is not None)
+
+
 def test_town_list_overrides_the_coarse_map():
     # The IS 1893 Annex E town list puts Shimla in Zone IV; the zone polygons place pincode 171001 in V.
     shimla = lookup("171001")
