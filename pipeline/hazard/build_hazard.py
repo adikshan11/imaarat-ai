@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 import re
+import urllib.error
 import urllib.request
 from collections import Counter
 from datetime import UTC, datetime
@@ -88,6 +89,7 @@ SOURCES = {
     "landslide": {
         "file": "nrsc_landslide_atlas_2023.pdf",
         "url": "https://www.nrsc.gov.in/nrscnew/assets/pdf/atlas/landslide/Landslides_Atlas_of_India_Updated_25Aug2023.pdf",
+        "mirror": "https://www.isro.gov.in/media_isro/pdf/LandslideAtlas_new_2023.pdf",
         "origin": "NRSC (ISRO), Landslide Atlas of India (2023, updated 25 August 2023), district ranking by landslide exposure",
         "licence": "NRSC terms: non-commercial use with attribution (Source: NRSC, ISRO/DOS)",
     },
@@ -125,8 +127,19 @@ def fetch(name: str, raw_dir: Path) -> Path:
     path = raw_dir / SOURCES[name]["file"]
     if not path.exists():
         raw_dir.mkdir(parents=True, exist_ok=True)
-        print(f"downloading {SOURCES[name]['url']}")
-        urllib.request.urlretrieve(SOURCES[name]["url"], path)  # noqa: S310 - fixed https source URLs
+        for url in [SOURCES[name]["url"], SOURCES[name].get("mirror")]:
+            if not url:
+                continue
+            print(f"downloading {url}")
+            try:
+                request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (imaarat hazard pipeline)"})  # noqa: S310 - fixed https source URLs
+                with urllib.request.urlopen(request, timeout=120) as response:  # noqa: S310 - fixed https source URLs
+                    path.write_bytes(response.read())
+                break
+            except urllib.error.HTTPError as error:
+                print(f"failed {url}: {error}")
+        else:
+            raise RuntimeError(f"could not download {name}")
     return path
 
 
