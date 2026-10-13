@@ -173,7 +173,7 @@ export interface OpsSummary {
   }
 }
 
-export interface DeploymentStatus { version: string; ai: boolean; vector_store: string; tracing: boolean; persistent_storage: boolean }
+export interface DeploymentStatus { version: string; ai: boolean; vector_store: string; tracing: boolean; persistent_storage: boolean; cache?: string }
 
 export interface FieldReading {
   value: string | number | boolean | null

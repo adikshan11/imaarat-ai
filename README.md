@@ -162,8 +162,9 @@ sequenceDiagram
 | Workflow | LangGraph with Postgres checkpoints | Fixed steps and a resumable human review |
 | AI | Gemini through a provider adapter | Switch to Bedrock or another provider with configuration; see [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Data | Postgres on Neon, dbt on DuckDB | Transactions for the app, a tested nightly medallion pipeline (raw Parquet, cleaned staging, marts) for analytics |
+| Cache | In memory, or Redis when `REDIS_URL` is set | Shared reply cache, query embeddings and chat allowances across instances, with no code change |
 | Quality | pytest, Playwright, DeepEval, Lighthouse, Locust | Every layer measured, with results on the status page |
-| Delivery | GitHub Actions, Docker Compose, Vercel | Checked, tested and smoke-tested before every deploy |
+| Delivery | GitHub Actions, Docker Compose (Postgres, Redis, API, web), Vercel | Checked, tested and smoke-tested before every deploy |
 
 ## Repository layout
 

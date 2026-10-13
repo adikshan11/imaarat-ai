@@ -580,5 +580,7 @@
   "saathi.error": "କିଛି ଭୁଲ୍ ହୋଇଗଲା। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
   "saathi.nothing": "ମୁଁ ତାହା ବୁଝିପାରିଲି ନାହିଁ। ଦୟାକରି ପୁଣି ଚେଷ୍ଟା କରନ୍ତୁ।",
   "saathi.sources": "ଆଧାର କରି",
-  "saathi.refused": "ମୁଁ କେବଳ imaarat.ai ଏବଂ ବ୍ୟାବସାୟିକ ସମ୍ପତ୍ତି ଅଣ୍ଡରରାଇଟିଙ୍ଗ୍ ସହିତ ସାହାଯ୍ୟ କରିପାରିବି।"
+  "saathi.refused": "ମୁଁ କେବଳ imaarat.ai ଏବଂ ବ୍ୟାବସାୟିକ ସମ୍ପତ୍ତି ଅଣ୍ଡରରାଇଟିଙ୍ଗ୍ ସହିତ ସାହାଯ୍ୟ କରିପାରିବି।",
+  "nav.collapse": "Collapse sidebar",
+  "nav.expand": "Expand sidebar"
 }

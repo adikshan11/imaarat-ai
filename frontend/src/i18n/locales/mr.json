@@ -580,5 +580,7 @@
   "saathi.error": "काहीतरी गडबड झाली. कृपया पुन्हा प्रयत्न करा.",
   "saathi.nothing": "मला ते समजले नाही. कृपया पुन्हा प्रयत्न करा.",
   "saathi.sources": "यावर आधारित",
-  "saathi.refused": "मदत फक्त imaarat.ai आणि व्यावसायिक मालमत्ता अंडररायटिंगसाठी उपलब्ध आहे."
+  "saathi.refused": "मदत फक्त imaarat.ai आणि व्यावसायिक मालमत्ता अंडररायटिंगसाठी उपलब्ध आहे.",
+  "nav.collapse": "Collapse sidebar",
+  "nav.expand": "Expand sidebar"
 }

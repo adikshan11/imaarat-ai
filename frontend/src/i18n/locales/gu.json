@@ -580,5 +580,7 @@
   "saathi.error": "કંઈક ખોટું થયું. કૃપા કરીને ફરી પ્રયાસ કરો.",
   "saathi.nothing": "મને તે સમજાયું નહીં. કૃપા કરીને ફરી પ્રયાસ કરો.",
   "saathi.sources": "આના આધારે",
-  "saathi.refused": "હું માત્ર imaarat.ai અને વ્યાપારી મિલકત અંડરરાઇટિંગમાં જ મદદ કરી શકું છું."
+  "saathi.refused": "હું માત્ર imaarat.ai અને વ્યાપારી મિલકત અંડરરાઇટિંગમાં જ મદદ કરી શકું છું.",
+  "nav.collapse": "Collapse sidebar",
+  "nav.expand": "Expand sidebar"
 }

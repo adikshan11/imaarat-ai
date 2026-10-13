@@ -19,6 +19,8 @@ const PATHS: Record<string, string> = {
   mic: 'M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zM5 11a7 7 0 0 0 14 0M12 18v3M9 21h6',
   send: 'M21 3L10 14M21 3l-7 18l-4-7l-7-4z',
   speaker: 'M4 9v6h4l5 4V5L8 9zM16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12',
+  'chevrons-left': 'M11 17l-5-5l5-5M18 17l-5-5l5-5',
+  'chevrons-right': 'M13 17l5-5l-5-5M6 17l5-5l-5-5',
   logout: 'M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5l-5-5M21 12H9',
 }
 
