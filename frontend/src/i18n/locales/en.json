@@ -579,5 +579,6 @@
   "saathi.limit": "Today's chat allowance is used up. Please try again tomorrow.",
   "saathi.error": "Something went wrong. Please try again.",
   "saathi.nothing": "I did not catch that. Please try again.",
-  "saathi.sources": "Based on"
+  "saathi.sources": "Based on",
+  "saathi.refused": "I can only help with imaarat.ai and commercial property underwriting."
 }

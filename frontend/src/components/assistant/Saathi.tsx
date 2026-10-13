@@ -13,6 +13,7 @@ interface Message extends ChatTurn {
 
 const GREETED = 'imaarat.saathi.greeted'
 const SUGGESTIONS = ['saathi.s1', 'saathi.s2', 'saathi.s3']
+const NOTICES: Record<string, string> = { limit: 'saathi.limit', refused: 'saathi.refused', offline: 'saathi.offline' }
 
 export default function Saathi({ onOpen }: { onOpen: (page: ChatPage) => void }) {
   const { t, language, setLanguage } = usePreferences()
@@ -61,7 +62,7 @@ export default function Saathi({ onOpen }: { onOpen: (page: ChatPage) => void })
     return () => window.removeEventListener('keydown', onKey)
   }, [open])
 
-  const push = (message: Omit<Message, 'id'>) => setMessages((current) => [...current, { ...message, id: counter.current++ }])
+  const push = (message: Omit<Message, 'id'>) => setMessages((current) => [...current, { ...message, id: counter.current++ }].slice(-40))
 
   const send = async (raw: string, spoken = false) => {
     const text = raw.trim()
@@ -81,7 +82,7 @@ export default function Saathi({ onOpen }: { onOpen: (page: ChatPage) => void })
           if (window.matchMedia('(max-width: 900px)').matches) setOpen(false)
         }
       } else {
-        push({ role: 'assistant', text: t(result.code === 'limit' ? 'saathi.limit' : 'saathi.offline') })
+        push({ role: 'assistant', text: t(NOTICES[result.code] ?? 'saathi.offline') })
       }
     } catch {
       push({ role: 'assistant', text: t('saathi.error') })

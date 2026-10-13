@@ -8,7 +8,7 @@ export interface ChatTurn {
 }
 
 export interface ChatReply {
-  code: 'ok' | 'offline' | 'limit'
+  code: 'ok' | 'offline' | 'limit' | 'refused'
   reply: string | null
   page: ChatPage | null
   language: string | null
@@ -22,6 +22,7 @@ export async function askSaathi(message: string, language: string, history: Chat
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message, language, history }),
+    signal: AbortSignal.timeout(25000),
   })
   if (response.status === 429) return { code: 'limit', ...NONE }
   if (!response.ok) throw new Error('The assistant could not answer')

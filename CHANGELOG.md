@@ -6,6 +6,7 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 
 ### Added
 - Saathi, a small assistant that pops up at the bottom right. It answers from the underwriting guidelines in the chosen language, by typing or by voice (where the browser supports it), can read replies aloud, and can open a page or switch the app language when asked. Chat has its own small daily allowance, separate from assessments, and never makes a decision.
+- Saathi guardrails: prompt-injection attempts are refused before any model call, messages, history and replies are cleaned and length-limited (no links, markup or code), repeat questions come from a cache, the model gets a short timeout, a capped reply size and low thinking, repeated model failures pause chat for 30 seconds, and chat always leaves part of the daily AI calls for assessments.
 
 ### Changed
 - The mobile tab bar lens now only bends light. The colour split and the extra colour boost at the lens rim are gone, so there is no rainbow; the glass shows only refraction and white highlights, and the bar has no lens filter at rest.

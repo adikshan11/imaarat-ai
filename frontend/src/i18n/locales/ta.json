@@ -579,5 +579,6 @@
   "saathi.limit": "இன்றைய அரட்டைக்கான கொடுப்பனவு தீர்ந்துவிட்டது. நாளை மீண்டும் முயற்சிக்கவும்.",
   "saathi.error": "ஏதோ தவறு நடந்துவிட்டது. மீண்டும் முயற்சிக்கவும்.",
   "saathi.nothing": "எனக்கு அது புரியவில்லை. மீண்டும் முயற்சிக்கவும்.",
-  "saathi.sources": "அடிப்படையாக"
+  "saathi.sources": "அடிப்படையாக",
+  "saathi.refused": "I can only help with imaarat.ai and commercial property underwriting."
 }
