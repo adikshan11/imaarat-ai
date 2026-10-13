@@ -6,7 +6,7 @@ import { announceEnd, useSessionClock, type SessionEnd } from './useSessionClock
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [ready, setReady] = useState(false)
-  const [providers, setProviders] = useState<Providers>({ github: true, google: false, owner: false })
+  const [providers, setProviders] = useState<Providers>({ google: false, owner: false })
   const [error, setError] = useState<string | null>(null)
   const [photoVersion, setPhotoVersion] = useState(() => Date.now())
   const [ended, setEnded] = useState<SessionState['ended']>(null)
