@@ -1,3 +1,5 @@
+import { GITHUB_PATH, GITHUB_PROFILE, X_PATH, X_PROFILE } from '../lib/social.ts'
+
 export const APP = '/app/#signin'
 export const DEMO = '/app/?demo'
 export const REPO = 'https://github.com/adikshan11/imaarat-ai'
@@ -38,7 +40,7 @@ export function Footer() {
   const columns: Array<[string, Array<[string, string]>]> = [
     ['Legal', [['Privacy Policy', '/privacy/'], ['Terms of Service', '/terms/']]],
     ['Product', [['Open the app', APP], ['How it works', `${DEMO}#how`], ['Status', `${DEMO}#status`], ['Changelog', '/changelog/'], ['FAQ', '/#faq']]],
-    ['Connect', [['GitHub', REPO], ['LinkedIn', 'https://www.linkedin.com/in/adithya-shankaran'], ['Email', 'mailto:adikshan11@gmail.com'], ['Portfolio', PORTFOLIO], ['Report an issue', `${REPO}/issues/new`]]],
+    ['Connect', [['GitHub', GITHUB_PROFILE], ['X', X_PROFILE], ['LinkedIn', 'https://www.linkedin.com/in/adithya-shankaran'], ['Email', 'mailto:adikshan11@gmail.com'], ['Portfolio', PORTFOLIO], ['Source code', REPO], ['Report an issue', `${REPO}/issues/new`]]],
   ]
   return (
     <footer className="border-t border-forest-900/10 bg-white">
@@ -48,6 +50,10 @@ export function Footer() {
             <Mark className="size-7" /> imaarat.ai
           </div>
           <p className="mt-4 max-w-sm leading-relaxed text-muted">Verified property risk decisions for Indian insurers. Open source, built on India’s public hazard data.</p>
+          <p className="mt-5 flex items-center gap-4 text-forest-900">
+            <a href={GITHUB_PROFILE} target="_blank" rel="noreferrer" aria-label="GitHub: adikshan11" className="hover:text-forest-700"><svg viewBox="0 0 24 24" className="size-5" aria-hidden="true"><path fill="currentColor" d={GITHUB_PATH} /></svg></a>
+            <a href={X_PROFILE} target="_blank" rel="noreferrer" aria-label="X: @adithyashan11" className="hover:text-forest-700"><svg viewBox="0 0 24 24" className="size-[18px]" aria-hidden="true"><path fill="currentColor" d={X_PATH} /></svg></a>
+          </p>
         </div>
         {columns.map(([title, links]) => (
           <nav key={title} aria-label={title}>

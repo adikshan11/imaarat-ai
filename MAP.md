@@ -99,7 +99,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 ## backend/app
 
 - `__init__.py`: Imaarat underwriting package.
-- `auth.py`: GitHub sign-in: hashed opaque sessions, session-bound CSRF tokens and single-use PKCE state, stored in the app database.
+- `auth.py`: Sign-in with Google, email or mobile number: hashed opaque sessions, session-bound CSRF tokens and single-use PKCE state, stored in the app database.
 - `budget.py`: Daily AI budget: per-visitor and global admissions plus every Gemini call, reserved atomically before use.
 - `config.py`
 - `db.py`: Submission and reference-property storage: Postgres when DATABASE_URL is set, SQLite otherwise.
@@ -125,7 +125,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 ## backend/app/api
 
 - `__init__.py`: API package.
-- `auth_routes.py`: ProfileForm, PartnerForm, oauth_client, oauth_configuration, configured, providers, session, save_profile
+- `auth_routes.py`: ProfileForm, PartnerForm, SignupForm, LoginForm, oauth_client, oauth_configuration, configured, providers
 - `dev_routes.py`: owner_only, overview, architecture, routes, ai_calls, traces, retrieval
 - `main.py`: lifespan, Interop, record_requests, health, upload_limits, status, property_tiv_from_components, submit_underwriting
 
@@ -166,7 +166,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 
 - `conftest.py`: photo, isolated_database, empty_telemetry_queue
 - `test_architecture.py`: imported_modules, app_files_outside_providers, test_vendor_sdks_are_only_imported_by_provider_adapters, test_the_rest_of_the_app_uses_providers_only_through_the_package, test_every_adapter_follows_the_provider_contract, test_an_unknown_provider_fails_with_the_known_names
-- `test_auth.py`: client, signed_in, test_review_needs_a_signed_in_reviewer, test_operator_passes_the_check_but_needs_csrf_and_origin, test_partner_keys, test_github_sign_in_round_trip, test_sign_in_is_off_until_configured, test_providers_list_only_configured_sign_in
+- `test_auth.py`: client, signed_in, test_review_needs_a_signed_in_reviewer, test_operator_passes_the_check_but_needs_csrf_and_origin, test_partner_keys, test_sign_in_is_off_until_configured, test_providers_list_only_configured_sign_in, test_email_and_mobile_sign_up_and_log_in
 - `test_budget.py`: store, test_budget_day_follows_pacific_midnight_like_gemini_quotas, test_visitor_cap_then_global_cap, test_failed_visitor_reservation_does_not_spend_global_budget, test_calls_are_capped_and_recorded, test_ai_is_not_ready_without_key_or_shared_store, test_admission_note_reports_reset_time, ApiError
 - `test_database_lifecycle.py`: test_cleanup_is_deterministic_and_retains_canonical_tidell, test_pdf_builder_returns_nonempty_pdf, test_pdf_builder_embeds_submitted_image
 - `test_evals.py`: test_empty_cases, test_missing_report, test_null_report, test_no_live_default, test_live_bound, test_unavailable_memo, test_judge_failure, test_failed_live_exit
@@ -258,7 +258,6 @@ One line per tracked source file: its docstring, exported names or title. Regene
 
 - `AccountPage.tsx`: AccountPage
 - `Avatar.tsx`: Avatar
-- `Onboarding.tsx`: Onboarding
 - `PartnerKeys.tsx`: PartnerKeys
 - `ProfileForm.tsx`: ProfileForm
 
@@ -292,6 +291,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 
 - `Brand.tsx`: BrandMark, Brand
 - `Controls.tsx`: Controls
+- `LensFilter.tsx`: LensFilter
 - `Sidebar.tsx`: Sidebar
 - `StatusBanner.tsx`: StatusBanner
 - `nav_motion.ts`: navKey, navPoint
@@ -309,6 +309,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `OpticalLabel.tsx`: OpticalLabel
 - `SelectField.css`
 - `SelectField.tsx`: SelectField
+- `SocialLinks.tsx`: SocialLinks
 - `select_keys.ts`: SelectState, selectKey, placeMenu
 
 ## frontend/src/components/status
@@ -346,7 +347,8 @@ One line per tracked source file: its docstring, exported names or title. Regene
 ## frontend/src/lib
 
 - `format.ts`: inr, inrShort
-- `lens.ts`: lensSupported, Lens, lensMap
+- `lens.ts`: lensSupported, LensShape, BAR_SHAPE, BUBBLE_SHAPE, Lens, lensMap
+- `social.ts`: GITHUB_PROFILE, X_PROFILE, GITHUB_PATH, X_PATH
 
 ## frontend/src/types
 

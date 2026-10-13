@@ -6,7 +6,8 @@ import Icon from '@/components/shared/Icon'
 import OpticalLabel from '@/components/shared/OpticalLabel'
 import { usePreferences } from '@/context/Preferences'
 import { useSession } from '@/context/Session'
-import { type Lens, lensMap, lensSupported } from '@/lib/lens'
+import { type Lens, BAR_SHAPE, BUBBLE_SHAPE, lensMap, lensSupported } from '@/lib/lens'
+import LensFilter from './LensFilter'
 import { navKey, navPoint } from './nav_motion'
 
 interface Props {
@@ -24,13 +25,14 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
   const blockClick = useRef(false)
   const [scrubbing, setScrubbing] = useState(false)
   const [lens, setLens] = useState<Lens | null>(null)
+  const [bubble, setBubble] = useState<Lens | null>(null)
   useEffect(() => {
     const node = tabbar.current
     if (!node) return
     const shell = node.closest<HTMLElement>('.app-shell')
     const measure = () => {
       shell?.style.setProperty('--tabbar-height', `${node.getBoundingClientRect().height + (parseFloat(getComputedStyle(node).bottom) || 0) + 14}px`)
-      if (lensSupported) setLens((current) => current?.width === node.clientWidth && current.height === node.clientHeight ? current : lensMap(node.clientWidth, node.clientHeight))
+      if (lensSupported) setLens((current) => current?.width === node.clientWidth && current.height === node.clientHeight ? current : lensMap(node.clientWidth, node.clientHeight, BAR_SHAPE))
     }
     const observer = new ResizeObserver(measure)
     observer.observe(node)
@@ -53,8 +55,17 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
     if (!node || !row || !button) return
     const width = button.offsetWidth
     const left = x === undefined ? button.offsetLeft : Math.max(0, Math.min(row.offsetWidth - width, x - width / 2))
-    node.style.width = `${width}px`
     node.style.transform = `translateX(${left}px)`
+    row.style.setProperty('--lx', `${left}px`)
+    row.style.setProperty('--bw', `${width}px`)
+    row.style.setProperty('--tw', `${row.offsetWidth}px`)
+    const bar = tabbar.current
+    if (bar) {
+      const local = bar.clientWidth / 2 + (row.offsetLeft + left + width / 2 - bar.clientWidth / 2) / 1.035
+      const half = (width * 0.65 - 30) / 1.035
+      bar.style.setProperty('--ha', `${local - half}px`)
+      bar.style.setProperty('--hb', `${local + half}px`)
+    }
     node.style.opacity = '1'
   }
   useLayoutEffect(() => {
@@ -66,6 +77,11 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
       const button = buttons().find((item) => item.dataset.view === activeView)
       if (indicator.current) indicator.current.style.opacity = button ? '1' : '0'
       place(button)
+      if (lensSupported && button) {
+        const width = button.offsetWidth + 28
+        const height = row.offsetHeight + 20
+        setBubble((current) => current?.width === width && current.height === height ? current : lensMap(width, height, BUBBLE_SHAPE))
+      }
     }
     const observer = new ResizeObserver(measure)
     observer.observe(row)
@@ -148,26 +164,22 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
         if (!event.isPrimary || event.button !== 0) return
         gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false }
       }} onPointerMove={move} onPointerUp={(event) => stop(event)} onPointerCancel={(event) => stop(event, true)} onLostPointerCapture={(event) => { if (event.target === event.currentTarget) stop(event, true) }}>
+        <span className="tab-glass" aria-hidden="true" />
         <div ref={track} className="tab-track">
-          <span ref={indicator} className="tab-indicator" aria-hidden="true" />
+          <span ref={indicator} className="tab-indicator" aria-hidden="true">
+            <span className="tab-copy">
+              <span className="tab-copy-row">
+                {tabs.map((item) => <span key={item.view} className="tab-copy-item"><Icon name={item.icon} /><span>{t(`nav.mobile.${item.view}`)}</span></span>)}
+              </span>
+            </span>
+          </span>
           {tabs.map((item) => link(item, 'tab-item', tabs))}
         </div>
       </nav>
       {lens && (
         <svg className="lens-defs" aria-hidden="true" width="0" height="0">
-          <filter id="tab-lens" x="0" y="0" width={lens.width} height={lens.height} filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
-            <feImage href={lens.href} x="0" y="0" width={lens.width} height={lens.height} preserveAspectRatio="none" result="map" />
-            <feDisplacementMap in="SourceGraphic" in2="map" scale={lens.scale * 0.88} xChannelSelector="R" yChannelSelector="G" result="bentRed" />
-            <feColorMatrix in="bentRed" type="matrix" values="1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0" result="red" />
-            <feDisplacementMap in="SourceGraphic" in2="map" scale={lens.scale} xChannelSelector="R" yChannelSelector="G" result="bentGreen" />
-            <feColorMatrix in="bentGreen" type="matrix" values="0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 1 0" result="green" />
-            <feDisplacementMap in="SourceGraphic" in2="map" scale={lens.scale * 1.12} xChannelSelector="R" yChannelSelector="G" result="bentBlue" />
-            <feColorMatrix in="bentBlue" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 1 0" result="blue" />
-            <feBlend in="red" in2="green" mode="screen" result="redGreen" />
-            <feBlend in="redGreen" in2="blue" mode="screen" result="bent" />
-            <feGaussianBlur in="bent" stdDeviation="4" result="soft" />
-            <feColorMatrix in="soft" type="saturate" values="1.8" />
-          </filter>
+          <LensFilter id="tab-lens" lens={lens} spread={0.3} blur={0.6} saturate={1.3} />
+          {bubble && <LensFilter id="tab-bubble" lens={bubble} spread={0.22} blur={0.15} saturate={1.35} />}
         </svg>
       )}
     </>

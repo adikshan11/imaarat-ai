@@ -76,7 +76,7 @@ flowchart LR
   agent(["🤖 AI assistant or agent<br/><small>Claude, Copilot, other systems</small>"])
   sys["<b>imaarat.ai</b><br/><small>scores, explains and records<br/>property risk decisions</small>"]
   ai["AI provider<br/><small>Gemini today, pluggable</small>"]
-  gh["GitHub<br/><small>sign-in</small>"]
+  gh["Google<br/><small>sign-in</small>"]
   gov["Open government data<br/><small>BIS, NRSC, IMD, India Post</small>"]
   uw -- "proposal, photo, paper form" --> sys
   rev -- "approve or change" --> sys
@@ -216,7 +216,6 @@ Conventions: the first user-visible change after a release bumps the version onc
 |---|---|
 | `GEMINI_API_KEY` (or `AI_PROVIDER`, `AI_API_KEY`, `AI_MODEL`) | Reading forms, photo review, guideline search, summaries |
 | `DATABASE_URL` | Postgres for assessments, checkpoints, sessions and budgets |
-| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `OPERATOR_GITHUB_IDS` | GitHub sign-in, needed for reviewing |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional Google sign-in; the button appears only when both are set |
 | `OWNER_EMAILS` | Comma-separated Google emails allowed to use "Owner sign-in", which makes them an operator and opens the dev console; needs the Google settings above |
 | `AI_SIGN_IN_REQUIRED` | Set to `true` to limit live AI to signed-in visitors; off by default, so the demo uses AI too |

@@ -1,4 +1,4 @@
-"""GitHub sign-in: hashed opaque sessions, session-bound CSRF tokens and single-use PKCE state, stored in the app database."""
+"""Sign-in with Google, email or mobile number: hashed opaque sessions, session-bound CSRF tokens and single-use PKCE state, stored in the app database."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import os
 import re
 import time
 from dataclasses import dataclass, field
-from hashlib import sha256
+from hashlib import scrypt, sha256
 from secrets import token_urlsafe
 from urllib.parse import urlsplit
 from uuid import uuid4
@@ -17,6 +17,7 @@ from sqlalchemy import BigInteger, Column, ForeignKey, Integer, LargeBinary, Met
 from sqlalchemy.dialects.postgresql import insert as postgres_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import IntegrityError
 
 from app import config
 from app.db import get_engine
@@ -26,6 +27,7 @@ OAUTH_COOKIE = "__Host-imaarat_oauth"
 SESSION_SECONDS = config.SESSION_MAX_SECONDS
 IDLE_SECONDS = config.SESSION_IDLE_SECONDS
 REVIEW_ROLES = {"reviewer", "operator"}
+SCRYPT_COST = 2**14
 
 metadata = MetaData()
 users = Table(
@@ -33,6 +35,9 @@ users = Table(
     metadata,
     Column("id", String, primary_key=True),
     Column("github_id", BigInteger, unique=True),
+    Column("email", String, unique=True),
+    Column("phone", String, unique=True),
+    Column("password_hash", String),
     Column("google_id", String, unique=True),
     Column("name", String),
     Column("role", String, nullable=False),
@@ -133,6 +138,13 @@ def engine() -> Engine:
             with current.begin() as conn:
                 conn.execute(text(f"ALTER TABLE users ADD COLUMN{guard} google_id VARCHAR"))
                 conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS users_google_id ON users (google_id)"))
+        for added in ("email", "phone", "password_hash"):
+            if added not in existing:
+                guard = " IF NOT EXISTS" if current.dialect.name == "postgresql" else ""
+                with current.begin() as conn:
+                    conn.execute(text(f"ALTER TABLE users ADD COLUMN{guard} {added} VARCHAR"))
+                    if added != "password_hash":
+                        conn.execute(text(f"CREATE UNIQUE INDEX IF NOT EXISTS users_{added} ON users ({added})"))
         if "purpose" not in {column["name"] for column in inspect(current).get_columns("oauth_transactions")}:
             with current.begin() as conn:
                 conn.execute(text("ALTER TABLE oauth_transactions ADD COLUMN purpose VARCHAR"))
@@ -214,11 +226,57 @@ def open_session(column, value, role: str, now: int, name: str | None) -> Sessio
         user = conn.execute(select(users).where(column == value)).one()
         if user.disabled_at is not None:
             raise HTTPException(401, "identity_disabled")
-        token = token_urlsafe(32)
-        csrf = csrf_token(token)
-        expires = now + SESSION_SECONDS
-        conn.execute(insert(sessions).values(id=digest(token), owner_id=user.id, csrf_hash=digest(csrf), created_at=now, last_seen=now, expires_at=expires, authenticated_at=now))
-        return SessionGrant(Principal(user.id, user.role, digest(token), user.github_id, user.name), token, csrf, expires)
+        return grant_session(conn, user, now)
+
+
+def grant_session(conn, user, now: int) -> SessionGrant:
+    token = token_urlsafe(32)
+    csrf = csrf_token(token)
+    expires = now + SESSION_SECONDS
+    conn.execute(insert(sessions).values(id=digest(token), owner_id=user.id, csrf_hash=digest(csrf), created_at=now, last_seen=now, expires_at=expires, authenticated_at=now))
+    return SessionGrant(Principal(user.id, user.role, digest(token), user.github_id, user.name), token, csrf, expires)
+
+
+def hash_password(password: str) -> str:
+    salt = os.urandom(16)
+    return f"scrypt${salt.hex()}${scrypt(password.encode(), salt=salt, n=SCRYPT_COST, r=8, p=1, dklen=32).hex()}"
+
+
+def password_matches(password: str, stored: str | None) -> bool:
+    parts = (stored or "").split("$")
+    valid = len(parts) == 3 and parts[0] == "scrypt"
+    salt = bytes.fromhex(parts[1]) if valid else bytes(16)
+    expected = bytes.fromhex(parts[2]) if valid else bytes(32)
+    actual = scrypt(password.encode(), salt=salt, n=SCRYPT_COST, r=8, p=1, dklen=32)
+    return valid and hmac.compare_digest(actual, expected)
+
+
+def register_member(name: str, email: str | None, phone: str | None, password: str, now: int | None = None) -> SessionGrant:
+    now = clock(now)
+    user_id = str(uuid4())
+    stored = hash_password(password)
+    try:
+        with engine().begin() as conn:
+            reserve_identity(conn, "signup", now, 30)
+            conn.execute(insert(users).values(id=user_id, name=name, email=email, phone=phone, password_hash=stored, role="member", created_at=now))
+            conn.execute(insert(profiles).values(owner_id=user_id, full_name=name, phone=phone, updated_at=now))
+            return grant_session(conn, conn.execute(select(users).where(users.c.id == user_id)).one(), now)
+    except IntegrityError:
+        raise HTTPException(409, "An account with this email or mobile number already exists") from None
+
+
+def login_member(identifier: str, password: str, now: int | None = None) -> SessionGrant:
+    now = clock(now)
+    column = users.c.email if "@" in identifier else users.c.phone
+    with engine().begin() as conn:
+        reserve_identity(conn, "login", now, 120)
+        reserve_identity(conn, "login:" + digest(identifier)[:24], now, 8)
+    with engine().begin() as conn:
+        user = conn.execute(select(users).where(column == identifier)).first()
+        matched = password_matches(password, user.password_hash if user else None)
+        if user is not None and matched and user.disabled_at is None:
+            return grant_session(conn, user, now)
+    raise HTTPException(401, "Incorrect email, mobile number or password")
 
 
 def resolve_session(token: str, now: int | None = None) -> Principal:
