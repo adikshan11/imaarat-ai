@@ -139,7 +139,7 @@ jobs:
         working-directory: backend
         env:
           URLS: ${{ inputs.urls }}
-        run: set -f; python -m bench.source_text ../hazard_out $URLS
+        run: read -ra links <<< "$URLS" && python -m bench.source_text ../hazard_out "${links[@]}"
       - name: Upload the result
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
