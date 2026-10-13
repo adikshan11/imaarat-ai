@@ -93,8 +93,8 @@ def clean(text: str, limit: int) -> str:
     return re.sub(r"\s+", " ", re.sub(r"[\x00-\x1f\x7f]+", " ", text)).strip()[:limit]
 
 
-def outcome(code: str, reply: str | None = None, page: str | None = None, language: str | None = None, sources: list[dict[str, str]] | None = None) -> dict[str, Any]:
-    return {"code": code, "reply": reply, "page": page, "language": language, "sources": sources or []}
+def outcome(code: str, reply: str | None = None, page: str | None = None, language: str | None = None, sources: list[dict[str, str]] | None = None, reason: str | None = None) -> dict[str, Any]:
+    return {"code": code, "reply": reply, "page": page, "language": language, "sources": sources or [], "reason": reason}
 
 
 def transcript(history: list[dict[str, str]]) -> str:
@@ -162,9 +162,10 @@ def chat(message: str, language: str, history: list[dict[str, str]], address: st
     except budget.BudgetExceeded:
         return outcome("limit")
     except Exception as error:
-        print(f"[assistant] status=failed reason={type(error).__name__}")
+        reason = f"{type(error).__name__} {getattr(error, 'code', '')}".strip()
+        print(f"[assistant] status=failed reason={reason}")
         record_failure()
-        return outcome("offline")
+        return outcome("offline", reason=reason)
     finally:
         llm.deadline.reset(token)
     reply = clean(MARKUP.sub(lambda found: found.group(1) or "", answer.reply), 700)
