@@ -233,7 +233,13 @@
   }
 
   .stack-logo {
-    filter: grayscale(1) brightness(0.3);
+    filter: grayscale(1);
+    transition: filter 0.2s;
+  }
+
+  .marquee a:hover .stack-logo,
+  .marquee a:focus-visible .stack-logo {
+    filter: none;
   }
 
   .marquee:hover .marquee-group,

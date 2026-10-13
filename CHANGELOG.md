@@ -2,6 +2,13 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.55.1] - 2026-10-13
+
+### Changed
+- The fallback-model code is removed, not only switched off. `AI_FALLBACK_MODEL` and its limits no longer exist; every call goes to `AI_MODEL`.
+- The IRDAI master circular note (R3) now cites IRDAI's own English PDF, read by OCR, instead of a trade-site copy. Its claims were re-checked against that text.
+- The "Built with" logos are grey and turn to their own colours on hover. DeepEval shows its official wordmark and Sarvam AI its official symbol.
+
 ## [2.55.0] - 2026-10-13
 
 ### Changed

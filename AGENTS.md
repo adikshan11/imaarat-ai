@@ -14,7 +14,7 @@ imaarat.ai assesses commercial property proposals for Indian insurers. **Rules d
 | `backend/app/api/main.py` | REST routes, `/health`, `/status`, uploads, MCP and A2A mounts |
 | `backend/app/agents/` | LangGraph workflow (`graph.py`), state and the report agent |
 | `backend/app/tools/` | Hazard lookup, rule engine (`risk_calculator.py`), form reader, vision, guideline search |
-| `backend/app/llm.py`, `budget.py`, `providers/` | Every model call: daily and per-minute limits, retries, fallback model, timeouts |
+| `backend/app/llm.py`, `budget.py`, `providers/` | Every model call: daily and per-minute limits, retries, timeouts |
 | `backend/app/observability.py` | Langfuse traces, spans and generations |
 | `backend/tests/` | pytest suite; SQLite locally, plus Postgres-only tests in CI |
 | `frontend/src/` | React 19 + TypeScript + Vite app; `landing/` is the public site, `components/` the app |
@@ -71,7 +71,7 @@ Deploys happen only from CI on a push. Never deploy from a laptop, never push to
 
 ## AI, cost and data
 
-- Every model call goes through `backend/app/llm.py` so limits, retries, the fallback model, timeouts and tracing apply. Do not call a provider SDK directly.
+- Every model call goes through `backend/app/llm.py` so limits, retries, timeouts and tracing apply. Do not call a provider SDK directly.
 - The live demo runs on a free daily allowance (see `/api/status`). Live assessments, evals with `live: true` and load tests spend it; ask before running them.
 - Production and preprod share one Neon database. Anything run against preprod must be read-only.
 - Vercel is on the Hobby plan: keep the function under the size budget and avoid extra deploys.
