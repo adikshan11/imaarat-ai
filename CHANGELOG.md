@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.58.2] - 2026-10-13
+
+### Added
+- `AI_CHAT_MODEL` lets Saathi chat use its own model, for example a lighter one with a separate quota, while assessments keep using `AI_MODEL`. Failed chats also say when the cause is a daily quota.
+
 ## [2.58.1] - 2026-10-13
 
 ### Fixed
