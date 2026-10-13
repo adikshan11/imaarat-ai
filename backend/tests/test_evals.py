@@ -269,3 +269,20 @@ def test_partial_memos(monkeypatch, tmp_path, stage, attempts):
     assert report["memos"]["rows"][-1]["reason"] == f"{stage}_failed: RuntimeError"
     assert "private provider" not in json.dumps(report)
     assert config.PROMPT_FORMAT == previous
+
+
+@pytest.mark.parametrize("error,calls", [("ProviderError: 504 DEADLINE_EXCEEDED", 2), ("Structured memo decision differs", 1)])
+def test_busy_memo_retry(monkeypatch, error, calls):
+    made = []
+
+    def memo(state):
+        made.append(config.AI_TIMEOUT_MS)
+        state["memo_error"] = error
+        return {}
+
+    monkeypatch.setattr(runner, "generate_memo", memo)
+    monkeypatch.setattr(runner, "RETRY_SECONDS", 0)
+    previous = config.AI_TIMEOUT_MS
+    assert runner.generate_once({}) == {}
+    assert made == [runner.EVAL_TIMEOUT_MS] * calls
+    assert config.AI_TIMEOUT_MS == previous

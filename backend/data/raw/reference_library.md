@@ -1,24 +1,24 @@
 # Reference Library
 
-Short notes in our own words from public Indian sources, each with its source, date, link and authority. They are retrieved as context next to the underwriting guidelines (G1 to G12) and never change the deterministic score. Authority is one of: official (government or regulator), standard (Bureau of Indian Standards), industry (insurer or reinsurer), research (papers and preprints) and news (press reports, non-authoritative context only). Figures are as stated by the source on the date shown. Sentences starting "Our reading" are our interpretation, not the source's. Notes marked as reproduced were read from a full-text copy because the regulator's PDF could not be opened.
+Short notes in our own words from public Indian sources, each with its source, date, link and authority. They are retrieved as context next to the underwriting guidelines (G1 to G12) and never change the deterministic score. Authority is one of: official (government or regulator), standard (Bureau of Indian Standards), industry (insurer or reinsurer), research (papers and preprints) and news (press reports, non-authoritative context only). Figures are as stated by the source on the date shown. Sentences starting "Our reading" are our interpretation, not the source's. Notes marked as reproduced were read from a full-text copy because the regulator's own file has no readable text.
 
 ## R1. Standard fire products for micro and small businesses
 
-Source: IRDAI, Guidelines on Bharat Sookshma Udyam Suraksha and Bharat Laghu Udyam Suraksha, effective 1 April 2021 (text as reproduced by Insurance Times on bimabazaar.com). https://bimabazaar.com/journal-books/insurance-articles/guidelines-for-fire-and-allied-perils-cover-for-standard-products-for-micro-businesses-and-small-businesses-bharat-sookshma-udyam-suraksha-and-bharat-laghu-udyam-suraksha
+Source: IRDAI, Guidelines for Fire and Allied Perils cover for standard products Bharat Sookshma Udyam Suraksha and Bharat Laghu Udyam Suraksha, Ref IRDA/NL/GDL/MISC/005/01/2021 dated 4 January 2021, effective 1 April 2021. https://irdai.gov.in/documents/37343/0/Guidelines+for+Standard+Products+for+Fire+and+Allied+Perils+_Bharat+Griha+Raksha%2C+Bharat+Sookshma+Udyam+Suraksha+and+Bharat+Laghu+Udyam+Suraksha.pdf/9f36d8b2-782b-eff6-01c8-3aa4a4c68c5b
 Authority: official
 
 From 1 April 2021 every fire insurer had to offer two standard products for fresh and renewal business. Bharat Sookshma Udyam Suraksha covers a total value at risk of up to Rs 5 crore at one location when the policy starts; Bharat Laghu Udyam Suraksha covers more than Rs 5 crore and up to Rs 50 crore. Value at risk is everything at the location: building, fittings and fixtures, plant and machinery, stock and other contents. If the value crosses a threshold during the year the policy runs to expiry and the right product is issued at renewal. Building, plant and machinery and furniture are insured on reinstatement value, never market value. Terrorism cover is built in at the rate of the Indian Market Terrorism Risk Insurance Pool. Insuring only part of a building is not allowed. A site with no manufacturing or storage for 30 days or more is a silent risk. Clauses 3, 4, 11 to 14.
 
 ## R2. Bharat Griha Raksha for homes
 
-Source: IRDAI, Guidelines introducing the standard product Bharat Griha Raksha, effective 1 April 2021 (text as reproduced on bimabazaar.com). https://bimabazaar.com/insurance-news-and-information/insurance-news/irda-in-india/guidelines-for-fire-and-allied-perils-cover-for-dwellings-introduction-of-a-standard-product-bharat-griha-raksha
+Source: IRDAI, Guidelines for Fire and Allied Perils cover for Dwellings, introducing the standard product Bharat Griha Raksha, Ref IRDA/NL/GDL/MISC/004/01/2021 dated 4 January 2021, effective 1 April 2021. https://irdai.gov.in/documents/37343/0/Guidelines+for+Standard+Products+for+Fire+and+Allied+Perils+_Bharat+Griha+Raksha%2C+Bharat+Sookshma+Udyam+Suraksha+and+Bharat+Laghu+Udyam+Suraksha.pdf/9f36d8b2-782b-eff6-01c8-3aa4a4c68c5b
 Authority: official
 
 Bharat Griha Raksha replaced the old tariff fire policy for dwellings, for building and contents, whatever the sum insured. Policies can run for up to 10 years. Loss of rent, rent for alternative accommodation, debris removal and professional fees are built in, and so is terrorism at the pool rate. The building sum insured is the carpet area times the declared construction cost per unit area; it can be higher but not lower. On long-term policies the building sum insured rises by 10% a year, up to 100%, at no extra premium. General contents default to 20% of the building sum insured, capped at Rs 10 lakh, unless the buyer opts out. Clauses 2, 8, 9, 11 and 12.
 
 ## R3. IRDAI master circular on general insurance products, 2024
 
-Source: IRDAI, Master Circular on IRDAI (Insurance Products) Regulations 2024 for general insurance, June 2024, reference IRDAI/NL/MSTCIR/MISC/90/06/2024 (text as reproduced by taxguru.in). https://taxguru.in/corporate-law/master-circular-reforms-general-insurance-business.html
+Source: IRDAI, Master Circular on IRDAI (Insurance Products) Regulations 2024 for general insurance, June 2024, reference IRDAI/NL/MSTCIR/MISC/90/06/2024 (text as reproduced by taxguru.in; IRDAI's own English PDF is a scanned image with no text layer). https://taxguru.in/corporate-law/master-circular-reforms-general-insurance-business.html
 Authority: official
 
 The circular moves general insurance from rule-based to principle-based regulation, but insurers may still not withdraw or refuse the old standard products. Retail products must say whether the average (underinsurance) clause applies and how much of it is waived, and every retail policy comes with a Customer Information Sheet on scope, basis of sum insured, exclusions, deductibles and warranties. Non-motor losses of Rs 1 lakh or more need a registered surveyor, who reports within 15 days; the insurer then decides within 7 days, except on reinstatement-value property policies. Where several policies cover one risk no contribution clause applies, and underinsurance is judged on all sums insured together. Homeowners must be offered add-ons such as flood, cyclone, earthquake, landslide, rockslide and terrorism. Pricing should reflect exposure and catastrophe experience. The 2021 standard-product guidelines are listed as repealed. Chapter I paragraphs 6, 7, 9, 10, 14 and 15; Chapter III; Annex C.
@@ -288,3 +288,38 @@ Source: Down To Earth, Indian insurers listed among worst performers in climate 
 Authority: news
 
 Citing an IRDAI report, the article says Amphan produced 14,575 claims worth Rs 1,767 crore in 2020-21, and 11,512 were settled by 30 June 2021 for Rs 471 crore, the highest payout for any weather event that year. An expert quoted said about 80% of claims were settled but only about 26% of the money claimed was paid, and that about 70% of Rs 2,559 crore of catastrophe claims in 2020-21 were unpaid. The article gives Amphan's date as May 2021; the cyclone struck in May 2020. Our reading: underinsurance, deductibles and exclusions can leave a large gap between claimed and paid amounts.
+
+## R42. Insured events and exclusions in the standard small-business policy
+
+Source: IRDAI, Bharat Sookshma Udyam Suraksha, Key Features Document and policy wording (IRDAI file dated December 2021), pages 3 to 9. https://irdai.gov.in/documents/38105/54393/Bharat_Sookshma_Udyam_Suraksha1.pdf/323038cf-5212-2f34-4cac-8d3b33254cc1
+Authority: official
+
+The policy covers physical loss or damage caused by fourteen insured events: fire, including from its own fermentation, natural heating or spontaneous combustion; explosion or implosion; lightning; earthquake, volcanic eruption or other convulsions of nature; storm, cyclone, typhoon, tempest, hurricane, tornado, tsunami, flood and inundation; subsidence of the land, landslide and rockslide; bush, forest and jungle fire; impact damage by any external object such as a vehicle, falling tree, aircraft or wall; missile testing operations; riot, strikes and malicious damage; acts of terrorism under the terrorism clause; bursting or overflowing of water tanks and pipes; leakage from automatic sprinklers; and theft within 7 days of an insured event. Subsidence is not covered when caused by normal settlement of new structures, made-up ground, coastal or river erosion, defective design or workmanship, or construction work. Listed exclusions include wilful acts, temperature change in cold storage, war, ionising radiation, pollution, consequential loss, premises unoccupied for more than 30 days, and electrical damage to a machine from its own short circuit or overload. Underinsurance of up to 15% of the sum insured is waived; beyond that the claim is reduced in proportion. A declaration policy for stocks is the standard add-on.
+
+## R43. Seismic zone factors (IS 1893)
+
+Source: Bureau of Indian Standards, IS 1893 (Part 1):2016 Criteria for Earthquake Resistant Design of Structures, sixth revision, Table 3 (clause 6.4.2) and Foreword (copy published by Public.Resource.Org). https://archive.org/details/gov.in.is.1893.1.2016
+Authority: standard
+
+The seismic zone factor Z used in design is 0.10 for Zone II, 0.16 for Zone III, 0.24 for Zone IV and 0.36 for Zone V. The zone map is broadly associated with MSK-1964 intensities of VI or less, VII, VIII, and IX or above for Zones II to V. Zone factors for important towns are listed in Annex E, and buildings designed to the standard are still expected to be damaged in strong shaking; the standard sets minimum design forces, not damage-free performance. Our reading: a Zone V site is designed for 3.6 times the zone factor of a Zone II site.
+
+## R44. Fire-fighting installations by building height (National Building Code)
+
+Source: Bureau of Indian Standards, National Building Code of India 2016, Volume 1, Part 4 Fire and Life Safety, Table 7 Minimum Requirements for Fire Fighting Installations (copy published by Public.Resource.Org). https://archive.org/details/nationalbuilding01
+Authority: standard
+
+Table 7 sets the minimum fire-fighting installations for each occupancy: fire extinguishers, first-aid hose reels, wet risers, down-comers, yard hydrants, automatic sprinklers, manually operated electric fire alarms, automatic detection and alarm, underground and terrace water tanks, and pump capacities. The requirements step up with building height, in bands of under 15 m, 15 to 35 m, 35 to 45 m, 45 to 60 m and above 60 m, and for some occupancies with floor area per storey, such as up to 300 m2, 300 to 1,000 m2 and above 1,000 m2. The fire pump columns specify a minimum pressure of 3.5 kg/cm2 at the remotest location. Our reading: whether sprinklers are mandatory depends on the occupancy, height and floor area rows of Table 7 and on the State's adoption of the Code; the table could not be read row by row from the text copy, so check the printed table for a specific building.
+
+## R45. Climate change over the Indian region (MoES assessment)
+
+Source: Ministry of Earth Sciences, Assessment of Climate Change over the Indian Region, Krishnan and others (editors), Springer 2020, open access CC BY 4.0, Executive Summary. https://link.springer.com/10.1007/978-981-15-4327-2
+Authority: official
+
+India's average temperature rose by about 0.7 °C over 1901 to 2018 and is projected to rise by about 4.4 °C by 2070 to 2099 under the high-emission RCP8.5 scenario. Summer heat waves are projected to be three to four times as frequent by the end of the century under RCP8.5. Monsoon rainfall fell by about 6% from 1951 to 2015, with dry spells 27% more frequent, while daily rainfall above 150 mm over central India became about 75% more frequent between 1950 and 2015. The tropical Indian Ocean warmed by about 1 °C over 1951 to 2015. Sea level in the North Indian Ocean rose 1.06 to 1.75 mm a year over 1874 to 2004 and 3.3 mm a year over 1993 to 2017. Tropical cyclones in the North Indian Ocean became less frequent after 1951, but very severe cyclonic storms after the monsoon rose by about one a decade over 2000 to 2018, and models project more intense cyclones.
+
+## R46. Basic wind speeds and the cyclone factor (IS 875)
+
+Source: Bureau of Indian Standards, IS 875 (Part 3):2015 Design Loads for Buildings and Structures, Wind Loads, clauses 6.2 and 6.3.4, Figure 1 and Annex A (copy published by Public.Resource.Org, CC0). https://archive.org/details/gov.in.is.875.3.2015
+Authority: standard
+
+The basic wind speed map of India gives zones of 33, 39, 44, 47, 50 and 55 m/s: a 3-second gust at 10 m above open ground with a 50-year return period. Annex A lists cities, for example Chennai, Kolkata, Bhubaneswar, Cuttack, Bhuj, Guwahati and Puducherry at 50 m/s, Delhi, Patna and Jaipur at 47 m/s, Mumbai, Hyderabad, Surat and Nagpur at 44 m/s, Ahmedabad, Pune and Coimbatore at 39 m/s, Mysore at 33 m/s and Darbhanga at 55 m/s. Because cyclones often exceed the map speeds, a cyclone importance factor applies within a belt about 60 km wide along the east coast and the Gujarat coast: 1.30 for post-cyclone emergency buildings such as shelters, hospitals and schools, 1.15 for industrial structures and 1.00 for all other structures. Our reading: a coastal factory in Odisha or Gujarat should be designed for 15% higher wind speed than the same factory inland.
