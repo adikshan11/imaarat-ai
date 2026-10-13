@@ -121,6 +121,7 @@ function Application() {
           setCompletedSubmission((current) => current?.id === updated.id ? updated : current)
         }} />}
         </Suspense>
+        <div className="saathi-slot"><Suspense fallback={null}><Saathi onOpen={(page) => navigate(page)} /></Suspense></div>
         <footer className="site-footer">
           <nav className="footer-links" aria-label="imaarat.ai">
             <a href="#status" onClick={(event) => { event.preventDefault(); setView('status') }}>{t('nav.status')}</a>
@@ -141,7 +142,6 @@ function Application() {
           </p>
         </footer>
       </main>
-      <Suspense fallback={null}><Saathi onOpen={(page) => navigate(page)} /></Suspense>
     </div>
   )
 }
