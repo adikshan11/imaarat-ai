@@ -37,3 +37,11 @@ def test_public_base_url_prefers_explicit_setting(monkeypatch):
     assert public_base_url() == "https://imaarat-ai.vercel.app/api"
     monkeypatch.delenv("PUBLIC_BASE_URL")
     assert public_base_url() == "https://old.vercel.app/api"
+
+
+def test_maps_config_returns_key_only_when_set(monkeypatch):
+    client = TestClient(main.app)
+    monkeypatch.delenv("GOOGLE_MAPS_API_KEY", raising=False)
+    assert client.get("/maps/config").json() == {"key": None}
+    monkeypatch.setenv("GOOGLE_MAPS_API_KEY", " abc123 ")
+    assert client.get("/maps/config").json() == {"key": "abc123"}

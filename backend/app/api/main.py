@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import time
 from contextlib import asynccontextmanager
 from typing import Any, Literal
@@ -114,6 +115,12 @@ def health() -> dict[str, str]:
 @app.get("/uploads/limits")
 def upload_limits() -> Response:
     return Response(json.dumps(images.limits()), media_type="application/json", headers={"Cache-Control": "public, max-age=3600"})
+
+
+@app.get("/maps/config")
+def maps_config() -> Response:
+    key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
+    return Response(json.dumps({"key": key or None}), media_type="application/json", headers={"Cache-Control": "public, max-age=300"})
 
 
 @app.get("/status")

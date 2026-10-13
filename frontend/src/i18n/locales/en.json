@@ -543,5 +543,22 @@
   "authority.standard": "Standard (BIS)",
   "authority.industry": "Industry",
   "authority.research": "Research",
-  "authority.news": "News, not authoritative"
+  "authority.news": "News, not authoritative",
+  "chart.title": "Risk at a glance",
+  "chart.drivers": "What drove the score",
+  "chart.exposure": "Hazard exposure",
+  "chart.no_drivers": "No single factor stood out",
+  "chart.analyzing": "Analysing this property",
+  "chart.seismic": "Earthquake",
+  "chart.flood": "Flood",
+  "chart.cyclone": "Cyclone",
+  "chart.landslide": "Landslide",
+  "map.title": "Property location",
+  "map.search_placeholder": "Search an address or place in India",
+  "map.search": "Search",
+  "map.locate": "Use my live location",
+  "map.hint": "Click the map or drag the pin to set the exact spot. Latitude and longitude fill in for you.",
+  "map.not_found": "No place found. Try a fuller address.",
+  "map.denied": "Location is blocked or unavailable. Allow it in the browser, or search instead.",
+  "map.failed": "The map could not load. You can still type the latitude and longitude."
 }

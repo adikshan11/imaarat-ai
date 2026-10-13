@@ -218,6 +218,7 @@ Conventions: the first user-visible change after a release bumps the version onc
 | `DATABASE_URL` | Postgres for assessments, checkpoints, sessions and budgets |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional Google sign-in; the button appears only when both are set |
 | `OWNER_EMAILS` | Comma-separated Google emails allowed to use "Owner sign-in", which makes them an operator and opens the dev console; needs the Google settings above |
+| `GOOGLE_MAPS_API_KEY` | Optional Google Maps browser key (Maps JavaScript API and Geocoding API enabled, restricted to your site by HTTP referrer); the property map appears only when it is set |
 | `AI_SIGN_IN_REQUIRED` | Set to `true` to limit live AI to signed-in visitors; off by default, so the demo uses AI too |
 | `SESSION_IDLE_SECONDS`, `SESSION_MAX_SECONDS` | Sign-in session limits; 900 (15 minutes idle) and 28800 (8 hours) by default |
 | `PROFILE_PHOTO_BYTES`, `FORM_PHOTO_BYTES`, `PROPERTY_PHOTO_BYTES`, `IMAGE_MAX_PIXELS`, `PROFILE_PHOTO_SIDE` | Upload limits for every image, served to the app at `/api/uploads/limits` |

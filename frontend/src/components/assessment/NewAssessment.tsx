@@ -7,6 +7,8 @@ import Card from '@/components/shared/Card'
 import { AiProgress, Spinner } from '@/components/shared/Loader'
 import SelectField from '@/components/shared/SelectField'
 import HazardCard from '@/components/assessment/HazardCard'
+import PropertyMap from '@/components/assessment/PropertyMap'
+import type { PlacePick } from '@/api/maps'
 import { usePreferences } from '@/context/Preferences'
 import { inr } from '@/lib/format'
 
@@ -189,6 +191,14 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
   const [hoveredSegId, setHoveredSegId] = useState<string | null>(null)
 
   const update = (key: keyof FormState, value: string | boolean) => setForm((current) => ({ ...current, [key]: value }))
+  const pickPlace = (pick: PlacePick) => {
+    update('latitude', pick.lat.toFixed(6))
+    update('longitude', pick.lng.toFixed(6))
+    if (pick.address) update('address', pick.address)
+    if (pick.city) update('city', pick.city)
+    if (pick.state) update('state', pick.state)
+    if (pick.zip) update('zip', pick.zip)
+  }
 
   const toInput = (values: FormState): SubmissionInput => {
     const derivedTiv = componentTiv(values)
@@ -434,6 +444,7 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
             <div className="form-row form-row-3"><Field name="city" /><Field name="state" /><Field name="zip" /></div>
             <div className="form-row form-row-2"><Field name="latitude" type="number" /><Field name="longitude" type="number" /></div>
           </div>
+          <PropertyMap latitude={Number(form.latitude)} longitude={Number(form.longitude)} onPick={pickPlace} />
         </Card>
 
         <Card title={t('sec.business')}>
