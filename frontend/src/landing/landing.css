@@ -226,13 +226,14 @@
   .marquee-group {
     display: flex;
     flex-shrink: 0;
-    gap: 0.75rem;
-    padding-right: 0.75rem;
-    animation: marquee 70s linear infinite;
+    align-items: center;
+    gap: 3.5rem;
+    padding-right: 3.5rem;
+    animation: marquee 45s linear infinite;
   }
 
-  .marquee-reverse .marquee-group {
-    animation-direction: reverse;
+  .stack-logo {
+    filter: grayscale(1) brightness(0.3);
   }
 
   .marquee:hover .marquee-group,

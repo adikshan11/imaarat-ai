@@ -213,7 +213,6 @@ export interface EvalReport {
   run_mode?: 'not_run' | 'deterministic_only' | 'live_bounded'
   generated_at?: string | null
   model?: string
-  fallback_model?: string
   judge_model?: string
   metadata?: {
     dataset?: string

@@ -139,7 +139,7 @@ def judge(metric, state: dict, memo: dict) -> dict:
 
 
 def generate_once(state: dict) -> dict:
-    """Generate one memo through the app's main-then-fallback model path; a busy or timed-out call gets one slower retry after a pause."""
+    """Generate one memo through the app's model path; a busy or timed-out call gets one slower retry after a pause."""
     previous = config.AI_ATTEMPTS, config.AI_TIMEOUT_MS
     try:
         config.AI_ATTEMPTS, config.AI_TIMEOUT_MS = 1, EVAL_TIMEOUT_MS

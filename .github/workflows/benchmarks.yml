@@ -128,6 +128,9 @@ jobs:
           python-version: "3.12"
       - name: Install the hazard pipeline
         run: pip install -r pipeline/hazard/requirements.txt && mkdir -p hazard_out
+      - name: Install OCR tools
+        if: inputs.suite == 'source-text'
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr && pip install pymupdf
       - name: Dump the landslide atlas text
         if: inputs.suite == 'hazard-text'
         run: python pipeline/hazard/build_hazard.py --raw-dir pipeline/hazard/raw --dump-landslide hazard_out/landslide_atlas.txt

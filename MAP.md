@@ -148,7 +148,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `__init__.py`
 - `form_cases.py`: Seeded synthetic paper-form cases: what a proposer writes and in which script, for the form-reading benchmark.
 - `forms_bench.py`: Form-reading benchmark: the app's Gemini reader, Sarvam Extract and Qwen3-VL on the same rendered forms, scored with the app's own field checks.
-- `source_text.py`: Download public PDFs and write their text page by page, so sources can be read and cited from a CI artifact.
+- `source_text.py`: Download public PDFs and write their text page by page, reading scanned pages with OCR, so sources can be read and cited from a CI artifact.
 
 ## backend/load
 
@@ -173,7 +173,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `test_graph.py`: use_temp_database, test_referral_pauses_for_review_and_resumes_with_override, test_non_referral_needs_no_review, test_concurrent_first_requests_build_the_checkpointer_once
 - `test_hazard.py`: test_golden_locations, test_nrsc_landslide_rank, test_town_list_overrides_the_coarse_map, test_rural_pincode_keeps_the_map_zone, test_flood_share_separates_floodplain_from_dry_city, test_city_flood_points_cover_urban_waterlogging, test_city_flood_points_raise_the_flood_flag, test_unknown_or_malformed_pincode_returns_none
 - `test_interop.py`: test_startup_skips_mcp_and_a2a, test_mcp_and_a2a_load_on_first_request, test_a2a_task_follows_the_underwriter_review, test_a2a_needs_a_partner_key
-- `test_llm_settings.py`: fake_client, test_extraction_stages_think_low_and_thinking_is_billed, test_the_memo_keeps_the_model_default_thinking, test_a_busy_model_falls_back_at_once, test_a_slow_main_model_leaves_time_for_the_fallback, test_failures_are_explained_the_same_way_for_every_provider
+- `test_llm_settings.py`: fake_client, test_every_stage_thinks_low_and_thinking_is_billed, test_a_busy_model_is_retried_on_the_same_model_and_never_switched, test_an_optional_fallback_model_takes_over_at_once, test_a_slow_main_model_leaves_time_for_the_fallback, test_failures_are_explained_the_same_way_for_every_provider
 - `test_portfolio.py`: seed, test_portfolio_totals_match_every_submission, test_history_pages_filters_and_sorts_on_the_server, test_hazard_checks_are_counted_live_from_each_pincode
 - `test_prompt_injection.py`: state, memo, test_an_honest_memo_passes, test_a_memo_that_obeys_an_injection_is_rejected, test_injected_text_stays_data_and_cannot_move_the_score
 - `test_publish_run.py`: lighthouse, test_ci_runs_are_published_and_shown_newest_first, test_app_and_landing_audits_are_kept_apart
@@ -332,7 +332,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `pages.tsx`: Privacy, Terms, Changelog
 - `render.tsx`: render
 - `site.tsx`: APP, DEMO, REPO, PORTFOLIO, Mark, SkipLink, Header, Footer
-- `stack.ts`: Tool, aiStack, deliveryStack
+- `stack.ts`: Tool, stack
 - `tabs.ts`
 
 ## frontend/src/lib
