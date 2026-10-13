@@ -2,6 +2,21 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.64.0] - 2026-10-14
+
+### Added
+- After each answer Saathi offers up to three new follow-up questions that build on it, instead of the same fixed suggestions.
+- A down arrow in the Saathi header minimises the chat; the conversation is kept.
+
+### Changed
+- Saathi now sits at the bottom left, just above the sidebar controls, so it no longer covers cards. Her chat opens at the bottom left, and the greeting appears beside her.
+- The Saathi chat and button have solid backgrounds instead of showing the page through them.
+- The footer is back at the end of the page, not following the scroll, and sits at the window bottom on short pages with a smaller gap below it.
+- The PDF report is easier to read: a decision banner with its meaning and score, plain names for risk flags and score factors, a total on the score table, and every table wraps its text instead of running off the page.
+
+### Fixed
+- The microphone in Saathi works: the site's security headers had blocked the microphone for the whole site.
+
 ## [2.63.0] - 2026-10-14
 
 ### Added

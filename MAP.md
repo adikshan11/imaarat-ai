@@ -113,7 +113,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `partners.py`: Partner keys for the A2A endpoint: shown once, stored only as SHA-256 hashes, and revocable without a redeploy.
 - `printouts.py`: Single-use, expiring serial numbers and QR codes for printed paper proposal forms.
 - `profile.py`: Underwriter profile: name and mobile number are required before reviewing; the photo is optional and re-encoded.
-- `reports.py`: build_submission_pdf
+- `reports.py`: plain, para, inr, label, facts_table, bullets, section, submitted_image_path
 - `schemas.py`: redact, PropertySubmission, UnderwritingMemo, VisionObservations, decision_from_score, indicative_product_segment
 - `store.py`: Shared key-value store for caches, pauses and daily counters: in memory by default, Redis when REDIS_URL is set.
 - `telemetry.py`: Request, trace and span telemetry kept in the app database for the public status page: route templates and timings only, never inputs.

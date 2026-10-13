@@ -51,6 +51,7 @@ Rules:
 - Reply in the reply language given with the question, in at most 60 words, plain and warm, with no markdown, links or code.
 - If the user asks to open a page, set page to one of dashboard, new, paper or how and say you are opening it; otherwise none.
 - If the user asks to change the app language, set language to its code from this list: {codes}; otherwise none.
+- Also give up to 3 followups: short questions, at most 8 words each, in the reply language, that the user could ask next. Each must open a new angle that builds on your answer and the conversation, never repeat a question already asked, and stay within imaarat.ai and commercial property underwriting. Give none when you refuse or do not know.
 
 App facts:
 - dashboard: the portfolio of assessed properties with totals and history.
@@ -65,6 +66,8 @@ PASSAGES = 3
 PASSAGE_CHARS = 600
 HISTORY_TURNS = 4
 HISTORY_CHARS = 200
+FOLLOWUPS = 3
+FOLLOWUP_CHARS = 70
 CACHE_SECONDS = 6 * 3600
 BREAKER_FAILURES = 3
 BREAKER_WINDOW = 60
@@ -83,6 +86,7 @@ class Reply(BaseModel):
     reply: str = Field(description="The answer to show the user")
     page: Literal["dashboard", "new", "paper", "how", "none"] = Field(description="App page to open, or none")
     language: str = Field(description="Language code to switch the app to, or none")
+    followups: list[str] = Field(default_factory=list, description="Up to 3 short next questions for the user")
 
 
 def clean(text: str, limit: int) -> str:
@@ -90,8 +94,8 @@ def clean(text: str, limit: int) -> str:
     return re.sub(r"\s+", " ", re.sub(r"[\x00-\x1f\x7f]+", " ", text)).strip()[:limit]
 
 
-def outcome(code: str, reply: str | None = None, page: str | None = None, language: str | None = None, sources: list[dict[str, str]] | None = None, reason: str | None = None) -> dict[str, Any]:
-    return {"code": code, "reply": reply, "page": page, "language": language, "sources": sources or [], "reason": reason}
+def outcome(code: str, reply: str | None = None, page: str | None = None, language: str | None = None, sources: list[dict[str, str]] | None = None, reason: str | None = None, followups: list[str] | None = None) -> dict[str, Any]:
+    return {"code": code, "reply": reply, "page": page, "language": language, "sources": sources or [], "reason": reason, "followups": followups or []}
 
 
 def transcript(history: list[dict[str, str]]) -> str:
@@ -165,6 +169,7 @@ def chat(message: str, language: str, history: list[dict[str, str]], address: st
         None if answer.page == "none" else answer.page,
         answer.language if answer.language in LANGUAGES else None,
         [{"id": hit["id"], "title": hit["title"]} for hit in hits[:PASSAGES]],
+        followups=[item for item in (clean(MARKUP.sub("", question), FOLLOWUP_CHARS) for question in answer.followups) if item][:FOLLOWUPS],
     )
     if not history:
         store.set_json(key, value, CACHE_SECONDS)

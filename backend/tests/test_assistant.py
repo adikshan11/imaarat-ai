@@ -16,11 +16,11 @@ def store(tmp_path, monkeypatch):
     db.metadata.create_all(db.get_engine())
 
 
-def reply(text="Opening it.", page="none", language="none", seen=None):
+def reply(text="Opening it.", page="none", language="none", seen=None, followups=None):
     def generate(name, contents, schema=None, system=None, max_output_tokens=None, model=None):
         if seen is not None:
             seen.append((contents, max_output_tokens, model))
-        return {"text": json.dumps({"reply": text, "page": page, "language": language})}
+        return {"text": json.dumps({"reply": text, "page": page, "language": language, "followups": followups or []})}
 
     return generate
 
@@ -123,3 +123,8 @@ def test_chat_leaves_a_call_reserve_for_assessments(store, monkeypatch):
     monkeypatch.setattr(llm, "generate", lambda *args, **kwargs: pytest.fail("model was called"))
     monkeypatch.setattr(budget, "remaining", lambda: {"calls_left": config.AI_CHAT_CALL_RESERVE - 1})
     assert assistant.chat("hello", "en", [], "1.2.3.4")["code"] == "limit"
+
+
+def test_chat_returns_clean_followups(store, monkeypatch):
+    monkeypatch.setattr(llm, "generate", reply(followups=["What lowers the score?", "  ", "Which **flood** data is used? [x](http://y.test)", "Third one", "Fourth one"]))
+    assert assistant.chat("hello", "en", [], "1.2.3.4")["followups"] == ["What lowers the score?", "Which flood data is used?", "Third one"]
