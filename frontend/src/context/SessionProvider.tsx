@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
-import { fetchProviders, fetchSession, signOut, startSignIn, type Providers, type Session } from '@/api/session'
+import { fetchProviders, fetchSession, passwordLogin, passwordSignup, signOut, startSignIn, type Providers, type Session } from '@/api/session'
 import { SessionContext, type SessionState } from './Session'
 import { announceEnd, useSessionClock, type SessionEnd } from './useSessionClock'
 
@@ -43,6 +43,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     signIn: async (provider) => {
       setError(null)
       try { await startSignIn(provider) } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)) }
+    },
+    logIn: async (identifier, password) => {
+      setError(null)
+      try { await passwordLogin(identifier, password); await refresh() } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)) }
+    },
+    signUp: async (name, identifier, password) => {
+      setError(null)
+      try { await passwordSignup(name, identifier, password); await refresh() } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)) }
     },
     signOut: async () => {
       if (session) await signOut(session.csrf_token).catch(() => undefined)

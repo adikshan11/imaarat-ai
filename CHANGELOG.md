@@ -2,6 +2,18 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.57.0] - 2026-10-13
+
+### Added
+- Sign up and log in with Google, an email address or a mobile number. Email and mobile accounts use a password, stored only as a salted scrypt hash. The address or number is not verified.
+- GitHub and X links in the app and landing footers.
+- The sources list on the Guide page now has 16 sources, all from the reference library, instead of 3.
+
+### Changed
+- GitHub sign-in is removed. After signing up you go straight into the app and the account menu holds Sign out; the profile and partner-key settings are for the owner only.
+- The mobile tab bar now follows the shape of a refracting glass bar. At rest it is a translucent bar with a darker selected cell. While you press or slide, the cell grows out of the bar as a lens that refracts and magnifies what is behind it with colour fringing, the bar stretches, and the bar's own tint opens up under the lens. The rainbow edge is gone. Chrome draws the real refraction; other browsers get a blurred lens with magnified icons.
+- The privacy policy describes email, mobile and Google accounts.
+
 ## [2.56.0] - 2026-10-13
 
 ### Added

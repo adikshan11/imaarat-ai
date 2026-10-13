@@ -11,7 +11,7 @@ const DECISIONS = ['Accept', 'Refer', 'Decline (mitigation possible)', 'Auto-Dec
 
 export default function ReviewPanel({ submission, onReviewed }: { submission: BackendSubmission; onReviewed: (updated: BackendSubmission) => void }) {
   const { t, label, language } = usePreferences()
-  const { session, reviewer: canReview, signIn } = useSession()
+  const { session, reviewer: canReview } = useSession()
   const [finalDecision, setFinalDecision] = useState(submission.decision)
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
@@ -76,7 +76,7 @@ export default function ReviewPanel({ submission, onReviewed }: { submission: Ba
           ? <button className="btn btn-primary" disabled={busy || heldByOther || (override && !note.trim())} onClick={() => void act((id, csrf) => reviewSubmission(id, { final_decision: finalDecision, note: note.trim() }, csrf))}>
               {busy ? <><Spinner />{t('rev.saving')}</> : t(override ? 'rev.override' : 'rev.approve')}
             </button>
-          : !session && <button className="btn btn-primary" onClick={() => void signIn()}>{t('auth.sign_in')}</button>}
+          : !session && <button className="btn btn-primary" onClick={() => { window.location.hash = 'signin' }}>{t('auth.sign_in')}</button>}
       </div>
     </Card>
   )

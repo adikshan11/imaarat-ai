@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import changelog from '../../../CHANGELOG.md?raw'
 import { DEMO, Footer, Header, REPO, SkipLink } from './site.tsx'
 
-const UPDATED = '8 October 2026'
+const UPDATED = '13 October 2026'
 
 function Document({ title, lead, children }: { title: string; lead: ReactNode; children: ReactNode }) {
   return (
@@ -39,8 +39,8 @@ export function Privacy() {
           <li><strong>Photos.</strong> A property photo is kept in temporary server storage while the assessment runs and disappears when the server restarts. A photo of the paper form is read and not stored.</li>
           <li><strong>Request records:</strong> for each request, the page or API route, the result code and how long it took. Not what you typed. Kept for 14 days.</li>
           <li><strong>A daily visitor count.</strong> To share the daily AI allowance fairly, requests are counted per visitor using a one-way code made from the IP address that changes every day. The address itself is not stored.</li>
-          <li><strong>Signing in</strong> is optional. The demo, including its AI features, works without it; reviewing referrals needs it. If you sign in with GitHub, we store your GitHub account’s numeric ID and username, your role and a hashed copy of your session. If you sign in with Google, we store only your Google account’s numeric ID, your role and a hashed copy of your session. We do not receive your email address, contacts or repositories.</li>
-          <li><strong>Your profile.</strong> After signing in you add your full name and mobile number before using the app, and you can add a photo. The photo is resized to a small square and its camera details are removed. Your name is shown with the referrals you start reviewing or decide, to anyone who opens that assessment. Your mobile number and photo are shown only to you.</li>
+          <li><strong>Signing in</strong> is optional. The demo, including its AI features, works without it; reviewing referrals needs it. You can create an account with Google, an email address or a mobile number. With Google we store only your Google account’s numeric ID, your role and a hashed copy of your session; we do not receive your email address or contacts. With an email address or mobile number we store that address or number, your name, a salted hash of your password (never the password itself) and a hashed copy of your session. We do not check that the address or number is yours, so do not use someone else’s.</li>
+          <li><strong>Your profile.</strong> If you sign up with an email address or mobile number we keep the name you give. A photo is optional. The photo is resized to a small square and its camera details are removed. Your name is shown with the referrals you start reviewing or decide, to anyone who opens that assessment. Your mobile number and photo are shown only to you.</li>
           <li><strong>Your browser</strong> keeps your language and light or dark choice in local storage. If you sign in, one cookie keeps you signed in; it is removed when you sign out. There are no analytics or advertising trackers.</li>
         </ul>
       </section>
@@ -49,7 +49,7 @@ export function Privacy() {
         <ul>
           <li><strong>Vercel</strong> hosts the site and API in Singapore and keeps standard request logs.</li>
           <li><strong>Neon</strong> hosts the database in Singapore.</li>
-          <li><strong>GitHub</strong> or <strong>Google</strong> confirms your identity when you choose to sign in.</li>
+          <li><strong>Google</strong> confirms your identity when you choose to sign in with Google.</li>
           <li><strong>Google (Gemini API)</strong> receives assessment details and photos to read paper forms, review photos and write the AI risk summary. The demo uses Google’s free tier, under which Google may use what is sent to improve its products.</li>
           <li><strong>Langfuse</strong> (in the EU) records the text of AI requests and responses, not photos, so their quality can be checked. On its free plan they are available for 30 days.</li>
         </ul>

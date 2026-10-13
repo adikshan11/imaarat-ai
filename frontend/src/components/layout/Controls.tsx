@@ -54,7 +54,7 @@ export default function Controls({ compact = false, onAccount }: { compact?: boo
                 <span>{account}</span>
               </div>
             </div>
-            {onAccount && <button type="button" className="account-menu-item" onClick={() => choose(onAccount)}><Icon name="settings" size={18} />{t('account.settings')}</button>}
+            {onAccount && session.role === 'operator' && <button type="button" className="account-menu-item" onClick={() => choose(onAccount)}><Icon name="settings" size={18} />{t('account.settings')}</button>}
             <button type="button" className="account-menu-item" onClick={() => choose(() => { void signOut() })}><Icon name="logout" size={18} />{t('auth.sign_out')}</button>
           </div>
         </>

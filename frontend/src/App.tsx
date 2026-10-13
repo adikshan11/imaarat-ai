@@ -7,12 +7,12 @@ import { PageLoader, TopProgress } from '@/components/shared/Loader'
 import NewAssessment from '@/components/assessment/NewAssessment'
 import BackendAssessmentResult from '@/components/assessment/BackendAssessmentResult'
 import SessionWarning from '@/components/auth/SessionWarning'
+import SocialLinks from '@/components/shared/SocialLinks'
 
 const PaperForm = lazy(() => import('@/components/paper/PaperForm'))
 const HowItWorks = lazy(() => import('@/components/about/HowItWorks'))
 const StatusPage = lazy(() => import('@/components/status/StatusPage'))
 const SignIn = lazy(() => import('@/components/auth/SignIn'))
-const Onboarding = lazy(() => import('@/components/account/Onboarding'))
 const AccountPage = lazy(() => import('@/components/account/AccountPage'))
 const DevPage = lazy(() => import('@/components/dev/DevPage'))
 import { useRiskContext } from '@/context/RiskContext'
@@ -111,7 +111,7 @@ function Application() {
           setCompletedSubmission((current) => current?.id === updated.id ? updated : current)
         }} />}
         </Suspense>
-        <footer className="site-footer">Made with <span className="heart" aria-label="love">♥</span> by <a href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> · © 2026 imaarat.ai · <a href="#status" onClick={(event) => { event.preventDefault(); setView('status') }}>{t('nav.status')}</a> · <span lang="en">{session?.role === 'operator' && <><a href="#dev" onClick={(event) => { event.preventDefault(); setView('dev') }}>Dev console</a> · </>}<a href="/changelog/">Changelog</a> · <a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms of Service</a></span></footer>
+        <footer className="site-footer">Made with <span className="heart" aria-label="love">♥</span> by <a href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> <SocialLinks /> · © 2026 imaarat.ai · <a href="#status" onClick={(event) => { event.preventDefault(); setView('status') }}>{t('nav.status')}</a> · <span lang="en">{session?.role === 'operator' && <><a href="#dev" onClick={(event) => { event.preventDefault(); setView('dev') }}>Dev console</a> · </>}<a href="/changelog/">Changelog</a> · <a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms of Service</a></span></footer>
       </main>
     </div>
   )
@@ -143,7 +143,6 @@ function Gate() {
       setDemo(true)
     }} /></Suspense>
   }
-  if (session && !session.profile?.complete) return <Suspense fallback={<PageLoader full />}><Onboarding /></Suspense>
   return <Application />
 }
 

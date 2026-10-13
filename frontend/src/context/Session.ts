@@ -12,6 +12,8 @@ export type SessionState = {
   secondsLeft: number | null
   ended: { reason: Exclude<SessionEnd, 'manual'>; timing: Timing } | null
   signIn: (provider?: Provider) => Promise<void>
+  logIn: (identifier: string, password: string) => Promise<void>
+  signUp: (name: string, identifier: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   staySignedIn: () => Promise<void>
   setProfile: (profile: Profile) => void

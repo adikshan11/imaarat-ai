@@ -63,36 +63,30 @@ def test_partner_keys(client):
     assert client.delete(f"/auth/partner-keys/{issued['id']}", headers=operator).status_code == 404
 
 
-def test_github_sign_in_round_trip(client, monkeypatch):
-    monkeypatch.setenv("GITHUB_CLIENT_ID", "client")
-    monkeypatch.setenv("GITHUB_CLIENT_SECRET", "secret")
-    monkeypatch.setattr(auth_routes, "github_identity", lambda transaction, code: {"id": 7, "login": "octocat"})
-    start = client.post("/auth/github/start", headers={"origin": ORIGIN})
-    url = start.json()["authorization_url"]
-    query = parse_qs(urlsplit(url).query, keep_blank_values=True)
-    assert url.startswith("https://github.com/login/oauth/authorize") and query["code_challenge_method"] == ["S256"] and query["scope"] == [""]
-    wrong_issuer = client.get("/auth/github/callback", params={"code": "abc", "state": query["state"][0], "iss": "https://evil.test"}, follow_redirects=False)
-    assert wrong_issuer.status_code == 400
-    start = client.post("/auth/github/start", headers={"origin": ORIGIN})
-    query = parse_qs(urlsplit(start.json()["authorization_url"]).query, keep_blank_values=True)
-    callback = client.get("/auth/github/callback", params={"code": "abc", "state": query["state"][0], "iss": "https://github.com/login/oauth"}, follow_redirects=False)
-    assert callback.status_code == 303 and callback.headers["location"] == ORIGIN + "/app/"
-    session = client.get("/auth/session").json()
-    assert session["role"] == "operator" and session["name"] == "octocat" and len(session["csrf_token"]) == 64
-    replay = client.get("/auth/github/callback", params={"code": "abc", "state": query["state"][0]}, follow_redirects=False)
-    assert replay.status_code == 400
-
-
 def test_sign_in_is_off_until_configured(client, monkeypatch):
-    monkeypatch.delenv("GITHUB_CLIENT_ID", raising=False)
-    assert client.post("/auth/github/start", headers={"origin": ORIGIN}).status_code == 503
+    monkeypatch.delenv("GOOGLE_CLIENT_ID", raising=False)
+    assert client.post("/auth/google/start", headers={"origin": ORIGIN}).status_code == 503
 
 
 def test_providers_list_only_configured_sign_in(client, monkeypatch):
-    monkeypatch.setenv("GITHUB_CLIENT_ID", "client")
-    monkeypatch.setenv("GITHUB_CLIENT_SECRET", "secret")
     monkeypatch.delenv("GOOGLE_CLIENT_ID", raising=False)
-    assert client.get("/auth/providers").json() == {"github": True, "google": False, "owner": False}
+    assert client.get("/auth/providers").json() == {"google": False, "owner": False}
+
+
+def test_email_and_mobile_sign_up_and_log_in(client):
+    form = {"name": "Asha Rao", "email": "Asha@Example.com", "phone": "98765 43210", "password": "correct horse"}
+    origin = {"origin": ORIGIN}
+    assert client.post("/auth/signup", json=form).status_code == 403
+    assert client.post("/auth/signup", json=form, headers=origin).status_code == 200
+    session = client.get("/auth/session").json()
+    assert session["role"] == "member" and session["profile"]["full_name"] == "Asha Rao"
+    assert client.post("/auth/signup", json={**form, "name": "Other Person", "phone": None}, headers=origin).status_code == 409
+    assert client.post("/auth/signup", json={"name": "No Contact", "password": "correct horse"}, headers=origin).status_code == 422
+    client.cookies.clear()
+    for identifier in ("asha@example.com", "+91 98765 43210", "9876543210"):
+        assert client.post("/auth/login", json={"identifier": identifier, "password": "correct horse"}, headers=origin).status_code == 200
+    for identifier, password in (("asha@example.com", "wrong password"), ("nobody@example.com", "correct horse"), ("12345", "correct horse")):
+        assert client.post("/auth/login", json={"identifier": identifier, "password": password}, headers=origin).status_code == 401
 
 
 def test_google_sign_in_round_trip(client, monkeypatch):
@@ -113,6 +107,34 @@ def test_google_sign_in_round_trip(client, monkeypatch):
 def test_google_cancel_returns_to_sign_in(client):
     response = client.get("/auth/google/callback", params={"error": "access_denied"}, follow_redirects=False)
     assert response.status_code == 303 and response.headers["location"] == ORIGIN + "/app/#signin"
+
+
+def test_email_and_mobile_accounts(client):
+    headers = {"origin": ORIGIN}
+    asha = {"name": "Asha Rao", "email": "Asha@Example.com", "password": "correct horse"}
+    assert client.post("/auth/signup", json=asha, headers={"origin": "https://evil.test"}).status_code == 403
+    assert client.post("/auth/signup", json=asha, headers=headers).status_code == 200
+    assert client.get("/auth/session").json()["profile"]["full_name"] == "Asha Rao"
+    assert client.post("/auth/signup", json={**asha, "email": "asha@example.com"}, headers=headers).status_code == 409
+    client.cookies.clear()
+    assert client.post("/auth/login", json={"identifier": "asha@example.com", "password": "wrong one"}, headers=headers).status_code == 401
+    assert client.post("/auth/login", json={"identifier": "nobody@example.com", "password": "correct horse"}, headers=headers).status_code == 401
+    assert client.post("/auth/login", json={"identifier": "ASHA@example.com", "password": "correct horse"}, headers=headers).status_code == 200
+    client.cookies.clear()
+    ravi = {"name": "Ravi Kumar", "phone": "98765 43210", "password": "mobile pass 1"}
+    assert client.post("/auth/signup", json=ravi, headers=headers).status_code == 200
+    client.cookies.clear()
+    assert client.post("/auth/login", json={"identifier": "+91 98765 43210", "password": "mobile pass 1"}, headers=headers).status_code == 200
+    assert client.get("/auth/session").json()["role"] == "member"
+    with auth.engine().connect() as conn:
+        assert all(row.password_hash.startswith("scrypt$") and "mobile pass 1" not in row.password_hash for row in conn.execute(auth.users.select()))
+
+
+def test_signup_needs_a_contact_and_a_real_password(client):
+    headers = {"origin": ORIGIN}
+    assert client.post("/auth/signup", json={"name": "Asha Rao", "password": "long enough pw"}, headers=headers).status_code == 422
+    assert client.post("/auth/signup", json={"name": "Asha Rao", "email": "a@example.com", "password": "short"}, headers=headers).status_code == 422
+    assert client.post("/auth/signup", json={"name": "Asha Rao", "email": "not an email", "password": "long enough pw"}, headers=headers).status_code == 422
 
 
 def owner_callback(client, monkeypatch, identity):

@@ -6,7 +6,7 @@ import { imageProblem, useUploadLimits } from '@/api/uploads'
 import { usePreferences } from '@/context/Preferences'
 import { useSession } from '@/context/Session'
 
-export default function ProfileForm({ onboarding = false }: { onboarding?: boolean }) {
+export default function ProfileForm() {
   const { t } = usePreferences()
   const { session, setProfile } = useSession()
   const limits = useUploadLimits()
@@ -91,8 +91,8 @@ export default function ProfileForm({ onboarding = false }: { onboarding?: boole
       </label>
       {error && <p className="signin-error" role="alert">{error}</p>}
       <div className="profile-actions">
-        {saved && !onboarding && <span className="profile-saved" role="status">{t('profile.saved')}</span>}
-        <button type="submit" className="btn btn-primary" disabled={saving}>{saving && <Spinner />}{t(onboarding ? 'profile.continue' : 'profile.save')}</button>
+        {saved && <span className="profile-saved" role="status">{t('profile.saved')}</span>}
+        <button type="submit" className="btn btn-primary" disabled={saving}>{saving && <Spinner />}{t('profile.save')}</button>
       </div>
     </form>
   )
