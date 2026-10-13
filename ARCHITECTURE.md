@@ -158,7 +158,8 @@ Nothing else changes: the components, workflow, budgets, retries, tracing and st
 | `AI_API_KEY` | falls back to `GEMINI_API_KEY` | the selected provider's key |
 | `AI_MODEL` | falls back to `GEMINI_MODEL`, then `gemini-3.8-flash` | the generation and vision model |
 | `AI_EMBEDDING_MODEL` | `models/gemini-embedding-001` | the guideline-search embedding model |
-| `AI_JUDGE_MODEL` | falls back to `GEMINI_FALLBACK_MODEL` | the evaluation judge |
+| `AI_JUDGE_MODEL` | `gemini-3.5-flash-lite` | the evaluation judge |
+| `AI_FALLBACK_MODEL` | none | an optional second model; leave unset so every call uses `AI_MODEL` only |
 | `AI_DAILY_GENERATIONS`, `AI_MINUTE_GENERATIONS` | 20, 5 | spending limits, matched to the provider's quota |
 
 ## Keeping the AI honest

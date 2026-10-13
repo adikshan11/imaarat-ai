@@ -26,7 +26,7 @@ def report_metadata() -> dict:
         "max_memo_cases": 2,
         "max_memo_generations": 2,
         "memo_denominator": "Planned case-format slots include preparation and judge setup failures; generation attempts count calls begun, including failed generation calls.",
-        "generation_budget_note": "At most two memo cases, in TOON (the production prompt format), through the same main-then-fallback model path as the app; each row records the model that answered. A memo that fails because the model is busy or timed out is retried once after 30 seconds with a 60-second call timeout. Embedding, token counting and judge subcalls are additional requests.",
+        "generation_budget_note": "At most two memo cases, in TOON (the production prompt format), through the same single-model path as the app; each row records the model that answered. A memo that fails because the model is busy or timed out is retried once after 30 seconds with a 60-second call timeout. Embedding, token counting and judge subcalls are additional requests.",
     }
 
 
@@ -37,7 +37,6 @@ def empty_report() -> dict:
         "run_mode": "not_run",
         "generated_at": None,
         "model": config.AI_MODEL,
-        "fallback_model": config.AI_JUDGE_MODEL,
         "judge_model": config.AI_JUDGE_MODEL,
         "metadata": report_metadata(),
         "deterministic": None,

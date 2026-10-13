@@ -19,21 +19,32 @@ def fake_client(monkeypatch):
     return client
 
 
-def test_extraction_stages_think_low_and_thinking_is_billed(monkeypatch):
+def test_every_stage_thinks_low_and_thinking_is_billed(monkeypatch):
     client = fake_client(monkeypatch)
     result = llm.generate("paper_form", ["read"])
     assert client.models.generate_content.call_args.kwargs["config"].thinking_config.thinking_level == "LOW"
     assert (result["output_tokens"], result["thought_tokens"]) == (500, 400)
     assert budget.remaining()["tokens_today"] == {"input": 900, "output": 500}
+    for stage in ("vision", "memo"):
+        llm.generate(stage, ["write"])
+        assert client.models.generate_content.call_args.kwargs["config"].thinking_config.thinking_level == "LOW"
 
 
-def test_the_memo_keeps_the_model_default_thinking(monkeypatch):
+def test_a_busy_model_is_retried_on_the_same_model_and_never_switched(monkeypatch):
     client = fake_client(monkeypatch)
-    llm.generate("memo", ["write"])
-    assert client.models.generate_content.call_args.kwargs["config"].thinking_config is None
+    busy = errors.ServerError(503, {"error": {"code": 503, "message": "high demand", "status": "UNAVAILABLE"}})
+    client.models.generate_content.side_effect = [busy, client.models.generate_content.return_value]
+    slept = []
+    monkeypatch.setattr(llm, "sleep", slept.append)
+    result = llm.generate("memo", ["write"])
+    models = [call.kwargs["model"] for call in client.models.generate_content.call_args_list]
+    assert llm.config.AI_FALLBACK_MODEL == ""
+    assert models == [llm.config.AI_MODEL, llm.config.AI_MODEL] and slept == [2]
+    assert result["model"] == llm.config.AI_MODEL
 
 
-def test_a_busy_model_falls_back_at_once(monkeypatch):
+def test_an_optional_fallback_model_takes_over_at_once(monkeypatch):
+    monkeypatch.setattr(llm.config, "AI_FALLBACK_MODEL", "second-model")
     client = fake_client(monkeypatch)
     busy = errors.ServerError(503, {"error": {"code": 503, "message": "high demand", "status": "UNAVAILABLE"}})
     reply = client.models.generate_content.return_value
@@ -49,6 +60,7 @@ def test_a_busy_model_falls_back_at_once(monkeypatch):
 
 
 def test_a_slow_main_model_leaves_time_for_the_fallback(monkeypatch):
+    monkeypatch.setattr(llm.config, "AI_FALLBACK_MODEL", "second-model")
     client = fake_client(monkeypatch)
     client.models.generate_content.side_effect = [httpx.ReadTimeout("slow"), client.models.generate_content.return_value]
     token = llm.deadline.set(time.perf_counter() + 30)

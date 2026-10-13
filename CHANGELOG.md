@@ -2,6 +2,16 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.55.0] - 2026-10-13
+
+### Changed
+- The AI risk summary now thinks at the LOW level, like form reading and photo review do, so it finishes inside the time limit instead of timing out.
+- No second AI model is used any more. Every call goes to the configured model only, as ARCHITECTURE.md already said. Before, a busy or slow main model was replaced by `gemini-3.5-flash-lite`; that model is now only the default evaluation judge.
+- The "Built with" strip is one black-and-white row of the main frameworks and services, moving right to left, with no background or descriptions.
+
+### Added
+- The source-text job reads scanned PDF pages with OCR, so documents that carry no text layer can be read and cited.
+
 ## [2.54.1] - 2026-10-13
 
 ### Changed
