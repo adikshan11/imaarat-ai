@@ -98,7 +98,8 @@ def test_repeated_failures_pause_the_model(store, monkeypatch):
         raise RuntimeError("down")
 
     monkeypatch.setattr(llm, "generate", broken)
-    for number in range(5):
+    assert assistant.chat("first", "en", [], "1.2.3.4")["reason"] == "RuntimeError"
+    for number in range(4):
         assert assistant.chat(f"question {number}", "en", [], "1.2.3.4")["code"] == "offline"
     assert len(calls) == assistant.BREAKER_FAILURES
 
