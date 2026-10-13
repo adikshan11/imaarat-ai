@@ -347,7 +347,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 ## frontend/src/lib
 
 - `format.ts`: inr, inrShort
-- `lens.ts`: lensSupported, LensShape, BAR_SHAPE, BUBBLE_SHAPE, Lens, lensMap
+- `lens.ts`: lensAllowed, lensSupported, LensShape, BAR_SHAPE, BUBBLE_SHAPE, COPY_SHAPE, Lens, lensMap
 - `social.ts`: GITHUB_PROFILE, X_PROFILE, GITHUB_PATH, X_PATH
 
 ## frontend/src/types

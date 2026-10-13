@@ -6,7 +6,7 @@ import Icon from '@/components/shared/Icon'
 import OpticalLabel from '@/components/shared/OpticalLabel'
 import { usePreferences } from '@/context/Preferences'
 import { useSession } from '@/context/Session'
-import { type Lens, BAR_SHAPE, BUBBLE_SHAPE, lensMap, lensSupported } from '@/lib/lens'
+import { type Lens, BAR_SHAPE, BUBBLE_SHAPE, COPY_SHAPE, lensAllowed, lensMap, lensSupported } from '@/lib/lens'
 import LensFilter from './LensFilter'
 import { navKey, navPoint } from './nav_motion'
 
@@ -26,6 +26,7 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
   const [scrubbing, setScrubbing] = useState(false)
   const [lens, setLens] = useState<Lens | null>(null)
   const [bubble, setBubble] = useState<Lens | null>(null)
+  const [rim, setRim] = useState<Lens | null>(null)
   useEffect(() => {
     const node = tabbar.current
     if (!node) return
@@ -61,11 +62,11 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
     row.style.setProperty('--tw', `${row.offsetWidth}px`)
     const bar = tabbar.current
     if (bar) {
-      const local = bar.clientWidth / 2 + (row.offsetLeft + left + width / 2 - bar.clientWidth / 2) / 1.035
-      const half = (width * 0.65 - 30) / 1.035
-      bar.style.setProperty('--ha', `${local - half}px`)
-      bar.style.setProperty('--hb', `${local + half}px`)
+      const half = (width * 0.65 - 30)
+      bar.style.setProperty('--ha', `${row.offsetLeft + left + width / 2 - half}px`)
+      bar.style.setProperty('--hb', `${row.offsetLeft + left + width / 2 + half}px`)
     }
+    buttons().forEach((item) => item.classList.toggle('is-under', item === button))
     node.style.opacity = '1'
   }
   useLayoutEffect(() => {
@@ -77,10 +78,11 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
       const button = buttons().find((item) => item.dataset.view === activeView)
       if (indicator.current) indicator.current.style.opacity = button ? '1' : '0'
       place(button)
-      if (lensSupported && button) {
+      if (lensAllowed && button) {
         const width = button.offsetWidth + 28
         const height = row.offsetHeight + 20
-        setBubble((current) => current?.width === width && current.height === height ? current : lensMap(width, height, BUBBLE_SHAPE))
+        if (lensSupported) setBubble((current) => current?.width === width && current.height === height ? current : lensMap(width, height, BUBBLE_SHAPE))
+        setRim((current) => current?.width === width && current.height === height ? current : lensMap(width, height, COPY_SHAPE))
       }
     }
     const observer = new ResizeObserver(measure)
@@ -176,10 +178,11 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
           {tabs.map((item) => link(item, 'tab-item', tabs))}
         </div>
       </nav>
-      {lens && (
+      {(lens || rim) && (
         <svg className="lens-defs" aria-hidden="true" width="0" height="0">
-          <LensFilter id="tab-lens" lens={lens} spread={0.3} blur={0.6} saturate={1.3} />
-          {bubble && <LensFilter id="tab-bubble" lens={bubble} spread={0.22} blur={0.15} saturate={1.35} />}
+          {lens && <LensFilter id="tab-lens" lens={lens} spread={0.3} blur={0.5} saturate={1.2} />}
+          {bubble && <LensFilter id="tab-bubble" lens={bubble} spread={0.15} blur={0.15} saturate={1.2} />}
+          {rim && <LensFilter id="tab-copy" lens={rim} spread={0.35} blur={0} saturate={1} />}
         </svg>
       )}
     </>
