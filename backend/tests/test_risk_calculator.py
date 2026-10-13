@@ -36,6 +36,11 @@ def test_low_risk_accept_high_seismic_zone_adds_fifteen_points():
     assert "high_seismic_zone" in result["flags"]
 
 
+def test_zone_six_counts_as_high_seismic_zone():
+    result = risk_score_calculator({"construction_type": "Fire Resistive", "occupancy_type": "Office", "seismic_zone": "VI"})
+    assert "high_seismic_zone" in result["flags"]
+
+
 def test_low_risk_accept_default_seismic_zone_preserves_score():
     features = {
         "roof_age_years": 8,

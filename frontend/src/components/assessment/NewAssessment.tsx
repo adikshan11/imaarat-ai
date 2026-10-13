@@ -467,7 +467,7 @@ export default function NewAssessment({ onCompleted, onCancel, initial }: { onCo
 
         <Card title={t('sec.hazards')}>
           <div className="form-grid">
-            <div className="form-row form-row-2"><SelectField className="required" label={t('f.cat_zone')} value={form.cat_zone} onChange={(value) => update('cat_zone', value)} options={['None', 'Wind', 'Hail', 'Wildfire', 'Flood', 'Earthquake'].map((item) => ({ value: item, label: label('opt.cat', item) }))} /><SelectField label={t('f.seismic_zone')} value={form.seismic_zone} onChange={(value) => update('seismic_zone', value)} options={['II', 'III', 'IV', 'V'].map((item) => ({ value: item, label: item }))} /></div>
+            <div className="form-row form-row-2"><SelectField className="required" label={t('f.cat_zone')} value={form.cat_zone} onChange={(value) => update('cat_zone', value)} options={['None', 'Wind', 'Hail', 'Wildfire', 'Flood', 'Earthquake'].map((item) => ({ value: item, label: label('opt.cat', item) }))} /><SelectField label={t('f.seismic_zone')} value={form.seismic_zone} onChange={(value) => update('seismic_zone', value)} options={['II', 'III', 'IV', 'V', 'VI'].map((item) => ({ value: item, label: item }))} /></div>
             <div className="form-row form-row-2">
               <Field name="distance_to_coast_km" type="number" optional hint={t('hint.coast')} />
               <Field name="distance_to_forest_km" type="number" optional hint={t('hint.fire')} />

@@ -19,7 +19,7 @@ const cases = JSON.parse(readFileSync(casesPath, 'utf8'))
 const choices = {
   construction_type: ['Frame', 'Joisted Masonry', 'Non-Combustible', 'Masonry Non-Combustible', 'Fire Resistive'],
   cat_zone: ['None', 'Wind', 'Hail', 'Wildfire', 'Flood', 'Earthquake'],
-  seismic_zone: ['II', 'III', 'IV', 'V'],
+  seismic_zone: ['II', 'III', 'IV', 'V', 'VI'],
   sprinkler_system: ['yes', 'no'],
   fire_alarm: ['yes', 'no'],
   flood_protection: ['yes', 'no'],

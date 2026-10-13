@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import Card from '@/components/shared/Card'
 import { AiProgress, Spinner } from '@/components/shared/Loader'
 import Icon from '@/components/shared/Icon'
@@ -8,7 +8,7 @@ import type { FormReading } from '@/types/backend'
 
 const CONSTRUCTION = ['Frame', 'Joisted Masonry', 'Non-Combustible', 'Masonry Non-Combustible', 'Fire Resistive']
 const HAZARDS = ['None', 'Wind', 'Hail', 'Wildfire', 'Flood', 'Earthquake']
-const ZONES = ['II', 'III', 'IV', 'V']
+const ZONES = ['II', 'III', 'IV', 'V', 'VI']
 const TEXT_BOXES = ['address', 'city', 'state', 'occupancy_type']
 const NUMBER_BOXES = ['year_built', 'num_stories', 'square_footage', 'roof_age_years', 'prior_claims_count_5yr', 'distance_to_coast_km']
 const MONEY_BOXES = ['building_value_inr', 'plant_machinery_value_inr', 'stock_inventory_value_inr', 'other_contents_value_inr']
@@ -57,13 +57,17 @@ function Box({ label, english, field, cells = 1, tall = false }: { label: string
   )
 }
 
-function Ticks({ label, english, field, options }: { label: string; english?: string; field?: string; options: Array<[string, string]> }) {
+function Ticks({ label, english, field, options, grid = false }: { label: string; english?: string; field?: string; options: Array<[string, string]>; grid?: boolean }) {
   return (
     <div className="pf-field" data-field={field}>
       <Label label={label} english={english} field={field} />
-      <div className="pf-ticks">{options.map(([text, name]) => <span key={name}><i />{text}{english && name.toLowerCase() !== text.toLowerCase() ? <span className="pf-english"> · {name}</span> : null}</span>)}</div>
+      <div className={grid ? 'pf-ticks pf-ticks-grid' : 'pf-ticks'}>{options.map(([text, name]) => <span key={name}><i />{text}{english && name.toLowerCase() !== text.toLowerCase() ? <span className="pf-english"> · {name}</span> : null}</span>)}</div>
     </div>
   )
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return <div className="pf-section"><h2 className="pf-section-title">{title}</h2>{children}</div>
 }
 
 function PrintableForm() {
@@ -74,18 +78,33 @@ function PrintableForm() {
     <div className="print-area" aria-hidden="true">
       <section className="pf-page">
         <span className="pf-corner pf-tl" /><span className="pf-corner pf-tr" /><span className="pf-corner pf-bl" /><span className="pf-corner pf-br" />
-        <header className="pf-head"><strong>Imaarat · {t('paper.form_title')}</strong><span>IMR-PF-2</span></header>
+        <header className="pf-head">
+          <span className="pf-brand"><img src="/mark-light.svg" alt="" />imaarat.ai</span>
+          <strong className="pf-title">{t('paper.form_title')}</strong>
+          <span className="pf-code">IMR-PF-3</span>
+        </header>
         <p className="pf-keep">{t('paper.upload_form')}</p>
-        <Box {...both('f.zip')} cells={6} />
-        <Box {...both('f.address')} />
-        <div className="pf-row">{TEXT_BOXES.slice(1).map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>
-        <Ticks {...both('f.construction_type')} options={CONSTRUCTION.map((item) => [label('opt.con', item), english(`opt.con.${item}`)])} />
-        <div className="pf-row">{NUMBER_BOXES.map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>
-        <Ticks {...both('f.cat_zone')} options={HAZARDS.map((item) => [label('opt.cat', item), english(`opt.cat.${item}`)])} />
-        <Ticks {...both('f.seismic_zone')} options={ZONES.map((zone) => [zone, zone])} />
-        <div className="pf-row">{TICKS.map((key) => <Ticks key={key} {...both(`f.${key}`)} options={yesNo} />)}</div>
-        <div className="pf-row pf-row-2">{MONEY_BOXES.map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>
+        <Section title={t('sec.property')}>
+          <Box {...both('f.zip')} cells={6} />
+          <Box {...both('f.address')} />
+          <div className="pf-row">{TEXT_BOXES.slice(1).map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>
+        </Section>
+        <Section title={t('sec.building')}>
+          <Ticks {...both('f.construction_type')} grid options={CONSTRUCTION.map((item) => [label('opt.con', item), english(`opt.con.${item}`)])} />
+          <div className="pf-row">{NUMBER_BOXES.map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>
+        </Section>
+        <Section title={t('sec.hazards')}>
+          <Ticks {...both('f.cat_zone')} grid options={HAZARDS.map((item) => [label('opt.cat', item), english(`opt.cat.${item}`)])} />
+          <Ticks {...both('f.seismic_zone')} options={ZONES.map((zone) => [zone, zone])} />
+        </Section>
+        <Section title={t('sec.protection')}>
+          <div className="pf-row">{TICKS.map((key) => <Ticks key={key} {...both(`f.${key}`)} options={yesNo} />)}</div>
+        </Section>
+        <Section title={t('sec.values')}>
+          <div className="pf-row pf-row-2">{MONEY_BOXES.map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>
+        </Section>
         <p className="pf-small">{t('paper.digits_hint')} {t('f.required_note')}</p>
+        <footer className="pf-foot"><span>imaarat.ai</span><span>{t('paper.upload_help')}</span><span>IMR-PF-3</span></footer>
       </section>
     </div>
   )

@@ -8,7 +8,7 @@ from typing import Any
 from app.config import HAZARD_JSON
 from app.observability import traced
 
-ZONE_ORDER = ["II", "III", "IV", "V"]
+ZONE_ORDER = ["II", "III", "IV", "V", "VI"]
 FLOOD_FLAG_PCT = 10.0
 CYCLONE_FLAG_GRADES = ("P1", "P2")
 

@@ -2,6 +2,19 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.61.0] - 2026-10-14
+
+### Added
+- Seismic Zone VI (IS 1893:2025) can now be declared on the form, the paper proposal and the API. It scores like Zone IV and V. The official PIN lookup still uses the 2016 map.
+
+### Changed
+- The printable proposal is now form IMR-PF-3: sections for property, building, hazards, protection and sums insured, aligned tick grids, the Imaarat mark in the header and a footer line.
+- The printed page has no margin of its own, so the browser no longer adds its date, title and web address to it. The corner marks sit inside the page.
+- The footer Connect list starts with Email, and the GitHub and Portfolio links are removed. An Instagram icon sits beside GitHub and X in both footers.
+
+### Fixed
+- The Saathi button and chat panel no longer print on the paper form.
+
 ## [2.60.0] - 2026-10-14
 
 ### Added

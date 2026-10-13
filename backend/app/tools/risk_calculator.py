@@ -75,13 +75,13 @@ def prototype_mitigation_model(features: dict, authoritative_score: int) -> dict
         ("fire_noc", 10),
         ("fire_extinguishers", 5),
         ("lightning_protection", 5),
-        ("seismic_design", 10 if seismic_zone in ("IV", "V") else 0),
+        ("seismic_design", 10 if seismic_zone in ("IV", "V", "VI") else 0),
         ("cyclone_roof", 10 if windy else 0),
     )
     relief = {factor: points for factor, points in relief_points if features.get(factor) is True}
 
     cat_base = {"None": 12, "Hail": 35, "Wind": 62, "Flood": 68, "Wildfire": 72, "Earthquake": 58}.get(cat_zone, 25)
-    if seismic_zone in ("IV", "V"):
+    if seismic_zone in ("IV", "V", "VI"):
         cat_base += 10
     if _safe_float(features.get("distance_to_coast_km"), 99) < NEAR_KM:
         cat_base += 12
@@ -222,7 +222,7 @@ def risk_score_calculator(features: dict) -> dict:
     elif cat_zone in ("Hail", "Earthquake"):
         flags.append("moderate_cat_zone_captured")
 
-    if features.get("seismic_zone", "II") in ("IV", "V"):
+    if features.get("seismic_zone", "II") in ("IV", "V", "VI"):
         score += _HIGH_SEISMIC_SCORE
         breakdown["seismic_zone"] = _HIGH_SEISMIC_SCORE
         flags.append("high_seismic_zone")
