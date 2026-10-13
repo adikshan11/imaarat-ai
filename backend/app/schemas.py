@@ -69,7 +69,7 @@ class PropertySubmission(BaseModel):
     cat_zone: Literal["Wind", "Hail", "Wildfire", "Flood", "Earthquake", "None"]
     policy_type: Literal["SFSP", "Bharat Sookshma Udyam Suraksha", "Bharat Laghu Udyam Suraksha", "Larger-risk/commercial property segment"] | None = None
     total_value_at_risk_inr: float | None = None
-    seismic_zone: Literal["II", "III", "IV", "V"] = "II"
+    seismic_zone: Literal["II", "III", "IV", "V", "VI"] = "II"
     # Coverage selection only — descriptive, not scored in this prototype.
     rsmd_cover: bool | None = None
     terrorism_cover: bool | None = None

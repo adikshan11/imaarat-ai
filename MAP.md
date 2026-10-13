@@ -186,7 +186,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `test_release_check.py`: files, test_a_bumped_documented_release_passes, test_each_rule_reports_its_own_problem, test_unreleased_ci_changes_need_no_version
 - `test_report_agent.py`: test_generate_memo_exposes_resource_exhausted_failure, test_daily_quota_is_not_retried_and_says_so, test_minute_limit_says_try_again_in_a_minute, test_structured_memo_accepts_grounded_response, test_structured_memo_rejects_invalid_contract, test_structured_memo_rejects_returned_score, test_structured_memo_rejects_decision_flag_and_roof_claims, test_coverage_review_rejects_invented_quantitative_claims
 - `test_review_concurrency.py`: app_db, pending_referral, reviewer, test_a_claimed_referral_tells_the_second_reviewer_who_has_it, test_a_released_or_expired_claim_frees_the_referral, test_a_member_cannot_claim, test_the_same_address_and_pin_code_is_flagged, test_only_one_of_many_simultaneous_decisions_is_saved
-- `test_risk_calculator.py`: test_low_risk_accept, test_low_risk_accept_high_seismic_zone_adds_fifteen_points, test_low_risk_accept_default_seismic_zone_preserves_score, test_mid_risk_refer, test_high_risk_auto_decline, mitigation_features, test_prototype_mitigation_baseline_with_none_fields_preserves_score, test_prototype_mitigation_sprinkler
+- `test_risk_calculator.py`: test_low_risk_accept, test_low_risk_accept_high_seismic_zone_adds_fifteen_points, test_zone_six_counts_as_high_seismic_zone, test_low_risk_accept_default_seismic_zone_preserves_score, test_mid_risk_refer, test_high_risk_auto_decline, mitigation_features, test_prototype_mitigation_baseline_with_none_fields_preserves_score
 - `test_status.py`: test_status_reports_capabilities_without_secrets, test_status_reports_qdrant_when_ai_is_configured, test_public_base_url_prefers_explicit_setting, test_maps_config_returns_key_only_when_set
 - `test_store.py`: FakeRedis, BrokenRedis, test_memory_values_expire_and_counters_keep_their_first_expiry, test_redis_store_prefixes_keys_and_sets_the_expiry_once, test_a_failing_store_reads_as_empty_instead_of_raising, test_an_unreachable_redis_falls_back_to_memory, test_daily_allowance_is_counted_in_a_shared_store_without_the_database, test_daily_allowance_uses_the_database_when_the_shared_store_is_down
 - `test_telemetry.py`: test_requests_are_logged_by_route_template_without_inputs, test_an_assessment_records_a_trace_with_its_steps, test_a_broken_telemetry_store_never_fails_the_request
@@ -365,7 +365,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 
 - `format.ts`: inr, inrShort
 - `lens.ts`: lensAllowed, lensSupported, LensShape, BAR_SHAPE, BUBBLE_SHAPE, COPY_SHAPE, Lens, lensMap
-- `social.ts`: GITHUB_PROFILE, X_PROFILE, GITHUB_PATH, X_PATH
+- `social.ts`: GITHUB_PROFILE, X_PROFILE, INSTAGRAM_PROFILE, GITHUB_PATH, X_PATH, INSTAGRAM_PATH
 - `speech.ts`: listenSupported, speakSupported, speechLanguage, listen, speak, stopSpeaking
 
 ## frontend/src/types

@@ -22,7 +22,7 @@ def test_values_are_cleaned_and_checked_outside_the_model():
 
 
 def test_blank_and_invalid_values_are_never_filled():
-    fields = validate(reading(zip="12345", year_built="2999", seismic_zone="VI", num_stories=None))["fields"]
+    fields = validate(reading(zip="12345", year_built="2999", seismic_zone="VII", num_stories=None))["fields"]
     assert fields["zip"]["issue"] == "not_six_digits"
     assert fields["year_built"]["issue"] == "out_of_range"
     assert fields["seismic_zone"]["value"] is None and fields["seismic_zone"]["issue"] == "not_an_option"
@@ -91,4 +91,5 @@ def test_printed_option_wording_maps_to_the_option():
     assert form_reader.check("cat_zone", "Forest or bush fire") == ("Wildfire", None)
     assert form_reader.check("seismic_zone", "III") == ("III", None)
     assert form_reader.check("seismic_zone", "IV") == ("IV", None)
+    assert form_reader.check("seismic_zone", "VI") == ("VI", None)
     assert form_reader.check("cat_zone", "बाढ़") == (None, "not_an_option")

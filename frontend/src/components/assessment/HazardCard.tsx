@@ -2,7 +2,7 @@ import Card from '@/components/shared/Card'
 import { usePreferences } from '@/context/Preferences'
 import type { OfficialHazard } from '@/types/backend'
 
-const ZONES = ['II', 'III', 'IV', 'V']
+const ZONES = ['II', 'III', 'IV', 'V', 'VI']
 
 export default function HazardCard({ hazard, declaredZone, pincode }: { hazard: OfficialHazard | null | undefined; declaredZone?: string | null; pincode?: string }) {
   const { t, label } = usePreferences()

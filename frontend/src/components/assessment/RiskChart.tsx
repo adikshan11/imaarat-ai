@@ -13,7 +13,7 @@ const BANDS = [
   { from: 61, to: 84, tone: 'decline', decision: 'Decline (mitigation possible)' },
   { from: 85, to: 100, tone: 'auto', decision: 'Auto-Decline' },
 ]
-const ZONES: Record<string, number> = { II: 25, III: 50, IV: 75, V: 100 }
+const ZONES: Record<string, number> = { II: 20, III: 40, IV: 60, V: 80, VI: 100 }
 const GRADES: Record<string, number> = { P1: 100, P2: 75, P3: 50, P4: 25 }
 
 const point = (score: number) => {

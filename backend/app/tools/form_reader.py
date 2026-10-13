@@ -12,7 +12,7 @@ from app.observability import traced
 from app.providers import ImageInput
 from app.tools.hazard_lookup import lookup
 
-FORM_VERSION = "IMR-PF-2"
+FORM_VERSION = "IMR-PF-3"
 TEXT_FIELDS = ["address", "city", "state", "occupancy_type"]
 NUMBER_FIELDS = {
     "year_built": (1800, date.today().year),
@@ -35,7 +35,7 @@ CHOICE_LABELS = {
         "Fire resistive (RCC)": "Fire Resistive",
     },
     "cat_zone": {"None": "None", "Cyclone or storm": "Wind", "Hailstorm": "Hail", "Forest or bush fire": "Wildfire", "Flood": "Flood", "Earthquake": "Earthquake"},
-    "seismic_zone": {"II": "II", "III": "III", "IV": "IV", "V": "V"},
+    "seismic_zone": {"II": "II", "III": "III", "IV": "IV", "V": "V", "VI": "VI"},
 }
 CHOICE_FIELDS = {name: list(labels.values()) for name, labels in CHOICE_LABELS.items()}
 OPTION_TEXT = "; ".join(f"{name}: {', '.join(labels)}" for name, labels in CHOICE_LABELS.items())

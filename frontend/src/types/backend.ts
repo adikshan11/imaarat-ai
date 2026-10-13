@@ -291,7 +291,7 @@ export interface SubmissionInput {
   seismic_design?: boolean
   cyclone_roof?: boolean
   cat_zone: string
-  seismic_zone: 'II' | 'III' | 'IV' | 'V'
+  seismic_zone: 'II' | 'III' | 'IV' | 'V' | 'VI'
   rsmd_cover: boolean
   terrorism_cover?: boolean
   earthquake_cover?: boolean
