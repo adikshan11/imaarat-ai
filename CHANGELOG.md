@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.54.1] - 2026-10-13
+
+### Changed
+- The eval writes AI summaries through the same main-then-fallback model path as the app and records which model answered. Before, it switched the fallback off, so every summary failed whenever the main model was slow, while the app itself fell back and succeeded.
+
 ## [2.54.0] - 2026-10-13
 
 ### Added
