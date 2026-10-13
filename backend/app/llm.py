@@ -17,7 +17,6 @@ from app.providers import EmbedTask, get_provider
 
 RETRYABLE = {429, 500, 503}
 deadline: ContextVar[float | None] = ContextVar("deadline", default=None)
-busy_until: dict[str, float] = {}
 
 
 class RequestTimeout(TimeoutError):
@@ -65,7 +64,7 @@ def budgeted(stage: str, call: Any, attempts: int | None = None, reserve_seconds
             raise RequestTimeout(f"no time left in this request for another {stage} attempt")
         if timed:
             arguments["timeout_ms"] = limit_ms
-        call_id = budget.reserve_call(stage, model=arguments.get("model"))
+        call_id = budget.reserve_call(stage)
         started = time.perf_counter()
         try:
             response = call(**arguments)
@@ -81,33 +80,13 @@ def budgeted(stage: str, call: Any, attempts: int | None = None, reserve_seconds
         return response, call_id, round((time.perf_counter() - started) * 1000)
 
 
-def busy(error: Exception) -> bool:
-    return (getattr(error, "code", None) in RETRYABLE and not daily_quota(error)) or "Timeout" in type(error).__name__
-
-
 def generate(name: str, contents: Any, schema: type[BaseModel] | None = None, system: str | None = None) -> dict[str, Any]:
-    """Try the main model once, keeping time for the fallback model, which runs with retries if the main one is busy or slow."""
-    fallback = config.AI_FALLBACK_MODEL
-    if not fallback or fallback == config.AI_MODEL:
-        return generate_with(config.AI_MODEL, name, contents, schema, system)
-    if time.monotonic() >= busy_until.get(config.AI_MODEL, 0.0):
-        try:
-            return generate_with(config.AI_MODEL, name, contents, schema, system, attempts=1, reserve_seconds=config.AI_FALLBACK_SECONDS)
-        except Exception as error:
-            if not busy(error):
-                raise
-            if not isinstance(error, RequestTimeout):
-                busy_until[config.AI_MODEL] = time.monotonic() + config.AI_BUSY_SECONDS
-    return generate_with(fallback, name, contents, schema, system)
-
-
-def generate_with(model: str, name: str, contents: Any, schema: type[BaseModel] | None, system: str | None, attempts: int | None = None, reserve_seconds: float = 0) -> dict[str, Any]:
+    """Call the configured model; a busy error is retried once on the same model."""
+    model = config.AI_MODEL
     with generation(name, model, contents) as result:
         reply, call_id, latency_ms = budgeted(
             name,
             get_provider().generate,
-            attempts=attempts,
-            reserve_seconds=reserve_seconds,
             timed=True,
             model=model,
             contents=contents if isinstance(contents, list) else [contents],

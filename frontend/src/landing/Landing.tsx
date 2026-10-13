@@ -392,6 +392,7 @@ function Faq() {
 }
 
 function Logo({ tool }: { tool: Tool }) {
+  if (tool.wordmark) return <img src={tool.src} alt={tool.name} width={94} height="24" loading="lazy" className="stack-logo h-6 w-auto" />
   if (tool.src) return <img src={tool.src} alt="" width={tool.wide ? 48 : 24} height="24" loading="lazy" className={`stack-logo h-6 ${tool.wide ? 'w-12' : 'w-6'} object-contain`} />
   if (tool.path) return <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6" fill="#000"><path d={tool.path} /></svg>
   return null
@@ -407,7 +408,7 @@ function BuiltWith() {
               <li key={tool.name}>
                 <a href={tool.href} target="_blank" rel="noopener noreferrer" tabIndex={copy === 1 ? -1 : undefined} className="flex shrink-0 items-center gap-3 text-lg font-semibold text-black">
                   <Logo tool={tool} />
-                  {tool.name}
+                  {tool.wordmark ? null : tool.name}
                 </a>
               </li>
             ))}
