@@ -1,6 +1,6 @@
 import json
 
-from app import auth, budget, config
+from app import auth, budget, config, printouts
 from app.api import main
 from app.tools import form_reader
 from app.tools.form_reader import validate
@@ -51,7 +51,7 @@ def test_endpoint_returns_checked_reading(monkeypatch, photo):
     monkeypatch.setattr(auth, "signed_in", lambda request: True)
     monkeypatch.setattr(budget, "admit", lambda address: None)
     monkeypatch.setattr(form_reader.llm, "generate", lambda *args, **kwargs: {"text": json.dumps(reading(zip="700001", city="Kolkata")), "model": "test-model"})
-    response = TestClient(main.app).post("/underwrite/read-form", files={"image": ("page.jpg", photo(), "image/jpeg")})
+    response = TestClient(main.app).post("/underwrite/read-form", files={"image": ("page.jpg", photo(), "image/jpeg")}, data={"serial": printouts.issue(None)["display"]})
     body = response.json()
     assert response.status_code == 200
     assert body["fields"]["zip"]["value"] == "700001"

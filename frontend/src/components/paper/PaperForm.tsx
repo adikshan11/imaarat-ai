@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { flushSync } from 'react-dom'
 import Card from '@/components/shared/Card'
 import { AiProgress, Spinner } from '@/components/shared/Loader'
 import Icon from '@/components/shared/Icon'
-import { readPaperForm } from '@/api/underwriting'
+import { issuePrintout, readPaperForm } from '@/api/underwriting'
 import { usePreferences } from '@/context/Preferences'
-import type { FormReading } from '@/types/backend'
+import type { FormReading, Printout } from '@/types/backend'
 
 const CONSTRUCTION = ['Frame', 'Joisted Masonry', 'Non-Combustible', 'Masonry Non-Combustible', 'Fire Resistive']
 const HAZARDS = ['None', 'Wind', 'Hail', 'Wildfire', 'Flood', 'Earthquake']
@@ -24,6 +25,23 @@ async function shrink(file: File): Promise<Blob> {
   canvas.height = Math.round(bitmap.height * scale)
   canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   return new Promise((resolve, reject) => canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('resize failed'))), 'image/jpeg', 0.85))
+}
+
+async function scanSerial(image: Blob): Promise<string | undefined> {
+  const Detector = (window as unknown as { BarcodeDetector?: new (options: { formats: string[] }) => { detect: (source: ImageBitmap) => Promise<Array<{ rawValue: string }>> } }).BarcodeDetector
+  if (!Detector) return undefined
+  try {
+    const codes = await new Detector({ formats: ['qr_code'] }).detect(await createImageBitmap(image))
+    return codes[0]?.rawValue.split('/').pop()
+  } catch {
+    return undefined
+  }
+}
+
+function Qr({ rows }: { rows: string[] }) {
+  const size = rows.length + 8
+  const path = rows.map((row, y) => Array.from(row.matchAll(/1+/g), (run) => `M${(run.index ?? 0) + 4} ${y + 4}h${run[0].length}v1h-${run[0].length}z`).join('')).join('')
+  return <svg className="pf-qr" viewBox={`0 0 ${size} ${size}`} shapeRendering="crispEdges" aria-hidden="true"><rect width={size} height={size} fill="#fff" /><path d={path} /></svg>
 }
 
 function Crop({ image, box }: { image: HTMLImageElement | null; box: number[] | null }) {
@@ -70,7 +88,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
   return <div className="pf-section"><h2 className="pf-section-title">{title}</h2>{children}</div>
 }
 
-function PrintableForm() {
+function PrintableForm({ printout }: { printout: Printout | null }) {
   const { t, label, english, language } = usePreferences()
   const both = (key: string) => ({ label: t(key), english: language.code === 'en' ? undefined : english(key), field: key.replace(/^f\./, '') })
   const yesNo: Array<[string, string]> = [[t('img.used'), 'Yes'], [t('img.not_used'), 'No']]
@@ -88,9 +106,17 @@ function PrintableForm() {
         </svg>
         <span className="pf-corner pf-tl" /><span className="pf-corner pf-tr" /><span className="pf-corner pf-bl" /><span className="pf-corner pf-br" />
         <header className="pf-head">
-          <span className="pf-brand"><img src="/mark-light.svg" alt="" />imaarat.ai</span>
-          <strong className="pf-title">{t('paper.form_title')}</strong>
-          <span className="pf-code">IMR-PF-3</span>
+          <div className="pf-id">
+            <span className="pf-brand"><img src="/mark-light.svg" alt="" />imaarat.ai</span>
+            <strong className="pf-title">{t('paper.form_title')}</strong>
+          </div>
+          <div className="pf-serial" lang="en">
+            <div>
+              <span className="pf-code">IMR-PF-3</span>
+              {printout ? <><span className="pf-sn">S/N {printout.display}</span><span>Valid until {new Date(printout.expires_at * 1000).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span></> : <span>No serial: print with the Print button on the Paper form page</span>}
+            </div>
+            {printout && <Qr rows={printout.qr} />}
+          </div>
         </header>
         <p className="pf-keep">{t('paper.upload_form')}</p>
         <Section title={t('sec.property')}>
@@ -128,6 +154,23 @@ export default function PaperForm({ onUse }: { onUse: (values: Record<string, un
   const [image, setImage] = useState<HTMLImageElement | null>(null)
   const [values, setValues] = useState<Record<string, string>>({})
   const [confirmed, setConfirmed] = useState<Record<string, boolean>>({})
+  const [printout, setPrintout] = useState<Printout | null>(null)
+  const [printError, setPrintError] = useState<string | null>(null)
+  const [preparing, setPreparing] = useState(false)
+
+  const print = async () => {
+    setPrintError(null)
+    setPreparing(true)
+    try {
+      const issued = await issuePrintout()
+      flushSync(() => setPrintout(issued))
+      window.print()
+    } catch (cause) {
+      setPrintError(cause instanceof Error ? cause.message : t('paper.read_failed'))
+    } finally {
+      setPreparing(false)
+    }
+  }
 
   const upload = async (file: File | undefined) => {
     if (!file) return
@@ -140,13 +183,13 @@ export default function PaperForm({ onUse }: { onUse: (values: Record<string, un
       picture.src = URL.createObjectURL(small)
       await picture.decode()
       setImage(picture)
-      const result = await readPaperForm(small)
+      const result = await readPaperForm(small, await scanSerial(small))
       setReading(result)
       setValues(Object.fromEntries(Object.entries(result.fields).map(([name, field]) => [name, field.value === null || field.value === undefined ? '' : String(field.value)])))
       setConfirmed({})
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : ''
-      setError(message.includes('switched off') ? t('paper.ai_off') : message.includes('daily AI budget') ? message : t('paper.read_failed'))
+      setError(message.includes('switched off') ? t('paper.ai_off') : message.includes('daily AI budget') || message.includes('Paper form page') ? message : t('paper.read_failed'))
     } finally {
       setBusy(false)
     }
@@ -168,7 +211,8 @@ export default function PaperForm({ onUse }: { onUse: (values: Record<string, un
         <div className="paper-steps">
           <Card title={`1 · ${t('paper.step_print')}`}>
             <p>{t('paper.print_help')}</p>
-            <button className="btn btn-primary form-gap" onClick={() => window.print()}><Icon name="print" size={18} /> {t('paper.print')}</button>
+            <button className="btn btn-primary form-gap" disabled={preparing} onClick={() => void print()}><Icon name="print" size={18} /> {t('paper.print')}</button>
+            {printError && <p className="paper-issue" role="alert">{printError}</p>}
           </Card>
           <Card title={`2 · ${t('paper.step_upload')}`}>
             <p>{t('paper.upload_help')}</p>
@@ -213,7 +257,7 @@ export default function PaperForm({ onUse }: { onUse: (values: Record<string, un
           <p className="card-footnote">{t('paper.model_note', { model: reading.model ?? '' })}</p>
         </Card>}
       </div>
-      <PrintableForm />
+      <PrintableForm printout={printout} />
     </div>
   )
 }

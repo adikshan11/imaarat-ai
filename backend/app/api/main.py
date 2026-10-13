@@ -17,7 +17,7 @@ from starlette.datastructures import URLPath
 from starlette.routing import BaseRoute, Match, NoMatchFound
 from starlette.types import Receive, Scope, Send
 
-from app import __version__, assistant, auth, budget, config, images, llm, store, telemetry
+from app import __version__, assistant, auth, budget, config, images, llm, printouts, store, telemetry
 from app.api.auth_routes import router as auth_router
 from app.api.dev_routes import router as dev_router
 from app.config import AI_API_KEY, DB_PATH, QDRANT_URL
@@ -503,26 +503,54 @@ def review_submission(submission_id: int, review: Review, request: Request) -> d
     return existing_submission(submission_id)
 
 
+@app.post("/paper/printouts")
+async def issue_printout(request: Request) -> dict[str, Any]:
+    address = budget.client_address(request.headers, request.client.host if request.client else None)
+    issued = await run_in_threadpool(store.incr, f"printout:{budget.client_scope(address)}", 86400)
+    if issued is not None and issued > config.PRINTOUT_DAILY_PER_CLIENT:
+        raise HTTPException(status_code=429, detail="Too many forms printed today. Try again tomorrow.", headers={"Retry-After": "86400"})
+    return await run_in_threadpool(printouts.issue, address)
+
+
+@app.get("/paper/printouts/{serial}")
+async def printout_status(serial: str) -> dict[str, str]:
+    found = printouts.normalise(serial)
+    return {"status": await run_in_threadpool(printouts.state, found) if found else "unknown"}
+
+
 @app.post("/underwrite/read-form")
-async def read_paper_form(request: Request, image: UploadFile = File(...)) -> dict[str, Any]:
+async def read_paper_form(request: Request, image: UploadFile = File(...), serial: str | None = Form(None)) -> dict[str, Any]:
     ready, reason = budget.ai_ready()
     if not ready:
         raise HTTPException(status_code=503, detail=f"AI form reading is switched off on this deployment: {reason}")
     data = await images.receive(image, images.FORM)
     if config.AI_SIGN_IN_REQUIRED and not await run_in_threadpool(auth.signed_in, request):
         raise HTTPException(status_code=401, detail="Sign in to read paper forms with AI")
+    scanned = printouts.normalise(serial)
+    if serial and scanned is None:
+        raise HTTPException(status_code=422, detail=printouts.REFUSALS["unknown"][1])
+    if scanned and (refused := await run_in_threadpool(printouts.refusal, scanned)):
+        raise HTTPException(status_code=refused[0], detail=refused[1])
     try:
         await run_in_threadpool(budget.admit, budget.client_address(request.headers, request.client.host if request.client else None))
     except budget.BudgetExceeded as exceeded:
         raise HTTPException(status_code=429, detail=str(exceeded), headers={"Retry-After": str(exceeded.retry_after)}) from exceeded
     try:
-        return await run_in_threadpool(read_form, data, image.content_type)
+        result = await run_in_threadpool(read_form, data, image.content_type)
     except budget.BudgetExceeded as exceeded:
         raise HTTPException(status_code=429, detail=f"The form could not be read. {llm.failure_reason(exceeded)}", headers={"Retry-After": str(exceeded.retry_after)}) from exceeded
     except Exception as error:
         raise HTTPException(status_code=502, detail=f"The form could not be read. {llm.failure_reason(error)}") from error
     finally:
         flush()
+    read_serial = result.pop("serial_read", None)
+    found = scanned or printouts.normalise(read_serial)
+    if refused := await run_in_threadpool(printouts.refusal, found):
+        raise HTTPException(status_code=refused[0], detail=refused[1])
+    if not await run_in_threadpool(printouts.consume, found):
+        raise HTTPException(status_code=409, detail=printouts.REFUSALS["used"][1])
+    result["printout"] = printouts.display(found)
+    return result
 
 
 @app.get("/hazard/sources")

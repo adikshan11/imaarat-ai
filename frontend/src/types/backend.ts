@@ -183,7 +183,8 @@ export interface FieldReading {
   issue: string | null
   needs_confirmation: boolean
 }
-export interface FormReading { form_version: string; model?: string; fields: Record<string, FieldReading> }
+export interface FormReading { form_version: string; model?: string; printout?: string; fields: Record<string, FieldReading> }
+export interface Printout { serial: string; display: string; expires_at: number; qr: string[] }
 
 export interface ReviewInput { final_decision: string; note: string }
 

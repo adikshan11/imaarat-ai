@@ -1,4 +1,4 @@
-import type { AnalyticsSnapshot, BackendHistoryRow, BackendSubmission, DeploymentStatus, FormReading, HistoryQuery, MitigationPreview, OpsSummary, PortfolioSummary, ReviewInput, SubmissionInput } from '@/types/backend'
+import type { AnalyticsSnapshot, BackendHistoryRow, BackendSubmission, DeploymentStatus, FormReading, HistoryQuery, MitigationPreview, OpsSummary, PortfolioSummary, Printout, ReviewInput, SubmissionInput } from '@/types/backend'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'
 
@@ -58,9 +58,14 @@ export async function checkHealth(): Promise<{ status: string }> {
   return parseResponse<{ status: string }>(await fetch(`${API_BASE_URL}/health`))
 }
 
-export async function readPaperForm(image: Blob): Promise<FormReading> {
+export async function issuePrintout(): Promise<Printout> {
+  return parseResponse<Printout>(await fetch(`${API_BASE_URL}/paper/printouts`, { method: 'POST' }))
+}
+
+export async function readPaperForm(image: Blob, serial?: string): Promise<FormReading> {
   const form = new FormData()
   form.append('image', image, 'page2.jpg')
+  if (serial) form.append('serial', serial)
   return parseResponse<FormReading>(await fetch(`${API_BASE_URL}/underwrite/read-form`, { method: 'POST', body: form }))
 }
 
