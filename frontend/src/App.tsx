@@ -16,6 +16,7 @@ const SignIn = lazy(() => import('@/components/auth/SignIn'))
 const AccountPage = lazy(() => import('@/components/account/AccountPage'))
 const DevPage = lazy(() => import('@/components/dev/DevPage'))
 const Saathi = lazy(() => import('@/components/assistant/Saathi'))
+const Integrations = lazy(() => import('@/components/integrations/Integrations'))
 import { useRiskContext } from '@/context/RiskContext'
 import { RiskProvider } from '@/context/RiskProvider'
 import { useSession } from '@/context/Session'
@@ -24,13 +25,14 @@ import { usePreferences } from '@/context/Preferences'
 import { PreferencesProvider } from '@/context/PreferencesProvider'
 import type { BackendSubmission } from '@/types/backend'
 
-type View = 'dashboard' | 'new' | 'paper' | 'how' | 'status' | 'result' | 'account' | 'dev'
+type View = 'dashboard' | 'new' | 'paper' | 'how' | 'status' | 'developers' | 'result' | 'account' | 'dev'
 
 function Application() {
   const [view, setViewState] = useState<View>(() => {
     const hash = window.location.hash.slice(1)
-    if (hash === 'quality' || hash === 'integrations') return 'status'
-    return hash === 'new' || hash === 'paper' || hash === 'how' || hash === 'status' || hash === 'account' || hash === 'dev' ? hash : 'dashboard'
+    if (hash === 'quality') return 'status'
+    if (hash === 'integrations') return 'developers'
+    return hash === 'new' || hash === 'paper' || hash === 'how' || hash === 'status' || hash === 'developers' || hash === 'account' || hash === 'dev' ? hash : 'dashboard'
   })
   const [draftOpen, setDraftOpen] = useState(view === 'new')
   const [draftId, setDraftId] = useState(0)
@@ -107,6 +109,7 @@ function Application() {
         <Suspense fallback={<PageLoader />}>
         {view === 'how' && <HowItWorks />}
         {view === 'status' && <StatusPage />}
+        {view === 'developers' && <Integrations />}
         {view === 'account' && <AccountPage />}
         {view === 'dev' && <DevPage />}
         {view === 'paper' && <PaperForm onUse={startDraft} />}
@@ -116,7 +119,20 @@ function Application() {
           setCompletedSubmission((current) => current?.id === updated.id ? updated : current)
         }} />}
         </Suspense>
-        <footer className="site-footer">Made with <span className="heart" aria-label="love">♥</span> by <a href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> <SocialLinks /> · © 2026 imaarat.ai · <a href="#status" onClick={(event) => { event.preventDefault(); setView('status') }}>{t('nav.status')}</a> · <span lang="en">{session?.role === 'operator' && <><a href="#dev" onClick={(event) => { event.preventDefault(); setView('dev') }}>Dev console</a> · </>}<a href="/changelog/">Changelog</a> · <a href="/privacy/">Privacy Policy</a> · <a href="/terms/">Terms of Service</a></span></footer>
+        <footer className="site-footer">
+          <span className="footer-copy">© 2026 imaarat.ai</span>
+          <nav className="footer-links" aria-label="imaarat.ai">
+            <a href="#status" onClick={(event) => { event.preventDefault(); setView('status') }}>{t('nav.status')}</a>
+            <span lang="en">
+              <a href="#developers" onClick={(event) => { event.preventDefault(); setView('developers') }}>Developers</a>
+              {session?.role === 'operator' && <a href="#dev" onClick={(event) => { event.preventDefault(); setView('dev') }}>Dev console</a>}
+              <a href="/changelog/">Changelog</a>
+              <a href="/privacy/">Privacy Policy</a>
+              <a href="/terms/">Terms of Service</a>
+            </span>
+          </nav>
+          <span className="footer-credit">Made with <span className="heart" aria-label="love">♥</span> by <a className="footer-author" href="https://adithya-shankaran.vercel.app" target="_blank" rel="noreferrer">Adithya Shankaran</a> <SocialLinks /></span>
+        </footer>
       </main>
       <Suspense fallback={null}><Saathi onOpen={(page) => navigate(page)} /></Suspense>
     </div>

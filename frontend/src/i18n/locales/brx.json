@@ -580,5 +580,7 @@
   "saathi.error": "माबा मोनसे गोरोन्थि जादों। अन्नानै आरोबाव नाजा।",
   "saathi.nothing": "आं बेखौ हमनो हायाखिसै। अन्नानै आरोबाव नाजा।",
   "saathi.sources": "बेनि सायाव सोनारनानै",
-  "saathi.refused": "आं खालि imaarat.ai आरो फालांगियारि सम्फथि आन्डारराइटिंआव हेफाजाब होनो हायो।"
+  "saathi.refused": "आं खालि imaarat.ai आरो फालांगियारि सम्फथि आन्डारराइटिंआव हेफाजाब होनो हायो।",
+  "nav.collapse": "Collapse sidebar",
+  "nav.expand": "Expand sidebar"
 }

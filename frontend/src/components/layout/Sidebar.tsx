@@ -15,9 +15,16 @@ interface Props {
   onNavigate: (view: string) => void
 }
 
+const NAV_KEY = 'imaarat.nav'
+
 export default function Sidebar({ activeView, onNavigate }: Props) {
   const { t, language } = usePreferences()
   const { session } = useSession()
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(NAV_KEY) === 'collapsed')
+  useEffect(() => {
+    document.querySelector('.app-shell')?.setAttribute('data-nav', collapsed ? 'collapsed' : 'expanded')
+    localStorage.setItem(NAV_KEY, collapsed ? 'collapsed' : 'expanded')
+  }, [collapsed])
   const tabbar = useRef<HTMLElement>(null)
   const track = useRef<HTMLDivElement>(null)
   const indicator = useRef<HTMLSpanElement>(null)
@@ -45,10 +52,9 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
     { view: 'new', icon: 'plus', text: t('nav.new') },
     { view: 'paper', icon: 'file', text: t('nav.paper') },
     { view: 'how', icon: 'info', text: t('nav.how') },
-    { view: 'status', icon: 'monitor', text: t('nav.status') },
     ...(session?.role === 'operator' ? [{ view: 'dev', icon: 'code', text: 'Dev' }] : []),
   ]
-  const tabs = items.filter((item) => item.view !== 'status' && item.view !== 'dev')
+  const tabs = items.filter((item) => item.view !== 'dev')
   const buttons = () => Array.from(track.current?.querySelectorAll<HTMLButtonElement>('.tab-item') ?? [])
   const place = (button?: HTMLButtonElement, x?: number) => {
     const node = indicator.current
@@ -128,7 +134,7 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
   const link = (item: typeof items[number], className: string, list: typeof items) => {
     const caption = className === 'tab-item' && ['dashboard', 'new', 'paper', 'how'].includes(item.view) ? t(`nav.mobile.${item.view}`) : item.text
     return (
-    <button key={item.view} data-view={item.view} className={`${className} ${activeView === item.view ? 'active' : ''}`} onClick={(event) => {
+    <button key={item.view} data-view={item.view} className={`${className} ${activeView === item.view ? 'active' : ''}`} title={className === 'nav-item' && collapsed ? item.text : undefined} onClick={(event) => {
       if (className === 'tab-item' && blockClick.current && event.detail !== 0) return
       onNavigate(item.view)
     }} onKeyDown={(event) => {
@@ -146,13 +152,17 @@ export default function Sidebar({ activeView, onNavigate }: Props) {
 
   return (
     <>
-      <aside className="sidebar">
+      <aside className={collapsed ? 'sidebar is-collapsed' : 'sidebar'}>
         <div className="sidebar-inner">
           <Brand sub={t('brand.sub')} onHome={() => onNavigate('dashboard')} />
           <nav className="nav" aria-label={t('nav.section')}>{items.map((item) => link(item, 'nav-item', items))}</nav>
           <div className="sidebar-footer">
             <Controls onAccount={() => onNavigate('account')} />
             <div className="sidebar-tagline">{t('footer.underwriter')}</div>
+            <button type="button" className="nav-collapse" aria-expanded={!collapsed} aria-label={t(collapsed ? 'nav.expand' : 'nav.collapse')} title={t(collapsed ? 'nav.expand' : 'nav.collapse')} onClick={() => setCollapsed((current) => !current)}>
+              <Icon name={collapsed ? 'chevrons-right' : 'chevrons-left'} />
+              <span>{t('nav.collapse')}</span>
+            </button>
           </div>
         </div>
       </aside>

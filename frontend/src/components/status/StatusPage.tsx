@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Card from '@/components/shared/Card'
 import { PageLoader } from '@/components/shared/Loader'
 import { fetchOpsSummary } from '@/api/underwriting'
@@ -6,7 +6,6 @@ import { useRiskContext } from '@/context/RiskContext'
 import type { OpsSpan, OpsSummary } from '@/types/backend'
 import './StatusPage.css'
 
-const Integrations = lazy(() => import('@/components/integrations/Integrations'))
 
 const WINDOWS = [{ hours: 24, label: '24 hours' }, { hours: 168, label: '7 days' }]
 
@@ -29,6 +28,12 @@ function when(value: string) {
 
 function bucketLabel(bucket: string, hours: number) {
   return hours <= 48 ? `${bucket.slice(11, 16)} UTC` : bucket.slice(5)
+}
+
+type Health = 'ok' | 'warn' | 'error' | 'off'
+
+function Dot({ health }: { health: Health }) {
+  return <i className={`ops-dot ops-dot-${health}`} aria-hidden="true" />
 }
 
 function Bars({ points, series, hours, summary }: { points: Array<{ bucket: string; values: number[] }>; series: Array<{ name: string; tone: string }>; hours: number; summary: string }) {
@@ -97,6 +102,16 @@ export default function StatusPage() {
   const tokensIn = Object.values(ai?.stages ?? {}).reduce((sum, stage) => sum + stage.input_tokens, 0)
   const tokensOut = Object.values(ai?.stages ?? {}).reduce((sum, stage) => sum + stage.output_tokens, 0)
   const windowLabel = WINDOWS.find((item) => item.hours === hours)?.label
+  const failedShare = geminiCalls ? geminiFailed / geminiCalls : 0
+  const components: Array<{ name: string; health: Health; text: string }> = summary ? [
+    { name: 'API', health: 'ok', text: `Operational · ${share(requests?.server_errors ?? 0, requests?.total ?? 0)} server errors` },
+    { name: 'Database', health: status?.persistent_storage ? 'ok' : 'warn', text: status?.persistent_storage ? 'PostgreSQL, persistent' : 'Demo storage, resets on restart' },
+    { name: 'Cache', health: status?.cache === 'unavailable' ? 'error' : 'ok', text: status?.cache === 'redis' ? 'Redis, shared by every instance' : status?.cache === 'unavailable' ? 'Unavailable' : 'In memory, per instance' },
+    { name: 'AI model', health: !status?.ai ? 'off' : failedShare > 0.5 || (ai?.budget.calls_left ?? 1) === 0 ? 'warn' : 'ok', text: !status?.ai ? 'Off, the rules decide' : failedShare > 0.5 ? `Degraded, ${share(geminiFailed, geminiCalls)} of calls failed` : (ai?.budget.calls_left ?? 1) === 0 ? 'Daily allowance used' : 'Gemini operational' },
+    { name: 'Guideline search', health: 'ok', text: status?.vector_store === 'qdrant' ? 'Qdrant vector store' : 'Local index' },
+    { name: 'Tracing', health: status?.tracing ? 'ok' : 'off', text: status?.tracing ? 'Langfuse recording' : 'Off' },
+  ] : []
+  const overall: Health = components.some((item) => item.health === 'error') ? 'error' : components.some((item) => item.health === 'warn') ? 'warn' : 'ok'
 
   return (
     <div className="ops-page" id="quality" lang="en" dir="ltr">
@@ -115,6 +130,10 @@ export default function StatusPage() {
       {!summary && !error && <PageLoader />}
 
       {summary && requests && ai && <>
+        <div className={`ops-overall ops-overall-${overall}`} role="status"><Dot health={overall} />{overall === 'ok' ? 'All systems operational' : overall === 'warn' ? 'Partial degradation' : 'Service disruption'}</div>
+        <div className="ops-components">
+          {components.map((item) => <div className="ops-component" key={item.name}><Dot health={item.health} /><div><strong>{item.name}</strong><span>{item.text}</span></div></div>)}
+        </div>
         <div className="kpi-row">
           <div className="kpi"><div className="kpi-label">Version</div><div className="kpi-value">{status?.version ?? '—'}</div><div className="kpi-hint">AI {status?.ai ? 'on' : 'off'} · Langfuse tracing {status?.tracing ? 'on' : 'off'}</div></div>
           <div className="kpi"><div className="kpi-label">Requests</div><div className="kpi-value">{requests.total.toLocaleString('en-IN')}</div><div className="kpi-hint">{share(requests.server_errors, requests.total)} server errors · {requests.cold_starts} cold starts</div></div>
@@ -191,9 +210,6 @@ export default function StatusPage() {
 
         <p className="card-footnote">Generated {new Date(summary.generated_at).toLocaleString('en-IN')} · refreshes every 30 seconds while this tab is open.</p>
       </>}
-      <Suspense fallback={<PageLoader />}>
-        <Integrations />
-      </Suspense>
     </div>
   )
 }

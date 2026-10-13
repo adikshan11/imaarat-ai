@@ -9,6 +9,7 @@ export const stack: Tool[] = [
   { name: 'LangGraph', href: 'https://www.langchain.com/langgraph', src: '/landing/stack/langgraph.svg', wide: true },
   { name: 'Qdrant', href: 'https://qdrant.tech', src: '/landing/stack/qdrant.svg' },
   { name: 'PostgreSQL', href: 'https://www.postgresql.org', src: '/landing/stack/postgresql.svg' },
+  { name: 'Redis', href: 'https://redis.io', src: '/landing/stack/redis.svg' },
   { name: 'MCP', href: 'https://modelcontextprotocol.io', path: MCP_PATH },
   { name: 'A2A', href: 'https://a2a-protocol.org', src: '/landing/stack/a2a.svg' },
   { name: 'Langfuse', href: 'https://langfuse.com', src: '/landing/stack/langfuse.svg' },

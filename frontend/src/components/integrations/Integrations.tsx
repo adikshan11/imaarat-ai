@@ -1,6 +1,7 @@
 import Card from '@/components/shared/Card'
 import { apiBaseUrl } from '@/api/underwriting'
 import { usePreferences } from '@/context/Preferences'
+import './Integrations.css'
 
 const MCP_TOOLS = ['assess_property', 'lookup_hazard', 'search_guidelines', 'get_assessment', 'list_assessments']
 const A2A_SKILLS = ['assess_property', 'underwriting_guidance']
@@ -10,7 +11,7 @@ export default function Integrations() {
   const mcpUrl = `${apiBaseUrl}/mcp/`
   const cardUrl = `${apiBaseUrl}/.well-known/agent-card.json`
   return (
-    <section id="integrations" className="status-section">
+    <section id="integrations" className="integrations-section">
       <div className="page-subtitle">{t('int.eyebrow')}</div>
       <h2 className="page-title">{t('int.title')}</h2>
       <p className="page-lead">{t('int.lead')}</p>

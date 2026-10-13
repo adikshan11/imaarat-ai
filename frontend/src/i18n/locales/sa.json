@@ -580,5 +580,7 @@
   "saathi.error": "किञ्चित् त्रुटितम्। कृपया पुनः प्रयत्स्व।",
   "saathi.nothing": "मया तत् न ज्ञातम्। कृपया पुनः प्रयत्नं कुरु।",
   "saathi.sources": "आधारेण",
-  "saathi.refused": "अहं केवलं imaarat.ai तथा वाणिज्यिक-सम्पत्ति-अण्डररायटिङ्ग् विषये एव साहाय्यं कर्तुं शक्नोमि।"
+  "saathi.refused": "अहं केवलं imaarat.ai तथा वाणिज्यिक-सम्पत्ति-अण्डररायटिङ्ग् विषये एव साहाय्यं कर्तुं शक्नोमि।",
+  "nav.collapse": "Collapse sidebar",
+  "nav.expand": "Expand sidebar"
 }

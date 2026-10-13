@@ -301,6 +301,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 
 ## frontend/src/components/integrations
 
+- `Integrations.css`
 - `Integrations.tsx`: Integrations
 
 ## frontend/src/components/layout

@@ -2,6 +2,17 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.60.0] - 2026-10-14
+
+### Added
+- A double-arrow button collapses the desktop sidebar to icons only and expands it again; the choice is remembered and the page content widens to fill the space.
+- A Developers page, linked from the footer, holds the MCP and A2A endpoints, tools and the example request that used to sit under the status page.
+- The status page opens with an overall line and a health card for each part: API, database, cache, AI model, guideline search and tracing.
+- Redis in the technology list.
+
+### Changed
+- Status is no longer in the sidebar; it stays in the footer. The footer is now three tidy parts: copyright, links and credit.
+
 ## [2.59.0] - 2026-10-14
 
 ### Added

@@ -580,5 +580,7 @@
   "saathi.error": "ꯀꯔꯤꯒꯨꯝꯕ ꯑꯃ ꯂꯥꯟꯅ ꯊꯣꯛꯈꯤ꯫ ꯆꯥꯟꯕꯤꯗꯨꯅ ꯑꯃꯨꯛ ꯍꯟꯅ ꯍꯣꯠꯅꯕꯤꯌꯨ꯫",
   "saathi.nothing": "ꯑꯩꯅ ꯃꯗꯨ ꯐꯪꯈꯤꯗꯦ꯫ ꯆꯥꯟꯕꯤꯗꯨꯅ ꯑꯃꯨꯛ ꯍꯟꯅ ꯍꯣꯠꯅꯕꯤꯌꯨ꯫",
   "saathi.sources": "ꯌꯨꯝꯐꯝ ꯑꯣꯏꯗꯨꯅ",
-  "saathi.refused": "ꯑꯩꯍꯥꯛ imaarat.ai ꯑꯃꯁꯨꯡ ꯀꯃꯔꯁꯤꯌꯦꯜ ꯄ꯭ꯔꯣꯄꯔꯇꯤ ꯑꯟꯗꯔꯔꯥꯏꯇꯤꯡꯗ ꯈꯛꯇꯃꯛ ꯃꯇꯦꯡ ꯄꯥꯡꯕ ꯉꯝꯒꯅꯤ꯫"
+  "saathi.refused": "ꯑꯩꯍꯥꯛ imaarat.ai ꯑꯃꯁꯨꯡ ꯀꯃꯔꯁꯤꯌꯦꯜ ꯄ꯭ꯔꯣꯄꯔꯇꯤ ꯑꯟꯗꯔꯔꯥꯏꯇꯤꯡꯗ ꯈꯛꯇꯃꯛ ꯃꯇꯦꯡ ꯄꯥꯡꯕ ꯉꯝꯒꯅꯤ꯫",
+  "nav.collapse": "Collapse sidebar",
+  "nav.expand": "Expand sidebar"
 }
