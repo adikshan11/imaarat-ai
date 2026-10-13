@@ -346,7 +346,7 @@ label:has(> input:required) > .field-label-text::after, .select-field.required >
   .app-shell { display: block; padding: 0 !important; }
   .main-content { padding: 0 !important; max-width: none; }
   .print-area { display: block; color: #000; font-size: 10pt; }
-  .pf-page { position: relative; box-sizing: border-box; width: 210mm; height: 296mm; padding: 15mm 16mm 18mm; overflow: hidden; }
+  .pf-page { position: relative; box-sizing: border-box; width: 210mm; height: 296mm; padding: 14mm 16mm 24mm; overflow: hidden; }
   .pf-page + .pf-page { break-before: page; }
   .pf-corner { position: absolute; width: 8mm; height: 8mm; border: 0 solid #000; }
   .pf-tl { top: 7mm; left: 7mm; border-top-width: 1.5mm; border-left-width: 1.5mm; }
@@ -359,15 +359,15 @@ label:has(> input:required) > .field-label-text::after, .select-field.required >
   .pf-title { font-size: 13pt; text-align: center; }
   .pf-code { justify-self: end; font-size: 10pt; border: 1px solid #000; border-radius: 1mm; padding: 0.6mm 2mm; }
   .pf-keep { font-weight: 700; margin: 0 0 3mm; }
-  .pf-section { margin-bottom: 3mm; }
-  .pf-section-title { margin: 0 0 2mm; padding: 0.8mm 2mm; font-size: 9.5pt; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; background: #e6e6e6; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-  .pf-field { margin-bottom: 2mm; break-inside: avoid; }
+  .pf-section { margin-bottom: 2.5mm; }
+  .pf-section-title { margin: 0 0 1.5mm; padding: 0.8mm 2mm; font-size: 9.5pt; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; background: #e6e6e6; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .pf-field { margin-bottom: 1.5mm; break-inside: avoid; }
   .pf-label { font-weight: 700; margin-bottom: 1mm; }
   .pf-english { font-weight: 400; color: #444; }
-  .pf-box { height: 7.5mm; border: 1px solid #000; border-radius: 1.5mm; }
+  .pf-box { height: 7mm; border: 1px solid #000; border-radius: 1.5mm; }
   .pf-box-tall { height: 22mm; }
   .pf-cells { display: flex; gap: 2mm; }
-  .pf-cells span { width: 10mm; height: 11mm; border: 1px solid #000; border-radius: 1mm; }
+  .pf-cells span { width: 9.5mm; height: 9.5mm; border: 1px solid #000; border-radius: 1mm; }
   .pf-ticks { display: flex; flex-wrap: wrap; gap: 2mm 6mm; }
   .pf-ticks-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2mm 4mm; }
   .pf-ticks span { display: inline-flex; align-items: center; gap: 2mm; }
