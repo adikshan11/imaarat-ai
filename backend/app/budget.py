@@ -16,7 +16,7 @@ from app import config
 from app.db import get_engine, is_postgres, metadata
 
 PACIFIC = ZoneInfo("America/Los_Angeles")
-UNCAPPED_STAGES = {"embed", "count_tokens"}
+UNCAPPED_STAGES = {"embed", "count_tokens", "chat"}
 SIGN_IN_NOTE = "Sign in to use the AI"
 INTEROP_NOTE = "AI summaries run in the web app; MCP and A2A return the rule-engine decision"
 _ready_engines: set[str] = set()
