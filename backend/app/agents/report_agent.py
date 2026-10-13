@@ -122,9 +122,7 @@ def build_prompt(state: dict, fmt: str | None = None) -> str:
         },
         "underwriting_guidance": [{"id": hit["id"], "title": hit["title"], "text": hit["text"]} for hit in state.get("guideline_hits", []) if not hit.get("source")],
         "reference_notes": [
-            {"id": hit["id"], "title": hit["title"], "authority": hit["authority"], "source": hit["source"], "text": hit["text"]}
-            for hit in state.get("guideline_hits", [])
-            if hit.get("source")
+            {"id": hit["id"], "title": hit["title"], "authority": hit["authority"], "source": hit["source"], "text": hit["text"]} for hit in state.get("guideline_hits", []) if hit.get("source")
         ],
         "reference_properties": state.get("comparables", []),
     }
