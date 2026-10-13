@@ -2,7 +2,7 @@ from io import BytesIO
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
-from app import auth, db, observability, partners, profile
+from app import auth, db, dev_console, observability, partners, profile
 from app.api import auth_routes, main
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
@@ -92,7 +92,7 @@ def test_providers_list_only_configured_sign_in(client, monkeypatch):
     monkeypatch.setenv("GITHUB_CLIENT_ID", "client")
     monkeypatch.setenv("GITHUB_CLIENT_SECRET", "secret")
     monkeypatch.delenv("GOOGLE_CLIENT_ID", raising=False)
-    assert client.get("/auth/providers").json() == {"github": True, "google": False}
+    assert client.get("/auth/providers").json() == {"github": True, "google": False, "owner": False}
 
 
 def test_google_sign_in_round_trip(client, monkeypatch):
@@ -113,6 +113,41 @@ def test_google_sign_in_round_trip(client, monkeypatch):
 def test_google_cancel_returns_to_sign_in(client):
     response = client.get("/auth/google/callback", params={"error": "access_denied"}, follow_redirects=False)
     assert response.status_code == 303 and response.headers["location"] == ORIGIN + "/app/#signin"
+
+
+def owner_callback(client, monkeypatch, identity):
+    monkeypatch.setattr(auth_routes, "google_identity", lambda transaction, code: identity)
+    url = client.post("/auth/owner/start", headers={"origin": ORIGIN}).json()["authorization_url"]
+    state = parse_qs(urlsplit(url).query)["state"][0]
+    return client.get("/auth/google/callback", params={"code": "abc", "state": state}, follow_redirects=False)
+
+
+def test_owner_sign_in_admits_only_the_owner_email(client, monkeypatch):
+    monkeypatch.setenv("GOOGLE_CLIENT_ID", "client")
+    monkeypatch.setenv("GOOGLE_CLIENT_SECRET", "secret")
+    assert client.post("/auth/owner/start", headers={"origin": ORIGIN}).status_code == 503
+    monkeypatch.setenv("OWNER_EMAILS", "Owner@Example.com")
+    assert client.get("/auth/providers").json()["owner"] is True
+    url = client.post("/auth/owner/start", headers={"origin": ORIGIN}).json()["authorization_url"]
+    assert parse_qs(urlsplit(url).query)["scope"] == ["openid email"]
+    for identity in ({"sub": "9", "email": "intruder@example.com", "email_verified": True}, {"sub": "9", "email": "owner@example.com", "email_verified": False}, {"sub": "9"}):
+        assert owner_callback(client, monkeypatch, identity).status_code == 403
+    assert client.get("/auth/session").status_code == 401
+    allowed = owner_callback(client, monkeypatch, {"sub": "9", "email": "owner@example.com", "email_verified": True})
+    assert allowed.status_code == 303 and client.get("/auth/session").json()["role"] == "operator"
+
+
+def test_dev_console_is_for_the_operator_only(client, monkeypatch):
+    monkeypatch.setattr(dev_console.config, "AI_API_KEY", "")
+    assert client.get("/dev/overview").status_code == 401
+    signed_in(client, 42)
+    assert client.get("/dev/overview").status_code == 403
+    signed_in(client, 7)
+    assert client.get("/dev/overview").json()["ai"]["provider"]
+    assert {"intake", "score_risk"} <= {node["id"] for node in client.get("/dev/architecture").json()["nodes"]}
+    assert any(row["path"] == "/dev/overview" for row in client.get("/dev/routes").json())
+    assert client.get("/dev/ai-calls").json() == [] and client.get("/dev/traces").json() == []
+    assert client.get("/dev/retrieval", params={"q": "flood"}).json()["available"] is False
 
 
 def test_idle_sessions_expire(client):

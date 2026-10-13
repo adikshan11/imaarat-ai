@@ -40,9 +40,9 @@ test('navigation uses shared alignment and separate mobile captions', async () =
 test('floating navigation is centered with restrained highlights and readable captions', async () => {
   const css = await readFile(new URL('../src/App.css', import.meta.url), 'utf8')
   const bar = css.match(/\.tabbar \{ position: fixed;[^}]+\}/)?.[0] ?? ''
-  assert.match(bar, /width: min\(calc\(100% - 32px\), 440px\)/)
+  assert.match(bar, /width: min\(calc\(100% - 20px\), 620px\)/)
   assert.match(bar, /margin-inline: auto/)
-  assert.match(bar, /bottom: calc\(14px \+ env\(safe-area-inset-bottom, 0px\)\)/)
+  assert.match(bar, /bottom: calc\(10px \+ env\(safe-area-inset-bottom, 0px\)\)/)
   assert.doesNotMatch(bar, /inset 0 1\.5px/)
   assert.match(css, /\.tab-item \{[^}]*font-size: 14px/)
   assert.match(css, /\.tab-caption \{[^}]*align-items: center/)

@@ -103,6 +103,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `budget.py`: Daily AI budget: per-visitor and global admissions plus every Gemini call, reserved atomically before use.
 - `config.py`
 - `db.py`: Submission and reference-property storage: Postgres when DATABASE_URL is set, SQLite otherwise.
+- `dev_console.py`: The owner's dev console: how the running service is built and what it is doing, without any visitor input or secrets.
 - `evaluation.py`: report_metadata, empty_report
 - `images.py`: One policy for every uploaded image: allowed types, size and pixel limits, decoding and re-encoding.
 - `interop.py`: Interoperability: an MCP server (tools for AI clients) and an A2A agent (for other agents).
@@ -125,6 +126,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 
 - `__init__.py`: API package.
 - `auth_routes.py`: ProfileForm, PartnerForm, oauth_client, oauth_configuration, configured, providers, session, save_profile
+- `dev_routes.py`: owner_only, overview, architecture, routes, ai_calls, traces, retrieval
 - `main.py`: lifespan, Interop, record_requests, health, upload_limits, status, property_tiv_from_components, submit_underwriting
 
 ## backend/app/providers
@@ -243,6 +245,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 
 ## frontend/src/api
 
+- `dev.ts`: DevOverview, DevArchitecture, DevRoute, DevAiCall, DevTrace, DevRetrieval, fetchDevOverview, fetchDevArchitecture
 - `session.ts`: Profile, Timing, Session, Provider, Providers, fetchSession, fetchProviders, startSignIn
 - `underwriting.ts`: fetchOpsSummary, fetchHistoryPage, fetchDashboard, fetchSubmissionDetail, submitUnderwriting, previewUnderwriting, checkHealth, readPaperForm
 - `uploads.ts`: ImageKind, UploadLimits, uploadLimits, useUploadLimits, imageProblem
@@ -275,6 +278,11 @@ One line per tracked source file: its docstring, exported names or title. Regene
 
 - `Dashboard.tsx`: Dashboard
 - `PortfolioAnalytics.tsx`: PortfolioAnalytics
+
+## frontend/src/components/dev
+
+- `DevPage.css`
+- `DevPage.tsx`: DevPage
 
 ## frontend/src/components/integrations
 

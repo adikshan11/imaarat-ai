@@ -18,6 +18,7 @@ from starlette.types import Receive, Scope, Send
 
 from app import __version__, auth, budget, config, images, llm, telemetry
 from app.api.auth_routes import router as auth_router
+from app.api.dev_routes import router as dev_router
 from app.config import AI_API_KEY, DB_PATH, QDRANT_URL
 from app.db import (
     claim_review,
@@ -92,6 +93,7 @@ async def record_requests(request: Request, call_next: Any) -> Any:
 
 
 app.include_router(auth_router)
+app.include_router(dev_router)
 app.router.routes.append(Interop())
 
 app.add_middleware(

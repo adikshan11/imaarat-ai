@@ -1,0 +1,88 @@
+.dev-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dev-head h1 {
+  margin: 0 0 4px;
+}
+
+.dev-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px 20px;
+  margin: 0;
+}
+
+.dev-facts div {
+  min-width: 0;
+}
+
+.dev-facts dt {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.dev-facts dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.dev-sub {
+  margin: 20px 0 10px;
+  font-size: 14px;
+}
+
+.dev-search {
+  display: flex;
+  gap: 10px;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+
+.dev-search input {
+  flex: 1;
+  min-width: 220px;
+}
+
+.dev-flow {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding-inline-start: 22px;
+}
+
+.dev-flow li {
+  display: grid;
+  gap: 2px;
+}
+
+.dev-flow span {
+  color: var(--text-soft);
+  font-size: 13px;
+}
+
+.dev-trace {
+  display: grid;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.dev-trace-head {
+  font-size: 13px;
+}
+
+.dev-code {
+  overflow-x: auto;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  font-size: 12px;
+}

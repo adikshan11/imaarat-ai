@@ -7,9 +7,9 @@ import { useSession } from '@/context/Session'
 export default function SignIn({ onDemo }: { onDemo: () => void }) {
   const { t } = usePreferences()
   const { providers, signIn, error, ended } = useSession()
-  const [chosen, setChosen] = useState<'github' | 'google' | null>(null)
+  const [chosen, setChosen] = useState<'github' | 'google' | 'owner' | null>(null)
   const going = error ? null : chosen
-  const start = (provider: 'github' | 'google') => {
+  const start = (provider: 'github' | 'google' | 'owner') => {
     setChosen(provider)
     void signIn(provider)
   }
@@ -49,6 +49,7 @@ export default function SignIn({ onDemo }: { onDemo: () => void }) {
         <button type="button" className="btn btn-secondary signin-demo" onClick={onDemo}>{t('signin.demo')}</button>
         <p className="signin-note">{t('signin.demo_note')}</p>
         <p className="signin-privacy">{t('signin.privacy')} <a href="/privacy/" lang="en">Privacy Policy</a></p>
+        {providers.owner && <button type="button" className="signin-owner" lang="en" disabled={going !== null} onClick={() => start('owner')}>Owner sign-in</button>}
       </section>
     </main>
   )
