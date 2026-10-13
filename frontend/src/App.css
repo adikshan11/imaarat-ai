@@ -6,7 +6,8 @@
 .app-shell::after { width: 40vw; height: 40vw; bottom: -14vw; left: 18vw; background: radial-gradient(circle, var(--blob-2), transparent 70%), radial-gradient(circle at 80% 20%, var(--blob-3), transparent 60%); }
 .main-content { min-width: 0; width: 100%; max-width: 1480px; margin-inline: auto; padding: 24px 28px 12px; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
 .main-content > * { flex: none; }
-.main-content > .site-footer { margin-top: auto; }
+.main-content > .saathi-slot { margin-top: auto; padding-top: 20px; min-height: 84px; display: flex; justify-content: flex-end; align-items: flex-end; }
+.main-content > .site-footer { margin-top: 0; }
 
 /* Glass surfaces */
 .card, .kpi, .preview-card, .form-actions-panel {
@@ -19,7 +20,7 @@
 
 /* Sidebar */
 .sidebar { position: fixed; inset-block: 0; inset-inline-start: 0; z-index: 20; width: var(--nav-w, 260px); transition: width 260ms cubic-bezier(0.4, 0, 0.2, 1); height: 100vh; height: 100dvh; border-inline-end: 1px solid rgba(255, 255, 255, 0.06); background: linear-gradient(180deg, var(--sidebar-1), var(--sidebar-2)); color: var(--sidebar-text); display: flex; flex-direction: column; }
-.sidebar-inner { padding: 26px 16px; display: flex; flex-direction: column; height: 100%; overflow-y: auto; }
+.sidebar-inner { padding: 26px 16px 10px; display: flex; flex-direction: column; height: 100%; overflow-y: auto; }
 .brand { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; padding: 6px 4px; border-radius: 12px; color: inherit; text-decoration: none; }
 .brand:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .brand-mark { flex: none; filter: drop-shadow(0 4px 10px rgb(0 0 0 / 0.18)); }
@@ -83,7 +84,7 @@
 
 
 /* Signature */
-.site-footer { margin-top: auto; padding: 0; color: var(--text-muted); font-size: 12.5px; line-height: 1.5; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
+.site-footer { margin-top: 0; padding: 0; color: var(--text-muted); font-size: 12.5px; line-height: 1.5; display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; }
 .site-footer::before { content: ''; align-self: stretch; height: 1px; margin: 28px 0 14px; background: var(--border); }
 .site-footer a { color: inherit; text-decoration: none; }
 .site-footer a:hover { color: var(--brand); text-decoration: underline; text-underline-offset: 3px; }
@@ -352,7 +353,7 @@ label:has(> input:required) > .field-label-text::after, .select-field.required >
   @page { size: A4; margin: 0; }
   html, body, #root, .app-shell { min-height: 0 !important; height: auto !important; }
   body { background: #fff; color: #000; }
-  .sidebar, .topbar, .tabbar, .status-banner, .paper-screen, .site-footer, .saathi-launch, .saathi-fab, .saathi-greeting, .saathi-panel, .app-shell::before, .app-shell::after { display: none !important; }
+  .sidebar, .topbar, .tabbar, .status-banner, .paper-screen, .site-footer, .saathi-slot, .saathi-launch, .saathi-fab, .saathi-greeting, .saathi-panel, .app-shell::before, .app-shell::after { display: none !important; }
   .app-shell { display: block; padding: 0 !important; }
   .main-content { padding: 0 !important; max-width: none; min-height: 0 !important; display: block; }
   .print-area { display: block; color: #000; font-size: 9.5pt; }

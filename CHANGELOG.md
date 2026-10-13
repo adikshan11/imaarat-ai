@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.64.1] - 2026-10-14
+
+### Changed
+- Saathi is no longer fixed to the window. She sits at the bottom right end of the page, just above the footer, and scrolls with the page, so she never covers a card. Her chat still opens at the bottom right and closes with the down arrow.
+- The sidebar buttons sit closer to the bottom edge.
+
 ## [2.64.0] - 2026-10-14
 
 ### Added

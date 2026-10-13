@@ -26,7 +26,6 @@ export default function Saathi({ onOpen }: { onOpen: (page: ChatPage) => void })
   const [reading, setReading] = useState(false)
   const [greeting, setGreeting] = useState(false)
   const log = useRef<HTMLDivElement>(null)
-  const launch = useRef<HTMLDivElement>(null)
   const field = useRef<HTMLInputElement>(null)
   const recognition = useRef<{ stop(): void } | null>(null)
   const counter = useRef(0)
@@ -37,24 +36,6 @@ export default function Saathi({ onOpen }: { onOpen: (page: ChatPage) => void })
     const hide = window.setTimeout(() => { setGreeting(false); sessionStorage.setItem(GREETED, '1') }, 9000)
     return () => { window.clearTimeout(show); window.clearTimeout(hide) }
   }, [])
-
-  useEffect(() => {
-    if (open) return
-    const place = () => {
-      const node = launch.current
-      const sidebar = document.querySelector('.sidebar')
-      const footer = document.querySelector('.sidebar-footer')
-      if (!node) return
-      if (!sidebar || !footer || getComputedStyle(sidebar).display === 'none') node.style.removeProperty('--saathi-bottom')
-      else node.style.setProperty('--saathi-bottom', `${Math.round(window.innerHeight - footer.getBoundingClientRect().top + 16)}px`)
-    }
-    place()
-    const observer = new ResizeObserver(place)
-    const footer = document.querySelector('.sidebar-footer')
-    if (footer) observer.observe(footer)
-    window.addEventListener('resize', place)
-    return () => { observer.disconnect(); window.removeEventListener('resize', place) }
-  }, [open])
 
   useEffect(() => { log.current?.scrollTo({ top: log.current.scrollHeight }) }, [messages, busy])
 
@@ -137,7 +118,7 @@ export default function Saathi({ onOpen }: { onOpen: (page: ChatPage) => void })
   return (
     <>
       {!open && (
-        <div className="saathi-launch" ref={launch}>
+        <div className="saathi-launch">
           {greeting && <button type="button" className="saathi-greeting" onClick={() => { setGreeting(false); setOpen(true) }}>{t('saathi.greeting')}</button>}
           <button type="button" className="saathi-fab" aria-label={t('saathi.open')} onClick={() => { setGreeting(false); sessionStorage.setItem(GREETED, '1'); setOpen(true) }}>
             <Mascot size={52} />
