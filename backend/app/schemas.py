@@ -97,7 +97,7 @@ class PropertySubmission(BaseModel):
 
 class UnderwritingMemo(BaseModel):
     property_summary: list[str] = Field(description="Grounded facts about the property, from the supplied evidence only")
-    key_risk_factors: list[str] = Field(description="One line per deterministic risk flag, naming the flag")
+    key_risk_factors: list[str] = Field(description="One line per deterministic risk flag, naming the flag; empty when there are no flags")
     coverage_review: list[str] = Field(description="Review points for the requested coverage extensions only")
     decision: str = Field(description="Exactly the deterministic decision")
     rationale: str = Field(description="Why the evidence supports the deterministic decision")

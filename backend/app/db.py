@@ -393,7 +393,7 @@ def portfolio_summary() -> dict[str, Any]:
     drivers: dict[str, int] = {}
     bands = {"Accept": 0, "Refer": 0, "Decline (mitigation possible)": 0, "Auto-Decline": 0}
     totals = {"value": 0.0, "sprinklers": 0, "fire_alarm": 0, "flood_protection": 0, "mitigation": 0.0, "pending": 0, "score": 0}
-    hazards = {"pincode_matched": 0, "declared_seismic_zone_below_official": 0, "flood_history_at_pincode": 0, "imd_cyclone_prone_district": 0}
+    hazards = {"pincode_matched": 0, "declared_seismic_zone_below_official": 0, "flood_history_at_pincode": 0, "imd_cyclone_prone_district": 0, "nrsc_landslide_district": 0}
     for row in rows:
         raw_input = _loads(row.raw_input, {})
         official = hazard_lookup(raw_input.get("zip"))

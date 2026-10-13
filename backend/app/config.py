@@ -19,6 +19,7 @@ DB_PATH = DB_DIR / "uw_risk.db"
 PROPERTIES_CSV = RAW_DIR / "properties.csv"
 GUIDELINES_PDF = RAW_DIR / "underwriting_guidelines.pdf"
 GUIDELINES_MD = RAW_DIR / "underwriting_guidelines.md"
+REFERENCES_MD = RAW_DIR / "reference_library.md"
 HAZARD_JSON = DATA_DIR / "hazard" / "pincode_hazard.json"
 
 # The AI provider is pluggable: AI_PROVIDER picks the adapter in app/providers/, the rest configure it.

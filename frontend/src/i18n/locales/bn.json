@@ -525,5 +525,15 @@
   "partners.revoke": "বাতিল করুন",
   "partners.used": "তৈরি {created}, শেষ ব্যবহার {used}",
   "partners.revoked": "বাতিল",
-  "partners.never": "কখনও না"
+  "partners.never": "কখনও না",
+  "hz.landslide": "NRSC ভূমিধস ঝুঁকি র‍্যাঙ্ক (জেলা, 2023)",
+  "hz.landslide_rank": "147-এর মধ্যে {rank}",
+  "hz.landslide_none": "NRSC-এর 147টি র‍্যাঙ্কভুক্ত জেলার মধ্যে নয়",
+  "hzv.landslide": "NRSC ভূমিধস র‍্যাঙ্কভুক্ত জেলায়",
+  "flag.nrsc_landslide_district": "NRSC ভূমিধস র‍্যাঙ্কভুক্ত জেলা",
+  "authority.official": "সরকারি",
+  "authority.standard": "মান (BIS)",
+  "authority.industry": "শিল্প",
+  "authority.research": "গবেষণা",
+  "authority.news": "সংবাদ, প্রামাণিক নয়"
 }

@@ -525,5 +525,15 @@
   "partners.revoke": "ರದ್ದುಮಾಡಿ",
   "partners.used": "ರಚಿಸಲಾಗಿದೆ {created}, ಕೊನೆಯ ಬಳಕೆ {used}",
   "partners.revoked": "ರದ್ದಾಗಿದೆ",
-  "partners.never": "ಎಂದಿಗೂ ಇಲ್ಲ"
+  "partners.never": "ಎಂದಿಗೂ ಇಲ್ಲ",
+  "hz.landslide": "NRSC ಭೂಕುಸಿತ ಅಪಾಯ ಶ್ರೇಣಿ (ಜಿಲ್ಲೆ, 2023)",
+  "hz.landslide_rank": "147ರಲ್ಲಿ {rank}",
+  "hz.landslide_none": "NRSC ಯ 147 ಶ್ರೇಣೀಕೃತ ಜಿಲ್ಲೆಗಳಲ್ಲಿ ಇಲ್ಲ",
+  "hzv.landslide": "NRSC ಭೂಕುಸಿತ ಶ್ರೇಣೀಕೃತ ಜಿಲ್ಲೆಯಲ್ಲಿ",
+  "flag.nrsc_landslide_district": "NRSC ಭೂಕುಸಿತ ಶ್ರೇಣೀಕೃತ ಜಿಲ್ಲೆ",
+  "authority.official": "ಅಧಿಕೃತ",
+  "authority.standard": "ಮಾನಕ (BIS)",
+  "authority.industry": "ಉದ್ಯಮ",
+  "authority.research": "ಸಂಶೋಧನೆ",
+  "authority.news": "ಸುದ್ದಿ, ಅಧಿಕೃತವಲ್ಲ"
 }

@@ -31,7 +31,8 @@ def _failure(state: dict, status: str, reason: str) -> dict[str, Any]:
 def _validate_memo(candidate: Any, state: dict) -> dict[str, Any]:
     if not isinstance(candidate, dict) or set(candidate) != MEMO_FIELDS:
         return _failure(state, "Incomplete", "Invalid structured memo shape")
-    if not all(isinstance(candidate[field], list) and (candidate[field] or field in OPTIONAL_LISTS) for field in MEMO_FIELDS if field not in ("decision", "rationale")):
+    optional = OPTIONAL_LISTS if state.get("risk_flags") else OPTIONAL_LISTS | {"key_risk_factors"}
+    if not all(isinstance(candidate[field], list) and (candidate[field] or field in optional) for field in MEMO_FIELDS if field not in ("decision", "rationale")):
         return _failure(state, "Incomplete", "Structured memo contains empty required sections")
     if not isinstance(candidate["decision"], str) or candidate["decision"] != state.get("decision"):
         return _failure(state, "Incomplete", "Structured memo decision differs from deterministic decision")
@@ -88,7 +89,7 @@ RULES = """Return the memo fields.
 Use source priority exactly: PROPERTY FACTS, VISION EVIDENCE, DETERMINISTIC RESULT, UNDERWRITING GUIDANCE, REFERENCE PROPERTIES.
 Guidance and reference properties are contextual evidence and never property facts. Missing facts remain missing.
 The decision must exactly equal the deterministic decision. Do not return a score.
-Key risk factors may mention only deterministic risk flags.
+Key risk factors may mention only deterministic risk flags. If there are no risk flags, key_risk_factors must be an empty list.
 
 REQUESTED COVERAGE IS NOT EXPOSURE.
 Requested coverage and extensions describe what the applicant wants insured.
@@ -102,7 +103,9 @@ coverage_review must NOT override the deterministic decision or risk score.
 coverage_review must NOT contain invented monetary amounts, invented premium rates, invented regulatory mandates,
 or invented mandatory deductible values. Do not invent any specific financial or compliance figures.
 If no coverage extensions are requested, coverage_review must contain ["No additional coverage extensions requested."].
-guideline_citations must list the IDs (such as G2) of the underwriting_guidance sections your rationale relies on, and only IDs present in underwriting_guidance."""
+guideline_citations must list the IDs (such as G2 or R5) of the underwriting_guidance sections and reference_notes your rationale relies on, and only IDs present in them.
+reference_notes are public-source context with an authority label (official, standard, industry, research or news). They are never property facts and never change the deterministic result.
+A news note is non-authoritative: describe it as a press report, never as established fact."""
 
 
 def build_prompt(state: dict, fmt: str | None = None) -> str:
@@ -117,7 +120,12 @@ def build_prompt(state: dict, fmt: str | None = None) -> str:
             "risk_flags": state.get("risk_flags", []),
             "risk_breakdown": state.get("risk_breakdown", {}),
         },
-        "underwriting_guidance": [{"id": hit["id"], "title": hit["title"], "text": hit["text"]} for hit in state.get("guideline_hits", [])],
+        "underwriting_guidance": [{"id": hit["id"], "title": hit["title"], "text": hit["text"]} for hit in state.get("guideline_hits", []) if not hit.get("source")],
+        "reference_notes": [
+            {"id": hit["id"], "title": hit["title"], "authority": hit["authority"], "source": hit["source"], "text": hit["text"]}
+            for hit in state.get("guideline_hits", [])
+            if hit.get("source")
+        ],
         "reference_properties": state.get("comparables", []),
     }
     return f"{RULES}\n\nEvidence:\n{llm.encode(evidence, fmt)}"

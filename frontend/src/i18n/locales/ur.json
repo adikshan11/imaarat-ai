@@ -525,5 +525,15 @@
   "partners.revoke": "منسوخ کریں",
   "partners.used": "بنائی گئی {created}، آخری استعمال {used}",
   "partners.revoked": "منسوخ",
-  "partners.never": "کبھی نہیں"
+  "partners.never": "کبھی نہیں",
+  "hz.landslide": "NRSC لینڈ سلائیڈ خطرے کا درجہ (ضلع، 2023)",
+  "hz.landslide_rank": "147 میں سے {rank}",
+  "hz.landslide_none": "NRSC کے 147 درجہ بند اضلاع میں نہیں",
+  "hzv.landslide": "NRSC لینڈ سلائیڈ درجہ بند ضلع میں",
+  "flag.nrsc_landslide_district": "NRSC لینڈ سلائیڈ درجہ بند ضلع",
+  "authority.official": "سرکاری",
+  "authority.standard": "معیار (BIS)",
+  "authority.industry": "صنعت",
+  "authority.research": "تحقیق",
+  "authority.news": "خبر، سرکاری نہیں"
 }

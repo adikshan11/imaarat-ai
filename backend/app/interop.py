@@ -27,12 +27,12 @@ from starlette.responses import JSONResponse
 from starlette.types import Receive, Scope, Send
 
 from app import budget, partners
-from app.config import GUIDELINES_MD
+from app.config import GUIDELINES_MD, REFERENCES_MD
 from app.db import fetch_history, fetch_submission_detail, submission_for_thread
 from app.schemas import decision_from_score, indicative_product_segment
 from app.tools.hazard_lookup import lookup as hazard_lookup
 from app.tools.hazard_lookup import verify_location
-from app.tools.rag_lookup import retrieve
+from app.tools.rag_lookup import format_hit, retrieve
 from app.tools.risk_calculator import risk_score_calculator
 
 
@@ -121,9 +121,11 @@ def lookup_hazard(pincode: str) -> dict[str, Any]:
     return hazard_lookup(pincode) or {"error": f"no hazard data for pincode {pincode}"}
 
 
-@mcp.tool(description="Retrieve the underwriting guideline sections (RAG over Gemini embeddings in Qdrant) most relevant to a question.")
-def search_guidelines(query: str, k: int = 3) -> list[dict[str, Any]]:
-    return retrieve(query, k=k, ai_note=budget.INTEROP_NOTE)
+@mcp.tool(
+    description="Retrieve the underwriting guideline sections most relevant to a question (hybrid vector and keyword search), plus up to `references` reference notes from public Indian sources, each with its source and authority (official, standard, industry, research or news)."
+)
+def search_guidelines(query: str, k: int = 3, references: int = 2) -> list[dict[str, Any]]:
+    return retrieve(query, k=k, ai_note=budget.INTEROP_NOTE, references=references)
 
 
 @mcp.tool(description="Get one stored underwriting assessment by its numeric id, with decision, review status and AI rationale.")
@@ -143,6 +145,11 @@ def guidelines() -> str:
     return GUIDELINES_MD.read_text(encoding="utf-8")
 
 
+@mcp.resource("uw://references", name="reference-library", description="Reference notes R1 onward from public Indian sources, each with source, date, link and authority.", mime_type="text/markdown")
+def reference_library() -> str:
+    return REFERENCES_MD.read_text(encoding="utf-8")
+
+
 def mcp_app():
     return mcp.streamable_http_app(
         streamable_http_path="/",
@@ -159,8 +166,8 @@ class UnderwritingAgentExecutor(AgentExecutor):
         data_parts = get_data_parts(context.message.parts) if context.message else []
         if not data_parts:
             question = context.get_user_input()
-            hits = retrieve(question, k=3, ai_note=budget.INTEROP_NOTE)
-            text = "\n\n".join(f"[{hit['id']}] {hit['title']}: {hit['text']}" for hit in hits) or "No guidance retrieved (retrieval needs AI_API_KEY)."
+            hits = retrieve(question, k=3, ai_note=budget.INTEROP_NOTE, references=2)
+            text = "\n\n".join(format_hit(hit) for hit in hits) or "No guidance retrieved (retrieval needs AI_API_KEY)."
             await event_queue.enqueue_event(new_text_message(text, context_id=context.context_id, task_id=context.task_id))
             return
         if context.current_task:

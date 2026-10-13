@@ -525,5 +525,15 @@
   "partners.revoke": "रद्द करो",
   "partners.used": "बनाई {created}, अखीरी बरतून {used}",
   "partners.revoked": "रद्द",
-  "partners.never": "कदें नेईं"
+  "partners.never": "कदें नेईं",
+  "hz.landslide": "NRSC भूस्खलन जोखम रैंक (जिला, 2023)",
+  "hz.landslide_rank": "147 चा {rank}",
+  "hz.landslide_none": "NRSC दे 147 रैंक आह्ले जिलें च नेईं",
+  "hzv.landslide": "NRSC भूस्खलन रैंक आह्ले जिले च",
+  "flag.nrsc_landslide_district": "NRSC भूस्खलन रैंक आह्ला जिला",
+  "authority.official": "सरकारी",
+  "authority.standard": "मानक (BIS)",
+  "authority.industry": "उद्योग",
+  "authority.research": "शोध",
+  "authority.news": "खबर, आधिकारिक नेईं"
 }

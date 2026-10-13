@@ -12,7 +12,7 @@ export interface StructuredMemo {
 
 export type ReviewStatus = 'not_required' | 'pending_review' | 'approved' | 'overridden'
 
-export interface GuidelineHit { id: string; title: string; text: string; score: number }
+export interface GuidelineHit { id: string; title: string; text: string; score: number; source?: string; authority?: string }
 
 export interface MitigationBenefit { factor: string; benefit: number }
 export interface ProtectionAdjustment { factor: string; adjustment: number }
@@ -42,6 +42,8 @@ export interface OfficialHazard {
   urban_flood_source: string | null
   cyclone_grade: string | null
   cyclone_note: string | null
+  landslide_rank?: number | null
+  landslide_note?: string | null
   built_at: string
 }
 
@@ -131,7 +133,7 @@ export interface PortfolioSummary {
   decisions: Record<string, number>
   bands: Record<string, number>
   top_drivers: Array<[string, number]>
-  hazard_checks?: Record<'pincode_matched' | 'declared_seismic_zone_below_official' | 'flood_history_at_pincode' | 'imd_cyclone_prone_district', number>
+  hazard_checks?: Record<'pincode_matched' | 'declared_seismic_zone_below_official' | 'flood_history_at_pincode' | 'imd_cyclone_prone_district' | 'nrsc_landslide_district', number>
 }
 
 export interface OpsSpan { name: string; start_ms: number; duration_ms: number; status: string }
@@ -143,7 +145,7 @@ export interface OpsSummary {
   ci_runs: {
     load?: Array<CiRun<{ users: number; duration: string; requests: number; failures: number; rps: number; p50_ms: number; p95_ms: number; p99_ms: number; submit_p95_ms: number }>>
     lighthouse?: Array<CiRun<Record<string, { performance: number; accessibility: number; lcp_ms: number; tbt_ms: number; cls: number }>>>
-    evals?: Array<CiRun<{ mode: string; passed: boolean | null; rules_agreement: number; rules_cases: number; retrieval_hit_rate: number | null; retrieval_recall: number | null; retrieval_cases: number | null; toon_token_saving: number | null; toon_tokens?: number | null; json_tokens?: number | null; memo_contract_pass?: number | null; memo_faithfulness?: number | null; memo_input_tokens?: number | null; sections: Record<string, string> }>>
+    evals?: Array<CiRun<{ mode: string; passed: boolean | null; rules_agreement: number; rules_cases: number; retrieval_hit_rate: number | null; retrieval_recall: number | null; retrieval_cases: number | null; reference_hit_rate?: number | null; reference_cases?: number | null; toon_token_saving: number | null; toon_tokens?: number | null; json_tokens?: number | null; memo_contract_pass?: number | null; memo_faithfulness?: number | null; memo_input_tokens?: number | null; sections: Record<string, string> }>>
   }
   storage: { database_bytes: number; limit_bytes: number; tables: Array<{ table: string; bytes: number }> } | null
   generated_at: string

@@ -525,5 +525,15 @@
   "partners.revoke": "ರದ್ದ್ ಮಲ್ಪುಲೆ",
   "partners.used": "ಮಲ್ತ್ಂಡ್ {created}, ಅಕೇರಿದ ಬಳಕೆ {used}",
   "partners.revoked": "ರದ್ದ್",
-  "partners.never": "ಒರಾ ಲಾ ಇಜ್ಜಿ"
+  "partners.never": "ಒರಾ ಲಾ ಇಜ್ಜಿ",
+  "hz.landslide": "NRSC ಭೂಕುಸಿತ ಅಪಾಯ ಶ್ರೇಣಿ (ಜಿಲ್ಲೆ, 2023)",
+  "hz.landslide_rank": "147ಡ್ {rank}",
+  "hz.landslide_none": "NRSC ದ 147 ಶ್ರೇಣಿದ ಜಿಲ್ಲೆಲೆಡ್ ಇಜ್ಜಿ",
+  "hzv.landslide": "NRSC ಭೂಕುಸಿತ ಶ್ರೇಣಿದ ಜಿಲ್ಲೆಡ್",
+  "flag.nrsc_landslide_district": "NRSC ಭೂಕುಸಿತ ಶ್ರೇಣಿದ ಜಿಲ್ಲೆ",
+  "authority.official": "ಅಧಿಕೃತ",
+  "authority.standard": "ಮಾನಕ (BIS)",
+  "authority.industry": "ಉದ್ಯಮ",
+  "authority.research": "ಸಂಶೋಧನೆ",
+  "authority.news": "ಸುದ್ದಿ, ಅಧಿಕೃತ ಅತ್ತ್"
 }

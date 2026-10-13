@@ -24,6 +24,7 @@ from app.tools.rag_lookup import format_hit, retrieve
 from app.tools.risk_calculator import risk_score_calculator
 
 from evals.golden import golden_cases
+from evals.reference_cases import REFERENCE_CASES
 
 RESULTS = Path(__file__).parent / "results"
 K = 4
@@ -75,12 +76,24 @@ def retrieval(cases: list[dict]) -> dict:
         "thresholds": {"hit_rate": 1.0, "recall": mean(row["recall_threshold"] for row in rows if row["recall_threshold"] is not None)},
         "passed": bool(rows) and all(row["hit"] and row["recall"] is not None and row["recall"] >= row["recall_threshold"] for row in rows),
         "rows": rows,
+        "references": reference_retrieval(),
     }
+
+
+def reference_retrieval() -> dict:
+    """Measured, not gated: does the right reference note come back in the top 3 for each hand-written question."""
+    rows = []
+    for question, expected in REFERENCE_CASES:
+        ranked = [hit["id"] for hit in retrieve(question, k=1, references=3) if hit["id"].startswith("R")]
+        rank = ranked.index(expected) + 1 if expected in ranked else None
+        rows.append({"question": question, "expected": expected, "retrieved": ranked, "hit": rank is not None, "reciprocal_rank": 1 / rank if rank else 0.0})
+        pause()
+    return {"k": 3, "cases": len(rows), "hit_rate": mean(row["hit"] for row in rows), "mrr": mean(row["reciprocal_rank"] for row in rows), "rows": rows}
 
 
 def memo_state(case: dict) -> dict:
     scored = risk_score_calculator(case["facts"])
-    hits = retrieve(retrieval_query(case["facts"], scored["flags"]), k=K)
+    hits = retrieve(retrieval_query(case["facts"], scored["flags"]), k=K, references=2)
     return {
         "property_id": case["facts"]["property_id"],
         "raw_input": case["facts"],
@@ -243,6 +256,7 @@ def markdown(report: dict) -> str:
                 f"k={data['k']}: hit rate **{shown(data['hit_rate'], '.0%')}**, recall **{shown(data['recall'], '.0%')}**, MRR **{shown(data['mrr'], '.2f')}**",
                 f"Thresholds: hit rate {shown(data['thresholds']['hit_rate'], '.0%')}; recall {shown(data['thresholds']['recall'], '.0%')}; retrieval passed: {data['passed']}",
                 report["metadata"]["retrieval_acceptance"],
+                f"Reference notes (measured, not gated): {data['references']['cases']} hand-written questions, hit rate at 3 **{shown(data['references']['hit_rate'], '.0%')}**, MRR **{shown(data['references']['mrr'], '.2f')}**",
                 "",
             ]
         elif name == "prompt_tokens":

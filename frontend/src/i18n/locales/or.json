@@ -525,5 +525,15 @@
   "partners.revoke": "ବାତିଲ କରନ୍ତୁ",
   "partners.used": "ତିଆରି {created}, ଶେଷ ବ୍ୟବହାର {used}",
   "partners.revoked": "ବାତିଲ",
-  "partners.never": "କେବେ ନୁହେଁ"
+  "partners.never": "କେବେ ନୁହେଁ",
+  "hz.landslide": "NRSC ଭୂସ୍ଖଳନ ବିପଦ ସ୍ଥାନ (ଜିଲ୍ଲା, 2023)",
+  "hz.landslide_rank": "147 ମଧ୍ୟରୁ {rank}",
+  "hz.landslide_none": "NRSC ର 147 ସ୍ଥାନପ୍ରାପ୍ତ ଜିଲ୍ଲା ମଧ୍ୟରେ ନାହିଁ",
+  "hzv.landslide": "NRSC ଭୂସ୍ଖଳନ ସ୍ଥାନପ୍ରାପ୍ତ ଜିଲ୍ଲାରେ",
+  "flag.nrsc_landslide_district": "NRSC ଭୂସ୍ଖଳନ ସ୍ଥାନପ୍ରାପ୍ତ ଜିଲ୍ଲା",
+  "authority.official": "ସରକାରୀ",
+  "authority.standard": "ମାନକ (BIS)",
+  "authority.industry": "ଶିଳ୍ପ",
+  "authority.research": "ଗବେଷଣା",
+  "authority.news": "ସମ୍ବାଦ, ପ୍ରାମାଣିକ ନୁହେଁ"
 }

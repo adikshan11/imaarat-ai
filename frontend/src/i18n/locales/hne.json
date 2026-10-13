@@ -525,5 +525,15 @@
   "partners.revoke": "रद्द करव",
   "partners.used": "बनिस {created}, आखिरी उपयोग {used}",
   "partners.revoked": "रद्द",
-  "partners.never": "कभू नइ"
+  "partners.never": "कभू नइ",
+  "hz.landslide": "NRSC भूस्खलन जोखिम रैंक (जिला, 2023)",
+  "hz.landslide_rank": "147 म {rank}",
+  "hz.landslide_none": "NRSC के 147 रैंक वाले जिला म नइ हे",
+  "hzv.landslide": "NRSC भूस्खलन रैंक वाले जिला म",
+  "flag.nrsc_landslide_district": "NRSC भूस्खलन रैंक वाले जिला",
+  "authority.official": "सरकारी",
+  "authority.standard": "मानक (BIS)",
+  "authority.industry": "उद्योग",
+  "authority.research": "शोध",
+  "authority.news": "समाचार, आधिकारिक नइ"
 }

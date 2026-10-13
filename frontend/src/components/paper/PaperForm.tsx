@@ -79,9 +79,9 @@ function PrintableForm() {
         <Box {...both('f.zip')} cells={6} />
         <Box {...both('f.address')} />
         <div className="pf-row">{TEXT_BOXES.slice(1).map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>
-        <Ticks {...both('f.construction_type')} options={CONSTRUCTION.map((item) => [label('opt.con', item), item])} />
+        <Ticks {...both('f.construction_type')} options={CONSTRUCTION.map((item) => [label('opt.con', item), english(`opt.con.${item}`)])} />
         <div className="pf-row">{NUMBER_BOXES.map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>
-        <Ticks {...both('f.cat_zone')} options={HAZARDS.map((item) => [label('opt.cat', item), item])} />
+        <Ticks {...both('f.cat_zone')} options={HAZARDS.map((item) => [label('opt.cat', item), english(`opt.cat.${item}`)])} />
         <Ticks {...both('f.seismic_zone')} options={ZONES.map((zone) => [zone, zone])} />
         <div className="pf-row">{TICKS.map((key) => <Ticks key={key} {...both(`f.${key}`)} options={yesNo} />)}</div>
         <div className="pf-row pf-row-2">{MONEY_BOXES.map((key) => <Box key={key} {...both(`f.${key}`)} />)}</div>

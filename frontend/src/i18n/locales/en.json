@@ -525,5 +525,15 @@
   "partners.revoke": "Revoke",
   "partners.used": "Created {created}, last used {used}",
   "partners.revoked": "Revoked",
-  "partners.never": "never"
+  "partners.never": "never",
+  "hz.landslide": "NRSC landslide exposure rank (district, 2023)",
+  "hz.landslide_rank": "{rank} of 147",
+  "hz.landslide_none": "Not one of NRSC's 147 ranked districts",
+  "hzv.landslide": "In an NRSC landslide-ranked district",
+  "flag.nrsc_landslide_district": "NRSC landslide-ranked district",
+  "authority.official": "Official",
+  "authority.standard": "Standard (BIS)",
+  "authority.industry": "Industry",
+  "authority.research": "Research",
+  "authority.news": "News, not authoritative"
 }

@@ -33,3 +33,5 @@ seeds:
         urban_flood_source: varchar
         cyclone_grade: varchar
         cyclone_note: varchar
+        landslide_rank: integer
+        landslide_note: varchar

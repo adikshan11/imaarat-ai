@@ -62,4 +62,4 @@ def test_hazard_checks_are_counted_live_from_each_pincode(tmp_path, monkeypatch)
     for property_id, zip_code, zone in (("H-1", "600001", "II"), ("H-2", "110001", "IV"), ("H-3", "999999", "III")):
         db.save_submission({"raw_input": {"property_id": property_id, "zip": zip_code, "seismic_zone": zone, "tiv": 100}, "decision": "Accept", "risk_score": 10, "risk_flags": []})
     checks = TestClient(main.app).get("/underwrite/portfolio").json()["hazard_checks"]
-    assert checks == {"pincode_matched": 2, "declared_seismic_zone_below_official": 1, "flood_history_at_pincode": 1, "imd_cyclone_prone_district": 1}
+    assert checks == {"pincode_matched": 2, "declared_seismic_zone_below_official": 1, "flood_history_at_pincode": 1, "imd_cyclone_prone_district": 1, "nrsc_landslide_district": 0}

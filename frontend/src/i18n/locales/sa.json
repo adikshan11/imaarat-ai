@@ -525,5 +525,15 @@
   "partners.revoke": "निरस्यतु",
   "partners.used": "रचिता {created}, अन्तिमः उपयोगः {used}",
   "partners.revoked": "निरस्ता",
-  "partners.never": "कदापि न"
+  "partners.never": "कदापि न",
+  "hz.landslide": "NRSC भूस्खलनसंकटक्रमः (मण्डलम्, 2023)",
+  "hz.landslide_rank": "147 मध्ये {rank}",
+  "hz.landslide_none": "NRSC इत्यस्य 147 क्रमितमण्डलेषु नास्ति",
+  "hzv.landslide": "NRSC भूस्खलनक्रमितमण्डले",
+  "flag.nrsc_landslide_district": "NRSC भूस्खलनक्रमितमण्डलम्",
+  "authority.official": "आधिकारिकम्",
+  "authority.standard": "मानकम् (BIS)",
+  "authority.industry": "उद्योगः",
+  "authority.research": "शोधः",
+  "authority.news": "वार्ता, अप्रामाणिकी"
 }

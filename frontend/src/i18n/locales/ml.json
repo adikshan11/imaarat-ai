@@ -525,5 +525,15 @@
   "partners.revoke": "റദ്ദാക്കുക",
   "partners.used": "സൃഷ്ടിച്ചത് {created}, അവസാന ഉപയോഗം {used}",
   "partners.revoked": "റദ്ദാക്കി",
-  "partners.never": "ഒരിക്കലുമില്ല"
+  "partners.never": "ഒരിക്കലുമില്ല",
+  "hz.landslide": "NRSC ഉരുൾപൊട്ടൽ സാധ്യതാ റാങ്ക് (ജില്ല, 2023)",
+  "hz.landslide_rank": "147-ൽ {rank}",
+  "hz.landslide_none": "NRSC-യുടെ 147 റാങ്ക് ജില്ലകളിൽ ഇല്ല",
+  "hzv.landslide": "NRSC ഉരുൾപൊട്ടൽ റാങ്ക് ജില്ലയിൽ",
+  "flag.nrsc_landslide_district": "NRSC ഉരുൾപൊട്ടൽ റാങ്ക് ജില്ല",
+  "authority.official": "ഔദ്യോഗികം",
+  "authority.standard": "മാനദണ്ഡം (BIS)",
+  "authority.industry": "വ്യവസായം",
+  "authority.research": "ഗവേഷണം",
+  "authority.news": "വാർത്ത, ഔദ്യോഗികമല്ല"
 }

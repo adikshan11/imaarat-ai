@@ -525,5 +525,15 @@
   "partners.revoke": "ரத்துசெய்",
   "partners.used": "உருவாக்கியது {created}, கடைசி பயன்பாடு {used}",
   "partners.revoked": "ரத்துசெய்யப்பட்டது",
-  "partners.never": "ஒருபோதும் இல்லை"
+  "partners.never": "ஒருபோதும் இல்லை",
+  "hz.landslide": "NRSC நிலச்சரிவு அபாய தரவரிசை (மாவட்டம், 2023)",
+  "hz.landslide_rank": "147-இல் {rank}",
+  "hz.landslide_none": "NRSC-இன் 147 தரவரிசை மாவட்டங்களில் இல்லை",
+  "hzv.landslide": "NRSC நிலச்சரிவு தரவரிசை மாவட்டத்தில்",
+  "flag.nrsc_landslide_district": "NRSC நிலச்சரிவு தரவரிசை மாவட்டம்",
+  "authority.official": "அதிகாரப்பூர்வம்",
+  "authority.standard": "தரநிலை (BIS)",
+  "authority.industry": "தொழில்துறை",
+  "authority.research": "ஆய்வு",
+  "authority.news": "செய்தி, அதிகாரப்பூர்வமற்றது"
 }

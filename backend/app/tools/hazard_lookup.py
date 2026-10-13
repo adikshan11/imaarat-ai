@@ -40,6 +40,8 @@ def hazard_flags(hazard: dict[str, Any] | None, declared_zone: str | None) -> li
         flags.append("flood_history_at_pincode")
     if hazard.get("cyclone_grade") in CYCLONE_FLAG_GRADES:
         flags.append("imd_cyclone_prone_district")
+    if hazard.get("landslide_rank"):
+        flags.append("nrsc_landslide_district")
     return flags
 
 

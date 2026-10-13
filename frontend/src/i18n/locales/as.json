@@ -525,5 +525,15 @@
   "partners.revoke": "বাতিল কৰক",
   "partners.used": "সৃষ্টি {created}, শেষ ব্যৱহাৰ {used}",
   "partners.revoked": "বাতিল",
-  "partners.never": "কেতিয়াও নহয়"
+  "partners.never": "কেতিয়াও নহয়",
+  "hz.landslide": "NRSC ভূমিস্খলন বিপদাশংকা স্থান (জিলা, 2023)",
+  "hz.landslide_rank": "147-ৰ ভিতৰত {rank}",
+  "hz.landslide_none": "NRSC-ৰ 147খন স্থান দিয়া জিলাৰ ভিতৰত নহয়",
+  "hzv.landslide": "NRSC ভূমিস্খলন স্থান দিয়া জিলাত",
+  "flag.nrsc_landslide_district": "NRSC ভূমিস্খলন স্থান দিয়া জিলা",
+  "authority.official": "চৰকাৰী",
+  "authority.standard": "মান (BIS)",
+  "authority.industry": "উদ্যোগ",
+  "authority.research": "গৱেষণা",
+  "authority.news": "বাতৰি, প্ৰামাণিক নহয়"
 }

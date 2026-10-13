@@ -525,5 +525,15 @@
   "partners.revoke": "ꯀꯟꯊꯠꯄꯤꯌꯨ",
   "partners.used": "ꯁꯦꯝꯈꯤ {created}, ꯑꯔꯣꯏꯕ ꯁꯤꯖꯤꯟꯅꯈꯤꯕ {used}",
   "partners.revoked": "ꯀꯟꯊꯠꯈ꯭ꯔꯦ",
-  "partners.never": "ꯀꯩꯗꯧꯉꯩꯗꯁꯨ ꯅꯠꯇꯦ"
+  "partners.never": "ꯀꯩꯗꯧꯉꯩꯗꯁꯨ ꯅꯠꯇꯦ",
+  "hz.landslide": "NRSC ꯂꯝ ꯇꯥꯕꯒꯤ ꯈꯨꯗꯣꯡꯊꯤꯕ ꯔꯦꯡꯛ (ꯗꯤꯁ꯭ꯠꯔꯤꯛ, 2023)",
+  "hz.landslide_rank": "147 ꯒꯤ ꯃꯅꯨꯡꯗꯥ {rank}",
+  "hz.landslide_none": "NRSC ꯒꯤ ꯔꯦꯡꯛ ꯄꯤꯕ ꯗꯤꯁ꯭ꯠꯔꯤꯛ 147 ꯗꯥ ꯌꯥꯎꯗꯦ",
+  "hzv.landslide": "NRSC ꯂꯝ ꯇꯥꯕꯒꯤ ꯔꯦꯡꯛ ꯄꯤꯕ ꯗꯤꯁ꯭ꯠꯔꯤꯛꯇꯥ",
+  "flag.nrsc_landslide_district": "NRSC ꯂꯝ ꯇꯥꯕꯒꯤ ꯔꯦꯡꯛ ꯄꯤꯕ ꯗꯤꯁ꯭ꯠꯔꯤꯛ",
+  "authority.official": "ꯑꯆꯤꯟꯕ",
+  "authority.standard": "ꯁ꯭ꯇꯦꯟꯗꯔꯗ (BIS)",
+  "authority.industry": "ꯏꯟꯗꯁ꯭ꯠꯔꯤ",
+  "authority.research": "ꯊꯤꯖꯤꯟꯕ",
+  "authority.news": "ꯄꯥꯎ, ꯑꯆꯤꯟꯕ ꯅꯠꯇꯦ"
 }

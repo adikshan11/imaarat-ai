@@ -525,5 +525,15 @@
   "partners.revoke": "रद्द करू",
   "partners.used": "बनल {created}, अंतिम प्रयोग {used}",
   "partners.revoked": "रद्द",
-  "partners.never": "कहियो नहि"
+  "partners.never": "कहियो नहि",
+  "hz.landslide": "NRSC भूस्खलन जोखिम रैंक (जिला, 2023)",
+  "hz.landslide_rank": "147 मे {rank}",
+  "hz.landslide_none": "NRSC क 147 रैंक वला जिला मे नहि",
+  "hzv.landslide": "NRSC भूस्खलन रैंक वला जिला मे",
+  "flag.nrsc_landslide_district": "NRSC भूस्खलन रैंक वला जिला",
+  "authority.official": "सरकारी",
+  "authority.standard": "मानक (BIS)",
+  "authority.industry": "उद्योग",
+  "authority.research": "शोध",
+  "authority.news": "समाचार, आधिकारिक नहि"
 }

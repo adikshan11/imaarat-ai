@@ -525,5 +525,15 @@
   "partners.revoke": "रद्द करात",
   "partners.used": "तयार {created}, निमाणो वापर {used}",
   "partners.revoked": "रद्द",
-  "partners.never": "केन्नाच ना"
+  "partners.never": "केन्नाच ना",
+  "hz.landslide": "NRSC दरड कोसळपाचो धोको क्रमांक (जिल्लो, 2023)",
+  "hz.landslide_rank": "147 भितर {rank}",
+  "hz.landslide_none": "NRSC च्या 147 क्रमांक दिल्ल्या जिल्ल्यांतलो न्हय",
+  "hzv.landslide": "NRSC दरड क्रमांक दिल्ल्या जिल्ल्यांत",
+  "flag.nrsc_landslide_district": "NRSC दरड क्रमांक दिल्लो जिल्लो",
+  "authority.official": "सरकारी",
+  "authority.standard": "मानक (BIS)",
+  "authority.industry": "उद्येग",
+  "authority.research": "संशोधन",
+  "authority.news": "खबर, अधिकृत न्हय"
 }
