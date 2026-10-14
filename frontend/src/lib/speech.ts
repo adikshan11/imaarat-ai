@@ -47,6 +47,7 @@ const Engine = (window as unknown as SpeechWindow).SpeechRecognition ?? (window 
 
 export const listenSupported = Boolean(Engine)
 export const speakSupported = 'speechSynthesis' in window
+if (speakSupported) window.speechSynthesis.getVoices()
 
 export const speechLanguage = (code: string) => BROWSER_LANGUAGES[code] ?? 'en-IN'
 
@@ -69,13 +70,29 @@ export function listen(code: string, onText: (text: string) => void, onEnd: (hea
   return recognition
 }
 
+function pickVoice(lang: string): SpeechSynthesisVoice | undefined {
+  const voices = window.speechSynthesis.getVoices()
+  const base = lang.split('-')[0]
+  return voices.find((voice) => voice.lang.replace('_', '-') === lang) ?? voices.find((voice) => voice.lang.replace('_', '-').startsWith(`${base}-`) || voice.lang === base)
+}
+
 export function speak(text: string, code: string) {
   if (!speakSupported) return
-  window.speechSynthesis.cancel()
-  const utterance = new SpeechSynthesisUtterance(text)
-  utterance.lang = speechLanguage(code)
-  utterance.rate = 1
-  window.speechSynthesis.speak(utterance)
+  const synth = window.speechSynthesis
+  const lang = speechLanguage(code)
+  const voice = pickVoice(lang)
+  const parts = text.match(/[^.!?।]+[.!?।]*\s*/g) ?? [text]
+  synth.cancel()
+  window.setTimeout(() => {
+    synth.resume()
+    for (const part of parts) {
+      if (!part.trim()) continue
+      const utterance = new SpeechSynthesisUtterance(part.trim())
+      utterance.lang = voice?.lang ?? lang
+      if (voice) utterance.voice = voice
+      synth.speak(utterance)
+    }
+  }, 80)
 }
 
 export function stopSpeaking() {
