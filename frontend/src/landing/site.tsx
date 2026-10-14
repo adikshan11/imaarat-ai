@@ -17,13 +17,13 @@ export function SkipLink() {
 export function Header({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
   return (
     <header data-tone={tone} className="site-header sticky top-0 z-30">
-      <nav aria-label="Main" className="shell flex h-20 items-center gap-3 sm:gap-8">
+      <nav aria-label="Main" className="shell flex h-20 items-center gap-3 sm:gap-4 lg:gap-8">
         <a href="/" className="header-brand flex items-center gap-3 font-semibold tracking-tight text-forest-900">
           <Mark className="mark-on-light size-10" />
           <Mark on="dark" className="mark-on-dark size-10" />
           <span translate="no" className="header-name text-lg sm:text-xl">imaarat<span className="header-accent text-forest-700">.ai</span></span>
         </a>
-        <div className="header-links ml-auto hidden items-center gap-8 text-[15px] font-medium text-muted md:flex">
+        <div className="header-links ml-auto hidden items-center gap-5 text-[15px] lg:gap-8 font-medium text-muted md:flex">
           <a href="/#steps" className="hover:text-forest-900">How it works</a>
           <a href="/#tour" className="hover:text-forest-900">Product</a>
           <a href="/#features" className="hover:text-forest-900">Features</a>

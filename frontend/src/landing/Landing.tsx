@@ -44,8 +44,8 @@ function Hero() {
           imaarat.ai reads hand-filled proposals in Indian languages, checks what each one declares against official hazard data for its PIN code, and gives your underwriter a scored, explained decision to sign off.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
-          <a href={`${DEMO}#new`} className="inline-flex h-12 items-center rounded-full bg-mint-300 px-6 font-semibold text-forest-950 shadow-lg shadow-black/20 transition hover:bg-white">Try the live demo</a>
-          <a href={`${DEMO}#paper`} className="inline-flex h-12 items-center rounded-full bg-white/10 px-6 font-semibold text-white transition hover:bg-white/20">See a paper proposal</a>
+          <a href={`${DEMO}#new`} className="inline-flex min-h-12 items-center justify-center py-2 text-center rounded-full bg-mint-300 px-6 font-semibold text-forest-950 shadow-lg shadow-black/20 transition hover:bg-white">Try the live demo</a>
+          <a href={`${DEMO}#paper`} className="inline-flex min-h-12 items-center justify-center py-2 text-center rounded-full bg-white/10 px-6 font-semibold text-white transition hover:bg-white/20">See a paper proposal</a>
         </div>
         <ul aria-label="Some of the Indian languages it works in" className="mt-6 flex max-w-2xl flex-wrap gap-x-4 gap-y-1 text-base text-white/90">
           {LANGUAGES.slice(1, 12).map(({ code, name, english, rtl }) => <li key={code} lang={code} dir={rtl ? 'rtl' : undefined} title={english} translate="no">{name}</li>)}
@@ -147,8 +147,8 @@ function Journey() {
 function Row({ label, value, tone = 'text-white' }: { label: string; value: string; tone?: string }) {
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-white/10 py-1.5 last:border-0">
-      <span className="text-white/75">{label}</span>
-      <span className={`text-right font-semibold ${tone}`}>{value}</span>
+      <span className="min-w-0 text-white/75">{label}</span>
+      <span className={`min-w-0 text-right font-semibold ${tone}`}>{value}</span>
     </div>
   )
 }
@@ -384,7 +384,7 @@ function Faq() {
         <div className="mt-16 rounded-3xl bg-mint-100 p-8 text-center sm:p-12">
           <h2 className="text-2xl font-bold tracking-tight text-forest-900 sm:text-3xl">Try it with a sample property</h2>
           <p className="mx-auto mt-3 max-w-xl text-muted">No sign-up. Enter a PIN code and a few details, and see the decision, the reasons and the risk summary.</p>
-          <a href={`${DEMO}#new`} className="mt-7 inline-flex h-12 items-center rounded-full bg-forest-900 px-7 font-semibold text-white transition hover:bg-forest-800">Start an assessment</a>
+          <a href={`${DEMO}#new`} className="mt-7 inline-flex min-h-12 items-center justify-center py-2 text-center rounded-full bg-forest-900 px-7 font-semibold text-white transition hover:bg-forest-800">Start an assessment</a>
         </div>
       </div>
     </section>
