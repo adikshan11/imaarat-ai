@@ -5,7 +5,7 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 ## [2.65.2] - 2026-10-14
 
 ### Fixed
-- Very narrow windows (360px and below, down to about 200px) fit properly: the top bar shows only the logo and three small buttons, headings no longer break in the middle of a word, the bottom tab labels stay on one line, and the Saathi button is smaller.
+- Very narrow windows (360px and below, down to about 200px) fit properly: the top bar shows only the logo and three small buttons, headings no longer break in the middle of a word, the bottom tab labels use a smaller size (and stay on one line below 260px), and the Saathi button is smaller.
 
 ## [2.65.1] - 2026-10-14
 
