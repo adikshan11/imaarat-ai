@@ -6,8 +6,8 @@
 .app-shell::after { width: 40vw; height: 40vw; bottom: -14vw; left: 18vw; background: radial-gradient(circle, var(--blob-2), transparent 70%), radial-gradient(circle at 80% 20%, var(--blob-3), transparent 60%); }
 .main-content { min-width: 0; width: 100%; max-width: 1480px; margin-inline: auto; padding: 24px 28px 12px; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
 .main-content > * { flex: none; }
-.main-content > .saathi-slot { margin-top: auto; padding-top: 20px; min-height: 84px; display: flex; justify-content: flex-end; align-items: flex-end; }
-.main-content > .site-footer { margin-top: 0; }
+.main-content > .site-footer { margin-top: auto; }
+.site-footer > nav, .site-footer > p { padding-inline: 88px; }
 
 /* Glass surfaces */
 .card, .kpi, .preview-card, .form-actions-panel {
@@ -354,7 +354,7 @@ label:has(> input:required) > .field-label-text::after, .select-field.required >
   @page { size: A4; margin: 0; }
   html, body, #root, .app-shell { min-height: 0 !important; height: auto !important; }
   body { background: #fff; color: #000; }
-  .sidebar, .topbar, .tabbar, .status-banner, .paper-screen, .site-footer, .saathi-slot, .saathi-launch, .saathi-fab, .saathi-greeting, .saathi-panel, .app-shell::before, .app-shell::after { display: none !important; }
+  .sidebar, .topbar, .tabbar, .status-banner, .paper-screen, .site-footer, .saathi-launch, .saathi-fab, .saathi-greeting, .saathi-panel, .app-shell::before, .app-shell::after { display: none !important; }
   .app-shell { display: block; padding: 0 !important; }
   .main-content { padding: 0 !important; max-width: none; min-height: 0 !important; display: block; }
   .print-area { display: block; color: #000; font-size: 9.5pt; }
