@@ -8,6 +8,7 @@
 .main-content > * { flex: none; }
 .main-content > .site-footer { margin-top: auto; }
 .site-footer > nav, .site-footer > p { padding-inline: 88px; }
+@media (max-width: 900px) { .site-footer > nav, .site-footer > p { padding-inline: 8px; } .site-footer { padding-bottom: 72px; } }
 
 /* Glass surfaces */
 .card, .kpi, .preview-card, .form-actions-panel {
