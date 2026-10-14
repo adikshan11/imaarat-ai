@@ -467,6 +467,21 @@ label:has(> input:required) > .field-label-text::after, .select-field.required >
   .table-search, .table-filter { flex-basis: 100%; min-width: 0; }
   .table-wide { min-width: 680px; }
 }
+@media (max-width: 360px) {
+  .page-title { font-size: 24px; overflow-wrap: anywhere; }
+  .topbar { padding: 8px 10px; gap: 6px; }
+  .topbar .brand-text { display: none; }
+  .topbar .brand { flex: none; }
+  .topbar .controls { flex-wrap: nowrap; gap: 4px; margin-inline-start: auto; }
+  .topbar .control-button { min-width: 36px; height: 36px; padding: 0; }
+  .topbar .control-language .optical-label { display: none; }
+  .tab-item { font-size: clamp(9px, 4.2vw, 11px); }
+  .tab-caption .optical-label { overflow-wrap: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .saathi-launch { inset-inline-end: 8px; }
+  .saathi-fab { width: 48px; height: 48px; }
+  .saathi-fab .mascot { width: 40px; height: 40px; }
+  .saathi-greeting { display: none; }
+}
 
 /* Sign-in */
 .signin-page { position: relative; min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 76px 16px 32px; isolation: isolate; }
