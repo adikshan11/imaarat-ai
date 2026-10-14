@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.65.1] - 2026-10-14
+
+### Fixed
+- On phones the footer credit stacks cleanly and no longer leaves a stray dot at the start of the icon row.
+
 ## [2.65.0] - 2026-10-14
 
 ### Changed
