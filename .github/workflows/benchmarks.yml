@@ -389,7 +389,7 @@ jobs:
     name: Sarvam translations
     if: inputs.suite == 'translate'
     runs-on: ubuntu-26.04
-    timeout-minutes: 20
+    timeout-minutes: 60
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
