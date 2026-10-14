@@ -272,76 +272,178 @@
 
 .lang-pick {
   position: relative;
-  display: inline-flex;
   flex-shrink: 0;
-  align-items: center;
-  gap: 0.4rem;
-  height: 2.5rem;
-  padding: 0 0.75rem;
-  border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
-  border-radius: 999px;
   color: var(--color-ink);
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.lang-pick select {
-  max-width: 8.5rem;
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  text-overflow: ellipsis;
-}
-
-.lang-pick select:focus-visible {
-  outline: 2px solid var(--color-mint-300);
-  outline-offset: 6px;
-  border-radius: 999px;
-}
-
-.lang-pick option {
-  color: #10231c;
-  background: #fff;
 }
 
 .site-header[data-tone='dark'] .lang-pick {
   color: #fff;
 }
 
-.lang-toast {
-  position: fixed;
-  inset-inline: 1rem;
-  bottom: 1.25rem;
-  z-index: 60;
-  width: fit-content;
-  max-width: calc(100% - 2rem);
-  margin-inline: auto;
-  padding: 0.65rem 1rem;
+.lang-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  height: 2.5rem;
+  padding: 0 0.8rem;
+  border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
   border-radius: 999px;
-  background: var(--color-forest-950);
-  color: #fff;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   font-size: 0.875rem;
-  box-shadow: 0 10px 30px rgb(0 0 0 / 0.25);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.lang-button:hover,
+.lang-button[aria-expanded='true'] {
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.lang-button:focus-visible {
+  outline: 2px solid var(--color-mint-300);
+  outline-offset: 3px;
+}
+
+.lang-current {
+  max-width: 7.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lang-chevron {
+  opacity: 0.8;
+  transition: transform 160ms ease;
+}
+
+.lang-button[aria-expanded='true'] .lang-chevron {
+  transform: rotate(180deg);
+}
+
+.lang-list {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + 0.6rem);
+  z-index: 45;
+  width: 15rem;
+  max-height: min(24rem, calc(100dvh - 7.5rem));
+  margin: 0;
+  padding: 0.4rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  border: 1px solid rgb(13 72 56 / 0.14);
+  border-radius: 1.1rem;
+  background: rgb(255 255 255 / 0.94);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow: 0 24px 48px -20px rgb(6 42 32 / 0.45), 0 2px 6px rgb(6 42 32 / 0.08);
+  color: var(--color-ink);
+  outline: none;
+  animation: lang-pop 140ms ease-out;
+}
+
+.lang-list[hidden] {
+  display: none;
+}
+
+.lang-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.7rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.lang-list li.is-active {
+  background: var(--color-mint-50);
+}
+
+.lang-list li[aria-selected='true'] {
+  background: var(--color-mint-100);
+  color: var(--color-forest-900);
+  font-weight: 700;
+}
+
+.lang-list li[aria-selected='true']::after {
+  content: '✓';
+  color: var(--color-forest-700);
+}
+
+@keyframes lang-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lang-list {
+    animation: none;
+  }
+}
+
+html,
+.lang-list,
+[data-tabs] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-forest-700) transparent;
+}
+
+html {
+  scrollbar-color: var(--color-forest-700) var(--color-sand-50);
+}
+
+@supports not (scrollbar-color: auto) {
+  html::-webkit-scrollbar,
+  .lang-list::-webkit-scrollbar,
+  [data-tabs]::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  html::-webkit-scrollbar-track {
+    background: var(--color-sand-50);
+  }
+
+  html::-webkit-scrollbar-thumb,
+  .lang-list::-webkit-scrollbar-thumb,
+  [data-tabs]::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: var(--color-forest-700);
+    background-clip: padding-box;
+  }
 }
 
 @media (max-width: 520px) {
   .lang-pick {
+    position: static;
+  }
+
+  .lang-button {
     width: 2.5rem;
     justify-content: center;
     padding: 0;
   }
 
-  .lang-pick select {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    max-width: none;
-    opacity: 0;
+  .lang-current,
+  .lang-chevron {
+    display: none;
+  }
+
+  .lang-list {
+    inset-inline: 0.75rem;
+    top: 100%;
+    width: auto;
+    margin-top: 0.5rem;
   }
 }
 

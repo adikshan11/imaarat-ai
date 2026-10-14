@@ -10,7 +10,7 @@ description: Checks what is actually live on preprod or production (version, AI 
    curl -s https://imaarat-ai.vercel.app/api/health
    curl -s https://imaarat-ai.vercel.app/api/status
    ```
-   `version` must match `backend/app/__init__.py` on `main`. For preprod use `https://imaarat-ai-preprod.vercel.app`.
+   `version` must match `backend/app/__init__.py` on `main`. Preprod has no Vercel deployment; only production is live.
 2. Deploy run: `gh run list --branch main --limit 3` and `gh run view <run-id>`; the deploy job and smoke check must be green for the commit in question (`git rev-parse origin/main`).
 3. Frontend change: fetch the page, find the hashed asset and search it for the change:
    ```bash

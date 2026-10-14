@@ -199,7 +199,7 @@ Without `DATABASE_URL` the API uses SQLite; without `QDRANT_*` guideline search 
 
 Three workflows, in the same shape as our other repositories:
 
-- **CI/CD** on every push to `preprod` or `main`: **Check** (release rules, secret scan, Ruff, Oxlint, translations), four parallel **Test** jobs (backend on Postgres, frontend with browser tests, pipeline, the Docker stack), then **Deploy**: [imaarat-ai-preprod.vercel.app](https://imaarat-ai-preprod.vercel.app) for `preprod` followed by a read-only **Stress test**, and production for `main`. The release pull request reuses the checks of its `preprod` commit, and the post-release reset of `preprod` runs nothing.
+- **CI/CD** on every push to `preprod` or `main`: **Check** (release rules, secret scan, Ruff, Oxlint, translations), four parallel **Test** jobs (backend on Postgres, frontend with browser tests, pipeline, the Docker stack), then, for `preprod`, a read-only stress test against the local Docker stack (preprod is never deployed to Vercel) and, for `main`, **Deploy** to production. The release pull request reuses the checks of its `preprod` commit, and the post-release reset of `preprod` runs nothing.
 - **Benchmarks**: evals and Lighthouse every week, and Lighthouse, the load test or the vision benchmark on demand. Results appear on the app's status page.
 - **Nightly ELT**: the analytics pipeline and the published data lineage.
 
@@ -251,7 +251,7 @@ The 2025 seismic code revision (which added Zone VI) was withdrawn in March 2026
 - The 300 reference properties are synthetic; the demo properties use public names with assumed facts.
 - The public demo runs on Gemini's free tier: 20 AI summaries a day, shared by everyone. Google may use free-tier inputs to improve its products, so the demo is for sample data only; real data needs a paid key.
 - Handwriting accuracy has not been measured on real forms, so every value read from paper is confirmed by a person.
-- Translations are machine-made; Santali, Kashmiri, Manipuri, Bodo and Tulu are drafts awaiting native review.
+- Translations are machine-made; Santali, Kashmiri, Manipuri, Bodo and Tulu are drafts awaiting native review. The landing page uses Hindi text for Bhojpuri and Chhattisgarhi and Kannada text for Tulu, because the translation service does not cover them.
 - Hazard results are indicative: satellite flood maps miss urban waterlogging, and city flood points cover only Chennai and Bengaluru so far.
 
 ## Credits and licence

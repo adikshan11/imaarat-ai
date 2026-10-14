@@ -2,6 +2,20 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.68.0] - 2026-10-14
+
+### Added
+- The landing page now reads in all 25 Indian languages. Picking a language in the header translates the whole page, keeps the choice for the app, and sets the page font and reading direction. Bhojpuri and Chhattisgarhi show Hindi text and Tulu shows Kannada text until proper translations exist, and Santali, Kashmiri, Manipuri and Bodo remain drafts.
+- The language list is a themed dropdown with keyboard support, and the page and list scrollbars match the theme.
+- Browser tests now sweep the landing page in every language at ten widths, and check that read-aloud speaks every sentence in order in every language.
+
+### Fixed
+- Read-aloud in Saathi now speaks one sentence at a time, waits for the voices to load, prefers an on-device voice, and retries a sentence that does not start, so the first sentence is no longer skipped in other languages.
+
+### Changed
+- The preprod branch is no longer deployed to Vercel. Its CI runs the checks, a Docker stack smoke test and the read-only stress test locally on the runner, and only main deploys.
+- CI now writes a run summary: what is being tested, the browser test results and the result of every job. The translation job logs its progress per language.
+
 ## [2.67.3] - 2026-10-14
 
 ### Fixed

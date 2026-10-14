@@ -1,8 +1,8 @@
 name: CI/CD
 
-# Check, Test and Deploy run on every push to preprod or main; the release pull request reuses the checks of its preprod commit.
-# Preprod goes to imaarat-ai-preprod.vercel.app and main to production, each smoke-tested.
-# Preprod is then stress-tested read-only, because it shares production's database.
+# Check and Test run on every push to preprod or main; the release pull request reuses the checks of its preprod commit.
+# Preprod is never deployed to Vercel: its Docker stack is smoke-tested and stress-tested read-only on the runner.
+# Only main deploys, to production, and is smoke-tested there.
 # The post-release force push that resets preprod to main runs nothing: main already tested and deployed that code.
 
 on:
@@ -28,6 +28,17 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      - name: Log what this run is checking
+        run: |
+          {
+            echo "### Run details"
+            echo "- Branch: \`${GITHUB_REF_NAME}\`"
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Version in the code: \`$(sed -n 's/^__version__ = "\(.*\)"/\1/p' backend/app/__init__.py)\`"
+            echo "- Files changed since the base branch: $(git diff --name-only origin/main...HEAD 2>/dev/null | wc -l)"
+            echo "- Latest commits:"
+            git log --oneline -n 5 | sed 's/^/  - /'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Check version bump and changelog
         run: python3 .github/scripts/release_check.py
       - name: Check the repository map is current
@@ -157,10 +168,28 @@ jobs:
           npm install --prefix "$RUNNER_TEMP/browser-tools" --no-save --package-lock=false --ignore-scripts playwright@1.63.0
           "$RUNNER_TEMP/browser-tools/node_modules/.bin/playwright" install --with-deps chromium
       - name: Run browser tests
-        run: npm run test:browser
+        run: |
+          set -o pipefail
+          npm run test:browser 2>&1 | tee browser-tests.log
         working-directory: frontend
         env:
           PLAYWRIGHT_PATH: ${{ runner.temp }}/browser-tools
+      - name: Summarise the browser tests
+        if: always()
+        working-directory: frontend
+        run: |
+          {
+            echo "### Browser tests"
+            echo '```'
+            grep -E '^(ok|not ok)' browser-tests.log || echo "no results"
+            echo '```'
+            echo "<details><summary>Full output</summary>"
+            echo
+            echo '```'
+            head -c 60000 browser-tests.log
+            echo '```'
+            echo "</details>"
+          } >> "$GITHUB_STEP_SUMMARY"
 
   test-pipeline:
     name: Pipeline
@@ -202,6 +231,35 @@ jobs:
         run: docker compose up -d --wait --wait-timeout 180
       - name: Smoke test the stack
         run: EXPECT_CACHE=redis .github/scripts/smoke_check.sh http://localhost:8080
+      - name: Set up Python for the stress test
+        if: github.ref_name == 'preprod'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+      - name: Install Locust
+        if: github.ref_name == 'preprod'
+        run: pip install locust==2.46.7
+      - name: Stress test the local stack without writing data
+        id: stress
+        if: github.ref_name == 'preprod'
+        run: >
+          locust -f backend/load/locustfile.py Reader --headless
+          -u 30 -r 5 -t 2m
+          --host http://localhost:8080/api --csv stress --html stress.html
+      - name: Write the stress test summary
+        if: always() && steps.stress.outcome != 'skipped' && github.ref_name == 'preprod'
+        run: |
+          echo "### Local stack, 30 readers, 2m" >> "$GITHUB_STEP_SUMMARY"
+          python backend/load/summary.py stress_stats.csv >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload stress test results
+        if: always() && steps.stress.outcome != 'skipped' && github.ref_name == 'preprod'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: stress-test
+          path: |
+            stress*.csv
+            stress.html
+          retention-days: 30
       - name: Log image sizes
         run: docker image ls --format "{{.Repository}}:{{.Tag}} {{.Size}}" | grep -i imaarat || true
       - name: Log containers on failure
@@ -213,103 +271,52 @@ jobs:
 
   deploy:
     name: Deploy
+    if: github.ref_name == 'main'
     needs: [check, test-backend, test-frontend, test-pipeline, test-container]
     runs-on: ubuntu-26.04
     timeout-minutes: 15
     concurrency:
-      group: deploy-${{ github.ref_name }}
+      group: deploy-main
       cancel-in-progress: false
     environment:
-      name: ${{ github.ref_name == 'main' && 'production' || 'preprod' }}
-      url: ${{ steps.deploy.outputs.url }}
+      name: production
+      url: https://imaarat-ai.vercel.app
     env:
       VERCEL_ORG_ID: team_IjFtm7aRrxcQ8mlUKZGG864P
       VERCEL_PROJECT_ID: prj_KG8CVLdeu5KR5eyJnuPWTHyS12zT
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-      TARGET: ${{ github.ref_name }}
-    outputs:
-      deployed: ${{ steps.gate.outputs.skip != 'true' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-          fetch-depth: 0
-      - name: Skip a preprod reset to code main already runs
-        id: gate
-        run: |
-          if [ "$TARGET" = "preprod" ] && git merge-base --is-ancestor HEAD origin/main; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "Preprod was reset to main, which is already deployed; nothing new to deploy" >> "$GITHUB_STEP_SUMMARY"
-          fi
       - name: Set up Node.js
-        if: steps.gate.outputs.skip != 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
         with:
           node-version: 22
       - name: Deploy to Vercel
-        id: deploy
-        if: steps.gate.outputs.skip != 'true'
         timeout-minutes: 8
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then echo "::error::Add the VERCEL_TOKEN repository secret to deploy from CI"; exit 1; fi
-          if [ "$TARGET" = "main" ]; then
-            npx --yes vercel@62.7.0 deploy --prod --yes --token "$VERCEL_TOKEN"
-            url=https://imaarat-ai.vercel.app
-          else
-            url=$(npx --yes vercel@62.7.0 deploy --yes --token "$VERCEL_TOKEN")
-          fi
-          if [ "$TARGET" = "preprod" ]; then
-            curl -sS --fail-with-body -X POST "https://api.vercel.com/v2/deployments/${url#https://}/aliases?teamId=$VERCEL_ORG_ID" -H "Authorization: Bearer $VERCEL_TOKEN" -H "Content-Type: application/json" -d '{"alias":"imaarat-ai-preprod.vercel.app"}'
-            url=https://imaarat-ai-preprod.vercel.app
-          fi
-          echo "url=$url" >> "$GITHUB_OUTPUT"
-          echo "Deployed: $url" >> "$GITHUB_STEP_SUMMARY"
+          npx --yes vercel@62.7.0 deploy --prod --yes --token "$VERCEL_TOKEN"
+          echo "Deployed: https://imaarat-ai.vercel.app" >> "$GITHUB_STEP_SUMMARY"
       - name: Smoke test the deployment
-        if: steps.gate.outputs.skip != 'true'
-        run: |
-          if [ "$TARGET" != "main" ] && [ -z "$BYPASS" ]; then echo "::error::Add the VERCEL_AUTOMATION_BYPASS_SECRET repository secret so CI can open protected previews"; exit 1; fi
-          .github/scripts/smoke_check.sh "${{ steps.deploy.outputs.url }}"
+        run: .github/scripts/smoke_check.sh https://imaarat-ai.vercel.app
 
-  stress:
-    name: Stress test
-    if: github.ref_name == 'preprod' && needs.deploy.outputs.deployed == 'true'
-    needs: [deploy]
+  summary:
+    name: Summary
+    if: ${{ always() && !github.event.forced }}
+    needs: [check, test-backend, test-frontend, test-pipeline, test-container, deploy]
     runs-on: ubuntu-26.04
-    timeout-minutes: 15
-    env:
-      BYPASS: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-      USERS: "30"
-      DURATION: 2m
+    timeout-minutes: 5
     steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
-        with:
-          python-version: "3.12"
-      - name: Install Locust
-        run: pip install locust==2.46.7
-      - name: Stress test preprod without writing data
-        id: stress
-        run: >
-          locust -f backend/load/locustfile.py Reader --headless
-          -u "$USERS" -r 5 -t "$DURATION"
-          --host https://imaarat-ai-preprod.vercel.app/api --csv stress --html stress.html
-      - name: Write the job summary
-        if: always() && steps.stress.outcome != 'skipped'
+      - name: Write the result of every job
+        env:
+          RESULTS: ${{ toJSON(needs) }}
         run: |
-          echo "### Preprod, $USERS readers, $DURATION" >> "$GITHUB_STEP_SUMMARY"
-          python backend/load/summary.py stress_stats.csv >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload results
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
-        if: always()
-        with:
-          name: stress-test
-          path: |
-            stress*.csv
-            stress.html
-          retention-days: 30
+          {
+            echo "### Result of every job"
+            echo "| Job | Result |"
+            echo "|---|---|"
+            echo "$RESULTS" | jq -r 'to_entries[] | "| \(.key) | \(.value.result) |"'
+          } | tee -a "$GITHUB_STEP_SUMMARY"

@@ -458,3 +458,109 @@ export async function verifyGlass(page) {
   console.log(`glass lens ${webgl ? 'drawn with WebGL2' : 'skipped: no WebGL2, blur fallback'}`)
   return { checks }
 }
+export async function verifySpeech(page) {
+  const codes = ['en', 'hi', 'bn', 'te', 'mr', 'ta', 'ur', 'gu', 'kn', 'or', 'ml', 'pa', 'as', 'mai', 'sat', 'ks', 'ne', 'sd', 'doi', 'gom', 'mni', 'brx', 'sa', 'bho', 'hne', 'tcy']
+  const expected = ['alpha.', 'beta।', 'gamma۔', 'delta!']
+  await page.addInitScript(() => {
+    sessionStorage.setItem('imaarat.demo', '1')
+    const log = []
+    window.spokenLog = log
+    const fake = {
+      speaking: false,
+      getVoices: () => [],
+      addEventListener() {},
+      removeEventListener() {},
+      cancel() {},
+      resume() {},
+      speak(utterance) {
+        const attempt = log.filter(item => item.text === utterance.text).length
+        log.push({ text: utterance.text, lang: utterance.lang })
+        setTimeout(() => {
+          if (log.length === 1 && attempt === 0) {
+            utterance.onerror?.({ error: 'synthesis-failed' })
+            return
+          }
+          utterance.onstart?.({})
+          setTimeout(() => utterance.onend?.({}), 10)
+        }, 5)
+      },
+    }
+    Object.defineProperty(window, 'speechSynthesis', { value: fake, configurable: true })
+  })
+  await page.route('**/assistant/chat', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ code: 'ok', reply: expected.join(' '), page: null, language: null, sources: [], followups: [] }),
+  }))
+  const failures = []
+  for (const code of codes) {
+    await page.evaluate(code => localStorage.setItem('imaarat.lang', code), code)
+    await page.goto(APP_URL + '/app/')
+    await page.reload()
+    await page.waitForFunction(code => document.documentElement.lang === code, code)
+    await page.locator('.saathi-fab').click()
+    await page.locator('.saathi-head .saathi-icon[aria-pressed]').first().click()
+    await page.locator('.saathi-form input').fill('hello')
+    await page.locator('.saathi-send').click()
+    await page.waitForFunction(count => window.spokenLog.length >= count, expected.length + 1, { timeout: 5000 }).catch(() => {})
+    const said = await page.evaluate(() => window.spokenLog.map(item => item.text))
+    const order = said.filter((text, index) => text !== said[index - 1])
+    if (JSON.stringify(order) !== JSON.stringify(expected) || said.length !== expected.length + 1) failures.push(`${code}: ${said.join(' | ')}`)
+  }
+  if (failures.length) throw new Error(`read-aloud skipped or reordered sentences: ${failures.join('; ')}`)
+  console.log(`read-aloud spoke every sentence in order, retrying the first once, in ${codes.length} languages`)
+}
+
+export async function verifyLanding(page) {
+  const codes = ['en', 'hi', 'bn', 'te', 'mr', 'ta', 'ur', 'gu', 'kn', 'or', 'ml', 'pa', 'as', 'mai', 'sat', 'ks', 'ne', 'sd', 'doi', 'gom', 'mni', 'brx', 'sa', 'bho', 'hne', 'tcy']
+  const failures = []
+  for (const code of codes) {
+    await page.setViewportSize({ width: 1280, height: 800 })
+    await page.goto(APP_URL + '/')
+    await page.evaluate(code => localStorage.setItem('imaarat.lang', code), code)
+    await page.reload()
+    if (code !== 'en') await page.waitForFunction(code => document.documentElement.dataset.landingLang === code, code)
+    await page.evaluate(() => document.fonts.ready)
+    for (const width of [214, 260, 320, 400, 520, 640, 767, 768, 1024, 1440]) {
+      await page.setViewportSize({ width, height: 800 })
+      const found = await page.evaluate(({ width, code }) => {
+        const problems = []
+        const root = document.documentElement
+        if (root.scrollWidth > root.clientWidth + 1) problems.push(`page is ${root.scrollWidth}px wide`)
+        if (code !== 'en' && root.dataset.landingMissing !== '0') problems.push(`${root.dataset.landingMissing} strings left in English`)
+        const shown = selector => {
+          const element = document.querySelector(selector)
+          const rect = element?.getBoundingClientRect()
+          return rect && rect.width > 0 && getComputedStyle(element).visibility !== 'hidden' ? { selector, rect } : null
+        }
+        const items = ['.header-brand', '.header-links', '#landing-language', '.header-cta', '#nav-toggle'].map(shown).filter(Boolean)
+        for (const [index, first] of items.entries()) {
+          if (first.rect.left < -1 || first.rect.right > width + 1) problems.push(`${first.selector} leaves the screen`)
+          for (const second of items.slice(index + 1)) {
+            if (first.rect.left < second.rect.right - 1 && second.rect.left < first.rect.right - 1) problems.push(`${first.selector} overlaps ${second.selector}`)
+          }
+        }
+        if (Boolean(shown('#nav-toggle')) !== width < 768) problems.push(`menu button ${shown('#nav-toggle') ? 'shown' : 'hidden'} at ${width}px`)
+        for (const element of document.querySelectorAll('main *, footer *')) {
+          if (element.closest('[data-tabs], .marquee, [hidden], [inert]')) continue
+          const rect = element.getBoundingClientRect()
+          if (rect.width && rect.right > width + 1 && getComputedStyle(element).position !== 'fixed') {
+            problems.push(`${element.tagName.toLowerCase()}.${String(element.className).slice(0, 30)} reaches ${Math.round(rect.right)}px`)
+            break
+          }
+        }
+        return problems
+      }, { width, code })
+      await page.locator('#landing-language').click()
+      const list = await page.locator('#lang-list').evaluate(node => {
+        const rect = node.getBoundingClientRect()
+        return { hidden: node.hidden, left: rect.left, right: rect.right, bottom: rect.bottom, height: innerHeight, wide: innerWidth, options: node.querySelectorAll('[role=option]').length }
+      })
+      if (list.hidden || list.left < -1 || list.right > list.wide + 1 || list.bottom > list.height + 1 || list.options !== codes.length) found.push(`language list does not fit: ${JSON.stringify(list)}`)
+      await page.keyboard.press('Escape')
+      if (found.length) failures.push(`${code} at ${width}px: ${found.join(', ')}`)
+    }
+  }
+  if (failures.length) throw new Error(failures.slice(0, 40).join('; '))
+  console.log(`landing page fits at 10 widths and shows no English in ${codes.length - 1} languages`)
+}

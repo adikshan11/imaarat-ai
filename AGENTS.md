@@ -52,7 +52,7 @@ This is a one-person project, so there are exactly two branches: `main` (product
 
 1. Start every task on an up-to-date `preprod`: `git fetch -q origin && git switch preprod && git reset --keep origin/preprod`. After each release `preprod` is reset to `main`, so this also brings in the latest `main`. If `git log --oneline origin/preprod..origin/main` lists anything, ask before going further.
 2. Commit straight to `preprod`, with commit messages of a few words. The first user-visible change after a release bumps the version once in `backend/app/__init__.py`, `frontend/package.json` and both version fields of `frontend/package-lock.json`, and adds a plain-English `CHANGELOG.md` entry; later changes before the next release add lines to that same entry. CI, docs and tooling changes bump nothing.
-3. Push with `git push origin preprod`. CI tests the commit, deploys `https://imaarat-ai-preprod.vercel.app`, smoke-checks it and runs a read-only stress test. Fix any failure with another commit on `preprod`.
+3. Push with `git push origin preprod`. CI tests the commit, smoke-tests its Docker stack on the runner and runs a read-only stress test against it. Preprod is never deployed to Vercel; only `main` deploys. Fix any failure with another commit on `preprod`.
 4. Release with one pull request from `preprod` into `main` using `.github/pull_request_template.md` (`Version: *X.Y.Z*`, then one "This PR ..." sentence), merged with rebase once every check is green. `main` only accepts pull requests; that push deploys production.
 5. Reset `preprod` to `main` afterwards so the two never drift. CI skips the redeploy because the commit is already on `main`.
 

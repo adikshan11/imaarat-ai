@@ -403,7 +403,7 @@ jobs:
         env:
           SARVAM_API_KEY: ${{ secrets.SARVAM_API_KEY }}
           KEYS: ${{ inputs.keys }}
-        run: python .github/scripts/sarvam_translate.py "$KEYS" >> "$GITHUB_STEP_SUMMARY"
+        run: python -u .github/scripts/sarvam_translate.py "$KEYS" >> "$GITHUB_STEP_SUMMARY"
       - name: Upload the translations
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
