@@ -521,7 +521,7 @@ export async function verifyLanding(page) {
     await page.reload()
     if (code !== 'en') await page.waitForFunction(code => document.documentElement.dataset.landingLang === code, code)
     await page.evaluate(() => document.fonts.ready)
-    for (const width of [214, 260, 320, 400, 520, 640, 767, 768, 1024, 1440]) {
+    for (const width of [214, 260, 320, 400, 520, 640, 767, 768, 1023, 1024, 1440]) {
       await page.setViewportSize({ width, height: 800 })
       const found = await page.evaluate(({ width, code }) => {
         const problems = []
@@ -540,7 +540,7 @@ export async function verifyLanding(page) {
             if (first.rect.left < second.rect.right - 1 && second.rect.left < first.rect.right - 1) problems.push(`${first.selector} overlaps ${second.selector}`)
           }
         }
-        if (Boolean(shown('#nav-toggle')) !== width < 768) problems.push(`menu button ${shown('#nav-toggle') ? 'shown' : 'hidden'} at ${width}px`)
+        if (Boolean(shown('#nav-toggle')) !== width < 1024) problems.push(`menu button ${shown('#nav-toggle') ? 'shown' : 'hidden'} at ${width}px`)
         for (const element of document.querySelectorAll('main *, footer *')) {
           if (element.closest('[data-tabs], .marquee, [hidden], [inert]')) continue
           const rect = element.getBoundingClientRect()

@@ -19,7 +19,7 @@ if (toggle && menu) {
       toggle.focus()
     }
   })
-  matchMedia('(min-width: 768px)').addEventListener('change', (query) => {
+  matchMedia('(min-width: 1024px)').addEventListener('change', (query) => {
     if (query.matches) set(false)
   })
 }
