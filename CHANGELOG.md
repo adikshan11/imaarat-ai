@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.65.0] - 2026-10-14
+
+### Changed
+- Saathi is a floating button at the bottom right of the window again, like a standard chat assistant: always in view while you scroll, and her chat opens above it. The footer text keeps clear of her.
+
 ## [2.64.2] - 2026-10-14
 
 ### Fixed

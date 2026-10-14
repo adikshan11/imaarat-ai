@@ -1,4 +1,4 @@
-.saathi-launch { display: flex; align-items: flex-end; gap: 10px; animation: saathi-rise 320ms cubic-bezier(.2, .9, .3, 1.2) both; }
+.saathi-launch { position: fixed; inset-inline-end: 16px; bottom: 16px; z-index: 31; display: flex; align-items: flex-end; gap: 10px; animation: saathi-rise 320ms cubic-bezier(.2, .9, .3, 1.2) both; }
 .saathi-fab { width: 64px; height: 64px; padding: 0; border: none; border-radius: 50%; background: var(--surface-solid); box-shadow: 0 8px 22px -6px rgba(5, 38, 26, 0.5), 0 0 0 2px var(--brand); cursor: pointer; display: grid; place-items: center; overflow: hidden; transition: transform 180ms ease; }
 .saathi-fab:hover { transform: translateY(-2px) scale(1.04); }
 .saathi-fab:active { transform: scale(0.96); }
@@ -54,6 +54,7 @@
 @keyframes saathi-listen { 0%, 100% { box-shadow: 0 0 0 0 var(--focus); } 50% { box-shadow: 0 0 0 7px transparent; } }
 
 @media (max-width: 900px) {
+  .saathi-launch { bottom: calc(var(--tabbar-height, 104px) + 6px); }
   .saathi-panel { inset-inline: 10px; width: auto; bottom: calc(var(--tabbar-height, 104px) + 6px); height: min(560px, calc(100dvh - var(--tabbar-height, 104px) - 70px)); }
 }
 @media (prefers-reduced-motion: reduce) {
