@@ -6,6 +6,7 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 
 ### Fixed
 - Saathi's read-aloud button works: it picks a voice that matches the language, reads long answers in short pieces so the browser does not cut them off, and reads the latest answer straight away when you switch it on.
+- On phones and very narrow windows the footer uses the full width instead of a wide side margin, and keeps its last line above the Saathi button.
 
 ## [2.65.2] - 2026-10-14
 
