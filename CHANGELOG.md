@@ -2,6 +2,14 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.67.0] - 2026-10-14
+
+### Added
+- The landing page header has a language dropdown. It sets the language the app opens in; the landing page text itself stays in English for now.
+
+### Fixed
+- The landing page fits very narrow windows: the header shrinks (the name hides below 330px and the language picker becomes a globe button), and the feature cards no longer stretch past the window.
+
 ## [2.66.0] - 2026-10-14
 
 ### Fixed
