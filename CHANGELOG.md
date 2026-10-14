@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.67.1] - 2026-10-14
+
+### Added
+- On phones and tablets the landing page header has a three-line menu button on the right. It opens a list with How it works, Product, Features, FAQ and Open the app. Below 400px the header's own app button moves into this menu.
+
 ## [2.67.0] - 2026-10-14
 
 ### Added

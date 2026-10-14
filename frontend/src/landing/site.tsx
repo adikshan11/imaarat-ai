@@ -38,7 +38,19 @@ export function Header({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
         <a href={APP} className="header-cta inline-flex h-10 shrink-0 items-center whitespace-nowrap rounded-full bg-forest-900 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-forest-800 sm:px-5">
           Open the app
         </a>
+        <button type="button" id="nav-toggle" className="nav-toggle md:hidden" aria-expanded="false" aria-controls="mobile-menu" aria-label="Menu">
+          <span /><span /><span />
+        </button>
       </nav>
+      <div id="mobile-menu" className="mobile-menu md:hidden" hidden>
+        <div className="shell flex flex-col py-3">
+          <a href="/#steps">How it works</a>
+          <a href="/#tour">Product</a>
+          <a href="/#features">Features</a>
+          <a href="/#faq">FAQ</a>
+          <a href={APP} className="mobile-menu-cta">Open the app</a>
+        </div>
+      </div>
     </header>
   )
 }
