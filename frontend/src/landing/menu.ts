@@ -6,15 +6,15 @@ if (toggle && menu) {
     toggle.setAttribute('aria-expanded', String(open))
     menu.hidden = !open
   }
-  toggle.addEventListener('click', () => set(menu.hidden))
+  toggle.addEventListener('click', () => set(toggle.getAttribute('aria-expanded') !== 'true'))
   menu.addEventListener('click', (event) => {
     if ((event.target as Element).closest('a')) set(false)
   })
   document.addEventListener('click', (event) => {
-    if (!menu.hidden && !(event.target as Element).closest('#mobile-menu, #nav-toggle')) set(false)
+    if (toggle.getAttribute('aria-expanded') === 'true' && !(event.target as Element).closest('#mobile-menu, #nav-toggle')) set(false)
   })
   addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && !menu.hidden) {
+    if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
       set(false)
       toggle.focus()
     }
