@@ -17,19 +17,19 @@ export function SkipLink() {
 export function Header({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
   return (
     <header data-tone={tone} className="site-header sticky top-0 z-30">
-      <nav aria-label="Main" className="shell flex h-20 items-center gap-3 sm:gap-4 lg:gap-8">
+      <nav aria-label="Main" className="shell flex h-20 items-center gap-3 sm:gap-4 xl:gap-8">
         <a href="/" className="header-brand flex items-center gap-3 font-semibold tracking-tight text-forest-900">
           <Mark className="mark-on-light size-10" />
           <Mark on="dark" className="mark-on-dark size-10" />
           <span translate="no" className="header-name text-lg sm:text-xl">imaarat<span className="header-accent text-forest-700">.ai</span></span>
         </a>
-        <div className="header-links ml-auto hidden items-center gap-5 text-[15px] lg:gap-8 font-medium text-muted md:flex">
+        <div className="header-links ml-auto hidden items-center gap-5 text-[15px] font-medium text-muted lg:flex xl:gap-8">
           <a href="/#steps" className="hover:text-forest-900">How it works</a>
           <a href="/#tour" className="hover:text-forest-900">Product</a>
           <a href="/#features" className="hover:text-forest-900">Features</a>
           <a href="/#faq" className="hover:text-forest-900">FAQ</a>
         </div>
-        <div className="lang-pick ml-auto md:ml-0" data-lang-pick>
+        <div className="lang-pick ml-auto lg:ml-0" data-lang-pick>
           <button type="button" id="landing-language" className="lang-button" aria-haspopup="listbox" aria-expanded="false" aria-controls="lang-list" aria-label="Language" title="Language">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z" /></svg>
             <span className="lang-current" translate="no">English</span>
@@ -42,11 +42,11 @@ export function Header({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
         <a href={APP} className="header-cta inline-flex h-10 shrink-0 items-center whitespace-nowrap rounded-full bg-forest-900 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-forest-800 sm:px-5">
           Open the app
         </a>
-        <button type="button" id="nav-toggle" className="nav-toggle md:hidden" aria-expanded="false" aria-controls="mobile-menu" aria-label="Menu">
+        <button type="button" id="nav-toggle" className="nav-toggle lg:hidden" aria-expanded="false" aria-controls="mobile-menu" aria-label="Menu">
           <span /><span /><span />
         </button>
       </nav>
-      <div id="mobile-menu" className="mobile-menu md:hidden" hidden>
+      <div id="mobile-menu" className="mobile-menu lg:hidden" hidden>
         <div className="shell flex flex-col py-3">
           <a href="/#steps">How it works</a>
           <a href="/#tour">Product</a>

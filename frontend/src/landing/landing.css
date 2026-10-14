@@ -541,7 +541,7 @@ html {
   }
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
   .nav-toggle,
   .mobile-menu {
     display: none;

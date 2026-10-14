@@ -13,6 +13,7 @@ All notable changes to Imaarat. Versions follow [Semantic Versioning](https://se
 - Read-aloud in Saathi now speaks one sentence at a time, waits for the voices to load, prefers an on-device voice, and retries a sentence that does not start, so the first sentence is no longer skipped in other languages.
 
 ### Changed
+- The landing page header shows the menu button below 1024px instead of 768px, so translated links never crowd the bar on tablets. The menu button no longer shows on wide screens (its hide rule was being overridden).
 - The preprod branch is no longer deployed to Vercel. Its CI runs the checks, a Docker stack smoke test and the read-only stress test locally on the runner, and only main deploys.
 - CI now writes a run summary: what is being tested, the browser test results and the result of every job. The translation job logs its progress per language.
 
