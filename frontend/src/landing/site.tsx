@@ -1,3 +1,4 @@
+import { LANGUAGES } from '../i18n/languages.ts'
 import { GITHUB_PATH, GITHUB_PROFILE, INSTAGRAM_PATH, INSTAGRAM_PROFILE, X_PATH, X_PROFILE } from '../lib/social.ts'
 
 export const APP = '/app/#signin'
@@ -16,11 +17,11 @@ export function SkipLink() {
 export function Header({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
   return (
     <header data-tone={tone} className="site-header sticky top-0 z-30">
-      <nav aria-label="Main" className="shell flex h-20 items-center gap-8">
+      <nav aria-label="Main" className="shell flex h-20 items-center gap-3 sm:gap-8">
         <a href="/" className="header-brand flex items-center gap-3 font-semibold tracking-tight text-forest-900">
           <Mark className="mark-on-light size-10" />
           <Mark on="dark" className="mark-on-dark size-10" />
-          <span className="text-xl">imaarat<span className="header-accent text-forest-700">.ai</span></span>
+          <span className="header-name text-lg sm:text-xl">imaarat<span className="header-accent text-forest-700">.ai</span></span>
         </a>
         <div className="header-links ml-auto hidden items-center gap-8 text-[15px] font-medium text-muted md:flex">
           <a href="/#steps" className="hover:text-forest-900">How it works</a>
@@ -28,7 +29,13 @@ export function Header({ tone = 'light' }: { tone?: 'light' | 'dark' }) {
           <a href="/#features" className="hover:text-forest-900">Features</a>
           <a href="/#faq" className="hover:text-forest-900">FAQ</a>
         </div>
-        <a href={APP} className="header-cta ml-auto inline-flex h-10 items-center rounded-full bg-forest-900 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-forest-800 md:ml-0">
+        <label className="lang-pick ml-auto md:ml-0">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z" /></svg>
+          <select id="landing-language" aria-label="Language of the app" title="Language of the app (this page stays in English)" defaultValue="en">
+            {LANGUAGES.map(({ code, name }) => <option key={code} value={code} lang={code}>{name}</option>)}
+          </select>
+        </label>
+        <a href={APP} className="header-cta inline-flex h-10 shrink-0 items-center whitespace-nowrap rounded-full bg-forest-900 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-forest-800 sm:px-5">
           Open the app
         </a>
       </nav>
