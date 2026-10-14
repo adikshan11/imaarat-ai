@@ -95,6 +95,7 @@
 .footer-credit .footer-author { font-weight: 600; }
 .footer-sep { opacity: 0.6; }
 .site-footer .heart { color: #e11d48; }
+@media (max-width: 600px) { .footer-sep { display: none; } .footer-credit { flex-direction: column; gap: 4px; } }
 .social-links { display: inline-flex; align-items: center; gap: 10px; margin-inline: 6px; vertical-align: -3px; }
 .social-links a { display: inline-flex; }
 
