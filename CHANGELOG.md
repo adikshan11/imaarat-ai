@@ -2,6 +2,12 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.67.3] - 2026-10-14
+
+### Fixed
+- The landing page menu button no longer shows on desktop widths (it was overriding the hide rule), which also stops the header running past the edge at 768px.
+- The landing page feature cards now fit windows narrower than 280px.
+
 ## [2.67.2] - 2026-10-14
 
 ### Fixed
