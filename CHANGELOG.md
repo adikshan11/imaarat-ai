@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.66.0] - 2026-10-14
+
+### Fixed
+- Saathi's read-aloud button works: it picks a voice that matches the language, reads long answers in short pieces so the browser does not cut them off, and reads the latest answer straight away when you switch it on.
+
 ## [2.65.2] - 2026-10-14
 
 ### Fixed

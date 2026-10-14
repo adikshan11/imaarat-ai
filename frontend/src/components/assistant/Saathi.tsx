@@ -111,8 +111,14 @@ export default function Saathi({ onOpen }: { onOpen: (page: ChatPage) => void })
   }
 
   const toggleReading = () => {
-    if (reading) stopSpeaking()
-    setReading((current) => !current)
+    if (reading) {
+      stopSpeaking()
+      setReading(false)
+      return
+    }
+    setReading(true)
+    const last = messages.filter((message) => message.role === 'assistant').at(-1)
+    if (last) speak(last.text, language.code)
   }
 
   return (
