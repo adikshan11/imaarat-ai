@@ -29,3 +29,18 @@ export async function askSaathi(message: string, language: string, history: Chat
   if (!response.ok) throw new Error('The assistant could not answer')
   return (await response.json()) as ChatReply
 }
+
+export async function fetchSpeech(text: string, language: string, signal: AbortSignal): Promise<{ audio: Blob | null; off: boolean }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/assistant/speak`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, language }),
+      signal: AbortSignal.any([signal, AbortSignal.timeout(20000)]),
+    })
+    if (response.ok) return { audio: await response.blob(), off: false }
+    return { audio: null, off: [401, 429, 503].includes(response.status) }
+  } catch {
+    return { audio: null, off: false }
+  }
+}

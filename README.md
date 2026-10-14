@@ -220,6 +220,7 @@ Conventions: the first user-visible change after a release bumps the version onc
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional Google sign-in; the button appears only when both are set |
 | `OWNER_EMAILS` | Comma-separated Google emails allowed to use "Owner sign-in", which makes them an operator and opens the dev console; needs the Google settings above |
 | `AI_DAILY_CHAT`, `AI_CLIENT_DAILY_CHAT`, `AI_CHAT_CALL_RESERVE` | Saathi chat allowances: all visitors per day (40), one visitor per day (8), and how many daily AI calls chat must always leave for assessments (60); repeat questions are answered from a cache and cost nothing |
+| `SARVAM_API_KEY`, `SPEECH_DAILY`, `SPEECH_CLIENT_DAILY` | Server voices for Saathi read-aloud in English and 20 Indian languages through Sarvam: the key, all visitors per day (200) and one visitor per day (20). Without the key, or after the limit, the browser's own voices are used |
 | `AI_MODEL_<STAGE>`, `AI_CHAT_MODEL`, `AI_THINKING_<STAGE>` | Optional model and thinking level for one stage (`PAPER_FORM`, `VISION`, `MEMO`, `CHAT`), for example a lighter Flash-Lite model for chat with its own quota; empty uses `AI_MODEL` |
 | `REDIS_URL` | Optional Redis shared by every instance for the chat cache, query embeddings, the pause after failures and chat allowances; empty keeps them in memory |
 | `GOOGLE_MAPS_API_KEY` | Optional Google Maps browser key (Maps JavaScript API and Geocoding API enabled, restricted to your site by HTTP referrer); the property map appears only when it is set |

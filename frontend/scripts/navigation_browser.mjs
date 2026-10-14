@@ -492,6 +492,7 @@ export async function verifySpeech(page) {
     contentType: 'application/json',
     body: JSON.stringify({ code: 'ok', reply: expected.join(' '), page: null, language: null, sources: [], followups: [] }),
   }))
+  await page.route('**/assistant/speak', route => route.fulfill({ status: 503, contentType: 'application/json', body: '{}' }))
   const failures = []
   for (const code of codes) {
     await page.goto(APP_URL + '/app/')
@@ -563,4 +564,70 @@ export async function verifyLanding(page) {
   }
   if (failures.length) throw new Error(failures.slice(0, 150).join('; '))
   console.log(`landing page fits at 10 widths and shows no English in ${codes.length - 1} languages`)
+}
+
+export async function verifyServerSpeech(page) {
+  await page.addInitScript(() => {
+    sessionStorage.setItem('imaarat.demo', '1')
+    window.played = 0
+    window.deviceSpoken = 0
+    HTMLMediaElement.prototype.play = function () {
+      window.played += 1
+      setTimeout(() => this.dispatchEvent(new Event('ended')), 5)
+      return Promise.resolve()
+    }
+    Object.defineProperty(window, 'speechSynthesis', {
+      value: {
+        speaking: false,
+        getVoices: () => [],
+        addEventListener() {},
+        removeEventListener() {},
+        cancel() {},
+        resume() {},
+        speak(utterance) {
+          window.deviceSpoken += 1
+          setTimeout(() => { utterance.onstart?.({}); setTimeout(() => utterance.onend?.({}), 5) }, 5)
+        },
+      },
+      configurable: true,
+    })
+  })
+  await page.route('**/assistant/chat', route => route.fulfill({
+    status: 200,
+    contentType: 'application/json',
+    body: JSON.stringify({ code: 'ok', reply: 'alpha. beta.', page: null, language: null, sources: [], followups: [] }),
+  }))
+  const asked = []
+  let status = 200
+  await page.route('**/assistant/speak', route => {
+    asked.push(JSON.parse(route.request().postData()).language)
+    return status === 200 ? route.fulfill({ status, contentType: 'audio/mpeg', body: 'audio' }) : route.fulfill({ status, contentType: 'application/json', body: '{}' })
+  })
+  const failures = []
+  const run = async (code) => {
+    asked.length = 0
+    await page.goto(APP_URL + '/app/')
+    await page.evaluate(code => localStorage.setItem('imaarat.lang', code), code)
+    await page.reload()
+    await page.waitForFunction(code => document.documentElement.lang === code, code)
+    await page.locator('.saathi-fab').click()
+    await page.locator('.saathi-head .saathi-icon[aria-pressed]').first().click()
+    await page.locator('.saathi-form input').fill('hello')
+    await page.locator('.saathi-send').click()
+    await page.waitForFunction(() => window.played + window.deviceSpoken > 0, null, { timeout: 5000 }).catch(() => {})
+    return page.evaluate(() => ({ played: window.played, device: window.deviceSpoken }))
+  }
+  for (const code of ['en', 'hi', 'ta', 'mai', 'tcy']) {
+    const result = await run(code)
+    if (result.played !== 1 || result.device !== 0 || asked.join() !== code) failures.push(`${code}: played ${result.played}, device ${result.device}, asked ${asked.join()}`)
+  }
+  for (const code of ['ur', 'ks', 'sd', 'sat', 'mni']) {
+    const result = await run(code)
+    if (result.played !== 0 || result.device < 1 || asked.length) failures.push(`${code}: played ${result.played}, device ${result.device}, asked ${asked.join()}`)
+  }
+  status = 429
+  const limited = await run('hi')
+  if (limited.played !== 0 || limited.device < 1) failures.push(`hi over the limit: played ${limited.played}, device ${limited.device}`)
+  if (failures.length) throw new Error(failures.join('; '))
+  console.log('server voice plays for 5 languages, device voice for 5 without one and after the limit')
 }

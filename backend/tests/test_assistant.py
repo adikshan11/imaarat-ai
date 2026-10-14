@@ -1,7 +1,7 @@
 import json
 
 import pytest
-from app import assistant, budget, config, db, llm
+from app import assistant, budget, config, db, llm, speech
 from app.api import main
 from fastapi.testclient import TestClient
 
@@ -128,3 +128,43 @@ def test_chat_leaves_a_call_reserve_for_assessments(store, monkeypatch):
 def test_chat_returns_clean_followups(store, monkeypatch):
     monkeypatch.setattr(llm, "generate", reply(followups=["What lowers the score?", "  ", "Which **flood** data is used? [x](http://y.test)", "Third one", "Fourth one"]))
     assert assistant.chat("hello", "en", [], "1.2.3.4")["followups"] == ["What lowers the score?", "Which flood data is used?", "Third one"]
+
+
+class Answer:
+    def __init__(self, payload):
+        self.payload = payload
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def read(self, *args):
+        return json.dumps(self.payload).encode()
+
+
+def test_speak_returns_audio_for_a_language_with_a_server_voice(store, monkeypatch):
+    seen = []
+    monkeypatch.setattr(config, "SARVAM_API_KEY", "key")
+    monkeypatch.setattr(speech.urllib.request, "urlopen", lambda request, timeout=None: seen.append(json.loads(request.data)) or Answer({"audios": ["YXVkaW8="]}))
+    response = TestClient(main.app).post("/assistant/speak", json={"text": "नमस्ते", "language": "hi"})
+    assert response.status_code == 200 and response.content == b"audio" and response.headers["content-type"] == "audio/mpeg"
+    assert seen[0]["language_code"] == "hi-IN"
+
+
+def test_speak_is_unavailable_without_a_key_or_a_voice(store, monkeypatch):
+    client = TestClient(main.app)
+    monkeypatch.setattr(config, "SARVAM_API_KEY", "")
+    assert client.post("/assistant/speak", json={"text": "hi", "language": "hi"}).status_code == 503
+    monkeypatch.setattr(config, "SARVAM_API_KEY", "key")
+    assert client.post("/assistant/speak", json={"text": "hi", "language": "ur"}).status_code == 503
+
+
+def test_speak_stops_at_the_visitor_limit(store, monkeypatch):
+    monkeypatch.setattr(config, "SARVAM_API_KEY", "key")
+    monkeypatch.setattr(config, "SPEECH_CLIENT_DAILY", 1)
+    monkeypatch.setattr(speech.urllib.request, "urlopen", lambda request, timeout=None: Answer({"audios": ["YQ=="]}))
+    client = TestClient(main.app)
+    assert client.post("/assistant/speak", json={"text": "one", "language": "en"}).status_code == 200
+    assert client.post("/assistant/speak", json={"text": "two", "language": "en"}).status_code == 429

@@ -2,6 +2,14 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.69.0] - 2026-10-14
+
+### Added
+- Saathi can now read answers aloud with server voices in English and 20 Indian languages, so it sounds right on any device, even without an installed voice. Urdu, Kashmiri, Sindhi, Santali and Manipuri keep using the device voice, as does any language once the daily speech allowance is used up or no Sarvam key is set. New settings: `SARVAM_API_KEY`, `SPEECH_DAILY` and `SPEECH_CLIENT_DAILY`.
+
+### Changed
+- The landing page scrollbar now has a dark track and a light mint thumb, so it stays visible on every section and no white strip shows beside the page.
+
 ## [2.68.1] - 2026-10-14
 
 ### Fixed

@@ -30,7 +30,7 @@ const ready = async () => {
   throw new Error('preview server did not start')
 }
 
-const { verifyAccount, verifyCompletion, verifyDesktop, verifyGlass, verifyLabels, verifyLanding, verifyNavigation, verifySessionWarning, verifySignIn, verifySpeech, verifyTouch } = await import('./navigation_browser.mjs')
+const { verifyAccount, verifyCompletion, verifyDesktop, verifyGlass, verifyLabels, verifyLanding, verifyNavigation, verifySessionWarning, verifySignIn, verifyServerSpeech, verifySpeech, verifyTouch } = await import('./navigation_browser.mjs')
 const checks = [
   { name: 'verifySignIn', run: verifySignIn, touch: false, fresh: true },
   { name: 'verifyAccount', run: verifyAccount, touch: false, fresh: true },
@@ -43,6 +43,7 @@ const checks = [
   { name: 'verifyCompletion', run: verifyCompletion, touch: false },
   { name: 'verifyLanding', run: verifyLanding, touch: false, fresh: true },
   { name: 'verifySpeech', run: verifySpeech, touch: false, fresh: true },
+  { name: 'verifyServerSpeech', run: verifyServerSpeech, touch: false, fresh: true },
 ]
 let failed = 0
 try {

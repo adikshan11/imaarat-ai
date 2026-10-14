@@ -115,6 +115,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `profile.py`: Underwriter profile: name and mobile number are required before reviewing; the photo is optional and re-encoded.
 - `reports.py`: plain, para, inr, label, facts_table, bullets, section, submitted_image_path
 - `schemas.py`: redact, PropertySubmission, UnderwritingMemo, VisionObservations, decision_from_score, indicative_product_segment
+- `speech.py`: Server-side speech for Saathi: Sarvam turns a reply into audio so every device can hear it, whatever voices it has installed.
 - `store.py`: Shared key-value store for caches, pauses and daily counters: in memory by default, Redis when REDIS_URL is set.
 - `telemetry.py`: Request, trace and span telemetry kept in the app database for the public status page: route templates and timings only, never inputs.
 
@@ -251,7 +252,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 
 ## frontend/src/api
 
-- `assistant.ts`: ChatPage, ChatTurn, ChatReply, askSaathi
+- `assistant.ts`: ChatPage, ChatTurn, ChatReply, askSaathi, fetchSpeech
 - `dev.ts`: DevOverview, DevArchitecture, DevRoute, DevAiCall, DevTrace, DevRetrieval, fetchDevOverview, fetchDevArchitecture
 - `maps.ts`: LatLng, AddressPart, GeocodeResult, MapClick, MapInstance, MarkerInstance, MapsApi, MapsLoad
 - `session.ts`: Profile, Timing, Session, Provider, Providers, fetchSession, fetchProviders, startSignIn

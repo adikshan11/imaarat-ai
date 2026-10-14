@@ -1,3 +1,5 @@
+import { fetchSpeech } from '@/api/assistant'
+
 const BROWSER_LANGUAGES: Record<string, string> = {
   en: 'en-IN',
   hi: 'hi-IN',
@@ -96,13 +98,10 @@ function voicesReady(): Promise<void> {
   })
 }
 
-export function speak(text: string, code: string) {
-  if (!speakSupported) return
+function speakOnDevice(text: string, code: string, id: number) {
   const synth = window.speechSynthesis
   const lang = speechLanguage(code)
   const parts = (text.match(/[^.!?।۔]+[.!?।۔]*\s*/g) ?? [text]).map((part) => part.trim()).filter(Boolean)
-  const id = ++session
-  synth.cancel()
   const say = (index: number, attempt: number, voice: SpeechSynthesisVoice | undefined) => {
     if (id !== session || index >= parts.length) return
     const utterance = new SpeechSynthesisUtterance(parts[index])
@@ -145,7 +144,54 @@ export function speak(text: string, code: string) {
   })
 }
 
+const SERVER_VOICES = new Set(['en', 'hi', 'bn', 'gu', 'kn', 'ml', 'mr', 'or', 'pa', 'ta', 'te', 'mai', 'doi', 'gom', 'bho', 'hne', 'sa', 'ne', 'brx', 'as', 'tcy'])
+let serverOff = false
+let player: HTMLAudioElement | undefined
+let request: AbortController | undefined
+
+async function speakFromServer(text: string, code: string, id: number): Promise<boolean> {
+  const controller = new AbortController()
+  request = controller
+  const { audio, off } = await fetchSpeech(text, code, controller.signal)
+  if (off) serverOff = true
+  if (id !== session) return true
+  if (!audio) return false
+  const url = URL.createObjectURL(audio)
+  const element = new Audio(url)
+  element.onended = () => URL.revokeObjectURL(url)
+  player = element
+  try {
+    await element.play()
+  } catch {
+    URL.revokeObjectURL(url)
+    return false
+  }
+  return true
+}
+
+export function speak(text: string, code: string) {
+  if (!speakSupported) return
+  const id = ++session
+  stopPlayback()
+  window.speechSynthesis.cancel()
+  if (SERVER_VOICES.has(code) && !serverOff) {
+    void speakFromServer(text, code, id).then((played) => {
+      if (!played && id === session) speakOnDevice(text, code, id)
+    })
+    return
+  }
+  speakOnDevice(text, code, id)
+}
+
+function stopPlayback() {
+  request?.abort()
+  request = undefined
+  player?.pause()
+  player = undefined
+}
+
 export function stopSpeaking() {
   session += 1
+  stopPlayback()
   if (speakSupported) window.speechSynthesis.cancel()
 }

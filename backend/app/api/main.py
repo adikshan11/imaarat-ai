@@ -17,7 +17,7 @@ from starlette.datastructures import URLPath
 from starlette.routing import BaseRoute, Match, NoMatchFound
 from starlette.types import Receive, Scope, Send
 
-from app import __version__, assistant, auth, budget, config, images, llm, printouts, store, telemetry
+from app import __version__, assistant, auth, budget, config, images, llm, printouts, speech, store, telemetry
 from app.api.auth_routes import router as auth_router
 from app.api.dev_routes import router as dev_router
 from app.config import AI_API_KEY, DB_PATH, QDRANT_URL
@@ -137,6 +137,25 @@ async def assistant_chat(body: ChatRequest, request: Request, response: Response
     return await run_in_threadpool(assistant.chat, body.message, body.language, [turn.model_dump() for turn in body.history], address)
 
 
+class SpeakRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=speech.MAX_CHARS)
+    language: str = Field(default="en", pattern=r"^[a-z]{2,3}$")
+
+
+@app.post("/assistant/speak")
+async def assistant_speak(body: SpeakRequest, request: Request) -> Response:
+    if config.AI_SIGN_IN_REQUIRED and not await run_in_threadpool(auth.signed_in, request):
+        raise HTTPException(status_code=401, detail="Sign in to hear Saathi")
+    address = budget.client_address(request.headers, request.client.host if request.client else None)
+    try:
+        audio = await run_in_threadpool(speech.synthesize, body.text, body.language, address)
+    except speech.SpeechLimit:
+        raise HTTPException(status_code=429, detail="The daily speech allowance is used up") from None
+    except speech.SpeechUnavailable:
+        raise HTTPException(status_code=503, detail="Server speech is not available for this language") from None
+    return Response(audio, media_type="audio/mpeg", headers={"Cache-Control": "no-store"})
+
+
 @app.get("/maps/config")
 def maps_config() -> Response:
     key = os.getenv("GOOGLE_MAPS_API_KEY", "").strip()
@@ -151,6 +170,7 @@ def status() -> dict[str, Any]:
         "ai": ready,
         "ai_reason": reason,
         "ai_budget": budget.remaining(),
+        "speech": bool(config.SARVAM_API_KEY),
         "vector_store": "qdrant" if QDRANT_URL and AI_API_KEY else "local",
         "tracing": TRACING_ENABLED,
         "persistent_storage": is_postgres(),
