@@ -459,13 +459,6 @@ html {
   }
 }
 
-@media (min-width: 768px) {
-  .nav-toggle,
-  .mobile-menu {
-    display: none;
-  }
-}
-
 .nav-toggle {
   display: inline-flex;
   flex-shrink: 0;
@@ -545,5 +538,28 @@ html {
 
   .mobile-menu .mobile-menu-cta {
     display: block;
+  }
+}
+
+@media (min-width: 768px) {
+  .nav-toggle,
+  .mobile-menu {
+    display: none;
+  }
+}
+
+main,
+footer,
+.mobile-menu {
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  html[data-landing-lang]:not([data-landing-lang='en']) h1 {
+    font-size: 1.75rem;
+  }
+
+  html[data-landing-lang]:not([data-landing-lang='en']) h2 {
+    font-size: 1.5rem;
   }
 }

@@ -372,8 +372,8 @@ export async function verifyDesktop(page) {
   const rims = await page.evaluate(() => [...document.querySelectorAll('.sidebar .control-button, .sidebar .nav-item.active')].filter(node => !node.closest('dialog')).map(node => `${getComputedStyle(node).borderTopWidth} ${getComputedStyle(node).boxShadow}`))
   if (rims.some(rim => rim !== '0px none')) throw new Error(`Sidebar controls still have a rim: ${JSON.stringify(rims)}`)
   await page.goto(APP_URL + '/')
-  await page.getByRole('tab', { name: /Scoring/ }).click()
-  if (!await page.getByRole('tabpanel', { name: /Scoring/ }).isVisible()) throw new Error('Landing step tabs do not switch')
+  await page.locator('#stage-tab-rules').click()
+  if (!await page.locator('#stage-rules').isVisible()) throw new Error('Landing step tabs do not switch')
   return { checks: 4, action }
 }
 
@@ -494,8 +494,8 @@ export async function verifySpeech(page) {
   }))
   const failures = []
   for (const code of codes) {
-    await page.evaluate(code => localStorage.setItem('imaarat.lang', code), code)
     await page.goto(APP_URL + '/app/')
+    await page.evaluate(code => localStorage.setItem('imaarat.lang', code), code)
     await page.reload()
     await page.waitForFunction(code => document.documentElement.lang === code, code)
     await page.locator('.saathi-fab').click()
@@ -561,6 +561,6 @@ export async function verifyLanding(page) {
       if (found.length) failures.push(`${code} at ${width}px: ${found.join(', ')}`)
     }
   }
-  if (failures.length) throw new Error(failures.slice(0, 40).join('; '))
+  if (failures.length) throw new Error(failures.slice(0, 150).join('; '))
   console.log(`landing page fits at 10 widths and shows no English in ${codes.length - 1} languages`)
 }
