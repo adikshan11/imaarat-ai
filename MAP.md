@@ -358,6 +358,7 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `landing.css`
 - `language.ts`
 - `main.ts`
+- `menu.ts`
 - `pages.tsx`: Privacy, Terms, Changelog
 - `render.tsx`: render
 - `site.tsx`: APP, DEMO, REPO, PORTFOLIO, Mark, SkipLink, Header, Footer
