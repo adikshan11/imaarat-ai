@@ -390,36 +390,49 @@
   }
 }
 
-html,
-.lang-list,
-[data-tabs] {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-forest-700) transparent;
+html::-webkit-scrollbar,
+.lang-list::-webkit-scrollbar,
+[data-tabs]::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
 
-html {
-  scrollbar-color: var(--color-forest-700) var(--color-sand-50);
+html::-webkit-scrollbar-button,
+.lang-list::-webkit-scrollbar-button,
+[data-tabs]::-webkit-scrollbar-button {
+  display: none;
 }
 
-@supports not (scrollbar-color: auto) {
-  html::-webkit-scrollbar,
-  .lang-list::-webkit-scrollbar,
-  [data-tabs]::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+html::-webkit-scrollbar-track {
+  background: var(--color-sand-50);
+}
+
+html::-webkit-scrollbar-thumb,
+.lang-list::-webkit-scrollbar-thumb,
+[data-tabs]::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: var(--color-forest-700);
+  background-clip: padding-box;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+.lang-list::-webkit-scrollbar-thumb:hover,
+[data-tabs]::-webkit-scrollbar-thumb:hover {
+  background: var(--color-forest-800);
+  background-clip: padding-box;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  html,
+  .lang-list,
+  [data-tabs] {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-forest-700) transparent;
   }
 
-  html::-webkit-scrollbar-track {
-    background: var(--color-sand-50);
-  }
-
-  html::-webkit-scrollbar-thumb,
-  .lang-list::-webkit-scrollbar-thumb,
-  [data-tabs]::-webkit-scrollbar-thumb {
-    border: 2px solid transparent;
-    border-radius: 999px;
-    background: var(--color-forest-700);
-    background-clip: padding-box;
+  html {
+    scrollbar-color: var(--color-forest-700) var(--color-sand-50);
   }
 }
 

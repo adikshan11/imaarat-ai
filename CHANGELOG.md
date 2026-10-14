@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.68.1] - 2026-10-14
+
+### Fixed
+- The landing page scrollbars no longer show the old arrow buttons: the page, the language list and the tab rows use a slim green thumb with rounded ends.
+
 ## [2.68.0] - 2026-10-14
 
 ### Added
