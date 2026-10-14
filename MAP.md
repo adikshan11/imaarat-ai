@@ -365,6 +365,10 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `stack.ts`: Tool, stack
 - `tabs.ts`
 
+## frontend/src/landing/copy
+
+- `source.json`
+
 ## frontend/src/lib
 
 - `format.ts`: inr, inrShort

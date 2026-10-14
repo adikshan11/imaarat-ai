@@ -6,6 +6,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 LOCALES = Path(__file__).resolve().parents[2] / "frontend" / "src" / "i18n" / "locales"
@@ -15,18 +16,31 @@ CODES = {"as": "as-IN", "bn": "bn-IN", "brx": "brx-IN", "doi": "doi-IN", "gom": 
 def translate(text: str, target: str) -> str:
     body = json.dumps({"input": text, "source_language_code": "en-IN", "target_language_code": target, "model": "sarvam-translate:v1"}).encode()
     headers = {"api-subscription-key": os.environ["SARVAM_API_KEY"], "Content-Type": "application/json"}
-    for attempt in range(4):
+    for attempt in range(8):
         try:
             with urllib.request.urlopen(urllib.request.Request("https://api.sarvam.ai/translate", data=body, headers=headers), timeout=60) as response:
                 return json.load(response)["translated_text"]
         except urllib.error.HTTPError as error:
-            if error.code != 429 or attempt == 3:
+            if error.code != 429 or attempt == 7:
                 raise
             time.sleep(2 * (attempt + 1))
     return ""
 
 
+def translate_list(path: str) -> int:
+    strings = json.loads(Path(path).read_text(encoding="utf-8"))
+    results = {}
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        for code, target in CODES.items():
+            results[code] = dict(zip(strings, pool.map(translate, strings, [target] * len(strings))))
+            print(f"{code}: {len(strings)} strings", flush=True)
+    Path("translations.json").write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
+    return 0
+
+
 def main() -> int:
+    if sys.argv[1].endswith(".json"):
+        return translate_list(sys.argv[1])
     keys = sys.argv[1].split(",")
     english = json.loads((LOCALES / "en.json").read_text(encoding="utf-8"))
     results = {}
