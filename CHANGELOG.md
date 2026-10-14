@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.67.2] - 2026-10-14
+
+### Fixed
+- At very narrow widths (about 200 to 260px) the New assessment, Status and Developers pages no longer run past the right edge: single-column and auto-fit grids now shrink to the window and long words wrap. The bottom tab labels get slightly smaller below 230px.
+
 ## [2.67.1] - 2026-10-14
 
 ### Added
