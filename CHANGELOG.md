@@ -2,6 +2,11 @@
 
 All notable changes to Imaarat. Versions follow [Semantic Versioning](https://semver.org/) and the format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2.64.2] - 2026-10-14
+
+### Fixed
+- In the collapsed sidebar the buttons now sit close to the bottom: the hidden tagline no longer keeps its space under them.
+
 ## [2.64.1] - 2026-10-14
 
 ### Changed
