@@ -34,7 +34,7 @@ function Hero() {
       <div className="absolute inset-0 -z-10 bg-gradient-to-r from-forest-950 via-forest-950/85 to-forest-950/10" />
       <div className="shell pt-36 pb-16 sm:pt-44 sm:pb-24 lg:pt-48">
         <a href="/changelog/" className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-medium text-white/90 transition hover:bg-white/20">
-          <span className="rounded-full bg-mint-300 px-2 py-0.5 font-semibold text-forest-950">v{version.split('.').slice(0, 2).join('.')}</span> See what’s new →
+          <span translate="no" className="rounded-full bg-mint-300 px-2 py-0.5 font-semibold text-forest-950">v{version.split('.').slice(0, 2).join('.')}</span> See what’s new →
         </a>
         <p className="mt-6 text-sm font-semibold uppercase tracking-[0.18em] text-mint-300">Property risk underwriting · India</p>
         <h1 className="mt-4 max-w-2xl text-4xl font-bold leading-[1.1] tracking-tight text-balance sm:text-5xl lg:text-6xl">
@@ -48,8 +48,8 @@ function Hero() {
           <a href={`${DEMO}#paper`} className="inline-flex h-12 items-center rounded-full bg-white/10 px-6 font-semibold text-white transition hover:bg-white/20">See a paper proposal</a>
         </div>
         <ul aria-label="Some of the Indian languages it works in" className="mt-6 flex max-w-2xl flex-wrap gap-x-4 gap-y-1 text-base text-white/90">
-          {LANGUAGES.slice(1, 12).map(({ code, name, english, rtl }) => <li key={code} lang={code} dir={rtl ? 'rtl' : undefined} title={english}>{name}</li>)}
-          <li className="text-white/70">+{LANGUAGES.length - 12} more</li>
+          {LANGUAGES.slice(1, 12).map(({ code, name, english, rtl }) => <li key={code} lang={code} dir={rtl ? 'rtl' : undefined} title={english} translate="no">{name}</li>)}
+          <li className="text-white/70">{`+${LANGUAGES.length - 12} more`}</li>
         </ul>
         <div data-glass className="glass-panel relative isolate mt-14 overflow-hidden rounded-3xl">
           <canvas aria-hidden="true" />
@@ -81,7 +81,7 @@ function Sources() {
     <section aria-labelledby="sources-title" className="border-b border-forest-900/10 bg-white py-6">
       <div className="shell flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-8">
         <h2 id="sources-title" className="shrink-0 text-xs font-semibold uppercase tracking-[0.16em] text-forest-700">Checked against public data from</h2>
-        <ul className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-ink">
+        <ul translate="no" className="flex flex-wrap gap-x-6 gap-y-2 text-sm font-semibold text-ink">
           {sources.map((source) => <li key={source}>{source}</li>)}
         </ul>
       </div>
@@ -134,7 +134,7 @@ function Journey() {
         </div>
         {stages.map(([id, label, body], index) => (
           <div key={id} role="tabpanel" id={`stage-${id}`} aria-labelledby={`stage-tab-${id}`} hidden={index !== 0} className="mt-6 rounded-3xl border border-forest-900/10 bg-sand-50 p-8 sm:p-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-forest-700">Step {index + 1} of {stages.length}</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-forest-700">{`Step ${index + 1} of ${stages.length}`}</p>
             <h3 className="mt-2 text-2xl font-bold tracking-tight text-forest-900">{label}</h3>
             <p className="mt-3 max-w-3xl text-lg leading-relaxed text-muted">{body}</p>
           </div>
@@ -401,7 +401,7 @@ function Logo({ tool }: { tool: Tool }) {
 function BuiltWith() {
   return (
     <section aria-label="Built with" className="py-8">
-      <div className="marquee">
+      <div className="marquee" translate="no">
         {[0, 1].map((copy) => (
           <ul key={copy} className="marquee-group" aria-hidden={copy === 1 ? 'true' : undefined}>
             {stack.map((tool) => (

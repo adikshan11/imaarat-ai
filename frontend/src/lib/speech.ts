@@ -70,31 +70,82 @@ export function listen(code: string, onText: (text: string) => void, onEnd: (hea
   return recognition
 }
 
+let session = 0
+
+const normal = (tag: string) => tag.replace('_', '-')
+
 function pickVoice(lang: string): SpeechSynthesisVoice | undefined {
   const voices = window.speechSynthesis.getVoices()
   const base = lang.split('-')[0]
-  return voices.find((voice) => voice.lang.replace('_', '-') === lang) ?? voices.find((voice) => voice.lang.replace('_', '-').startsWith(`${base}-`) || voice.lang === base)
+  const same = voices.filter((voice) => normal(voice.lang) === lang)
+  const close = voices.filter((voice) => normal(voice.lang).startsWith(`${base}-`) || voice.lang === base)
+  const pool = same.length ? same : close
+  return pool.find((voice) => voice.localService) ?? pool[0]
+}
+
+function voicesReady(): Promise<void> {
+  const synth = window.speechSynthesis
+  if (synth.getVoices().length) return Promise.resolve()
+  return new Promise((resolve) => {
+    const finish = () => {
+      synth.removeEventListener('voiceschanged', finish)
+      resolve()
+    }
+    synth.addEventListener('voiceschanged', finish)
+    window.setTimeout(finish, 800)
+  })
 }
 
 export function speak(text: string, code: string) {
   if (!speakSupported) return
   const synth = window.speechSynthesis
   const lang = speechLanguage(code)
-  const voice = pickVoice(lang)
-  const parts = text.match(/[^.!?।]+[.!?।]*\s*/g) ?? [text]
+  const parts = (text.match(/[^.!?।۔]+[.!?।۔]*\s*/g) ?? [text]).map((part) => part.trim()).filter(Boolean)
+  const id = ++session
   synth.cancel()
-  window.setTimeout(() => {
-    synth.resume()
-    for (const part of parts) {
-      if (!part.trim()) continue
-      const utterance = new SpeechSynthesisUtterance(part.trim())
-      utterance.lang = voice?.lang ?? lang
-      if (voice) utterance.voice = voice
-      synth.speak(utterance)
+  const say = (index: number, attempt: number, voice: SpeechSynthesisVoice | undefined) => {
+    if (id !== session || index >= parts.length) return
+    const utterance = new SpeechSynthesisUtterance(parts[index])
+    utterance.lang = voice?.lang ?? lang
+    if (voice && attempt === 0) utterance.voice = voice
+    let settled = false
+    let started = false
+    const settle = (action: () => void) => {
+      if (settled || id !== session) return
+      settled = true
+      window.clearTimeout(startGuard)
+      window.clearTimeout(endGuard)
+      action()
     }
-  }, 80)
+    const retryOrSkip = () => settle(() => {
+      synth.cancel()
+      window.setTimeout(() => (attempt < 1 ? say(index, attempt + 1, voice) : say(index + 1, 0, voice)), 150)
+    })
+    const startGuard = window.setTimeout(() => { if (!started) retryOrSkip() }, 6000)
+    const endGuard = window.setTimeout(() => settle(() => { synth.cancel(); say(index + 1, 0, voice) }), 30000)
+    utterance.onstart = () => {
+      started = true
+      window.clearTimeout(startGuard)
+    }
+    utterance.onend = () => settle(() => say(index + 1, 0, voice))
+    utterance.onerror = (event) => {
+      if (event.error === 'interrupted' || event.error === 'canceled') return
+      retryOrSkip()
+    }
+    synth.speak(utterance)
+  }
+  void voicesReady().then(() => {
+    if (id !== session) return
+    const voice = pickVoice(lang)
+    window.setTimeout(() => {
+      if (id !== session) return
+      synth.resume()
+      say(0, 0, voice)
+    }, 120)
+  })
 }
 
 export function stopSpeaking() {
+  session += 1
   if (speakSupported) window.speechSynthesis.cancel()
 }

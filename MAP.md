@@ -364,10 +364,36 @@ One line per tracked source file: its docstring, exported names or title. Regene
 - `site.tsx`: APP, DEMO, REPO, PORTFOLIO, Mark, SkipLink, Header, Footer
 - `stack.ts`: Tool, stack
 - `tabs.ts`
+- `translate.ts`: applyLanguage
 
 ## frontend/src/landing/copy
 
 - `source.json`
+
+## frontend/src/landing/copy/dictionaries
+
+- `as.json`
+- `bn.json`
+- `brx.json`
+- `doi.json`
+- `gom.json`
+- `gu.json`
+- `hi.json`
+- `kn.json`
+- `ks.json`
+- `mai.json`
+- `ml.json`
+- `mni.json`
+- `mr.json`
+- `ne.json`
+- `or.json`
+- `pa.json`
+- `sa.json`
+- `sat.json`
+- `sd.json`
+- `ta.json`
+- `te.json`
+- `ur.json`
 
 ## frontend/src/lib
 

@@ -21,5 +21,18 @@ for (const file of readdirSync(dir).filter((name) => name.endsWith('.json') && n
     console.error(`${file}: ${problems.slice(0, 10).join('; ')}`)
   }
 }
+const copy = join(dirname(dir), '..', 'landing', 'copy')
+const source = JSON.parse(readFileSync(join(copy, 'source.json'), 'utf8'))
+for (const file of readdirSync(join(copy, 'dictionaries')).filter((name) => name.endsWith('.json'))) {
+  const words = JSON.parse(readFileSync(join(copy, 'dictionaries', file), 'utf8'))
+  const problems = [
+    ...source.filter((text) => !String(words[text] ?? '').trim()).map((text) => `missing ${text.slice(0, 40)}`),
+    ...Object.keys(words).filter((text) => !source.includes(text)).map((text) => `extra ${text.slice(0, 40)}`),
+  ]
+  if (problems.length) {
+    failed += 1
+    console.error(`landing ${file}: ${problems.slice(0, 10).join('; ')}`)
+  }
+}
 console.log(failed ? `${failed} locale file(s) failed` : 'All locale files match en.json')
 process.exit(failed ? 1 : 0)

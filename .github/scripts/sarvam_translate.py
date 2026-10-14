@@ -23,6 +23,7 @@ def translate(text: str, target: str) -> str:
         except urllib.error.HTTPError as error:
             if error.code != 429 or attempt == 7:
                 raise
+            print(f"  rate limited for {target}, retry {attempt + 1}/7 in {2 * (attempt + 1)}s", file=sys.stderr, flush=True)
             time.sleep(2 * (attempt + 1))
     return ""
 
@@ -30,11 +31,23 @@ def translate(text: str, target: str) -> str:
 def translate_list(path: str) -> int:
     strings = json.loads(Path(path).read_text(encoding="utf-8"))
     results = {}
+    started = time.time()
+    print(f"Translating {len(strings)} strings into {len(CODES)} languages with 6 parallel requests", file=sys.stderr, flush=True)
+    rows = []
     with ThreadPoolExecutor(max_workers=6) as pool:
-        for code, target in CODES.items():
-            results[code] = dict(zip(strings, pool.map(translate, strings, [target] * len(strings))))
-            print(f"{code}: {len(strings)} strings", flush=True)
+        for number, (code, target) in enumerate(CODES.items(), 1):
+            begun = time.time()
+            translated = list(pool.map(translate, strings, [target] * len(strings)))
+            results[code] = dict(zip(strings, translated))
+            empty = sum(1 for text in translated if not text.strip())
+            same = sum(1 for text, original in zip(translated, strings) if text == original)
+            took = time.time() - begun
+            rows.append(f"| {code} | {target} | {len(translated)} | {empty} | {same} | {took:.0f}s |")
+            print(f"[{number}/{len(CODES)}] {code} ({target}): {len(translated)} done, {empty} empty, {same} unchanged, {took:.0f}s, {time.time() - started:.0f}s total", file=sys.stderr, flush=True)
     Path("translations.json").write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
+    print("| Locale | Sarvam code | Strings | Empty | Unchanged | Time |\n|---|---|---|---|---|---|")
+    print("\n".join(rows))
+    print(f"\n{len(strings)} strings, {len(CODES)} languages, {time.time() - started:.0f}s in total.")
     return 0
 
 
